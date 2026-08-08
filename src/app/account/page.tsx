@@ -121,10 +121,27 @@ function MyAccountContent() {
           >
             <div className="flex items-center space-x-3">
               <ShoppingBag size={16} />
-              <span>{t('account_orders', '주문 내역')}</span>
+              <span>{t('account_orders', '주문 및 실시간 배송 내역')}</span>
             </div>
-            <span className="font-mono text-[10px] bg-stone-200 text-stone-800 font-bold px-2 py-0.5 rounded-full">
+            <span className="font-mono text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full">
               {orders.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('wholesale')}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'wholesale'
+                ? 'bg-[#14532D] text-white shadow'
+                : 'text-stone-700 hover:bg-stone-100 hover:text-[#14532D]'
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <ShieldCheck size={16} className="text-[#EAB308]" />
+              <span>도매 &amp; B2B 파트너 회원</span>
+            </div>
+            <span className="font-mono text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+              15% 할인
             </span>
           </button>
 
@@ -374,6 +391,67 @@ function MyAccountContent() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Tab: Wholesale & B2B Partner */}
+          {activeTab === 'wholesale' && (
+            <div className="bg-[#101411] border border-emerald-900/40 rounded-xl p-6 sm:p-8 space-y-6 text-xs font-sans shadow-xl">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-emerald-900/30 pb-4 gap-2">
+                <div>
+                  <h2 className="font-serif-luxury text-xl text-white font-bold flex items-center space-x-2">
+                    <ShieldCheck className="text-[#EAB308]" size={22} />
+                    <span>도매 &amp; B2B 식자재 파트너 회원 정보</span>
+                  </h2>
+                  <p className="text-stone-400 text-xs mt-1">
+                    송영민푸드 공식 B2B 도매 파트너 회원 전용 혜택 및 견적 관리 상태입니다.
+                  </p>
+                </div>
+                <span className="bg-emerald-950 text-emerald-400 border border-emerald-700 px-3 py-1 rounded-full text-xs font-mono font-bold">
+                  도매 회원 등급: VIP 1등급
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-[#18221b] border border-emerald-900/30 p-4 rounded-lg space-y-1">
+                  <div className="text-stone-400 font-mono text-[11px]">사업자 등록번호</div>
+                  <div className="font-mono font-bold text-white text-sm">104-81-29401 (식자재 도매)</div>
+                  <div className="text-emerald-400 text-[10px]">인증완료 (세금계산서 자동 발행)</div>
+                </div>
+
+                <div className="bg-[#18221b] border border-emerald-900/30 p-4 rounded-lg space-y-1">
+                  <div className="text-stone-400 font-mono text-[11px]">B2B 도매 적용 할인율</div>
+                  <div className="font-mono font-extrabold text-[#EAB308] text-sm">기본 소매가 대비 15% 할인</div>
+                  <div className="text-stone-400 text-[10px]">대량 구매 시 추가 구간 할인 적용</div>
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-2">
+                <h3 className="font-bold text-stone-200 text-sm">도매 주문 및 견적 신청 Quick Link</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Link
+                    href="/rfq"
+                    className="p-4 bg-[#14532D] hover:bg-emerald-700 text-white rounded-xl font-bold flex items-center justify-between shadow transition-all"
+                  >
+                    <div>
+                      <div className="text-sm">🌎 15% 할인 RFQ 견적서 즉시 발행</div>
+                      <div className="text-[10px] font-normal text-emerald-200">Shop 상품 선택 &amp; Pro Forma Invoice 생성</div>
+                    </div>
+                    <ChevronRight size={18} />
+                  </Link>
+
+                  <Link
+                    href="/wholesale"
+                    className="p-4 bg-stone-900 border border-stone-700 hover:border-amber-500 text-stone-200 hover:text-white rounded-xl font-bold flex items-center justify-between transition-all"
+                  >
+                    <div>
+                      <div className="text-sm">🏬 국내 식자재 공급 문의 (B2B)</div>
+                      <div className="text-[10px] font-normal text-stone-400">대용량 업소용 냉동식품 &amp; 소스 상담</div>
+                    </div>
+                    <ChevronRight size={18} />
+                  </Link>
+                </div>
+              </div>
             </div>
           )}
 
