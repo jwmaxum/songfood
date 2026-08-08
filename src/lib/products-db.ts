@@ -53,8 +53,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     production_lead_time: '14 Days',
     export_packaging: 'Cold-Chain Reefer Carton Box (-18°C)',
     loading_port: 'Busan Port, Korea',
-    export_price_usd: 14.50,
-    wholesale_price_krw: 15300, // 15% discount off 18,000 KRW
+    export_price_usd: 7.50,
+    wholesale_price_krw: 85000, // 15% discount off 100,000 KRW (10,000 x 10)
     target_markets: ['USA', 'Japan', 'China', 'Europe', 'Southeast Asia']
   },
   {
@@ -63,8 +63,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     name_en: 'Song Youngmin Food Premium Artisanal Poggi Kimchi 5kg',
     collection: 'K-전통식품',
     category: '김치 & 발효식품',
-    price: 32000,
-    original_price: 40000,
+    price: 10000,
+    original_price: 15000,
     stock: 200,
     rating: 5.0,
     reviews_count: 142,
@@ -94,7 +94,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     certifications: ['HACCP', 'Halal', 'Vegan', 'FSSC 22000', 'Gluten Free'],
 
     // Export Specs
-    carton_qty: 4,
+    carton_qty: 10,
+    wholesale_discount_rate: 0.15,
     carton_size: '520 x 360 x 280 mm',
     gross_weight: 21.5,
     cbm: 0.052,
@@ -103,8 +104,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     production_lead_time: '10 Days',
     export_packaging: 'Vacuum Sealed Leak-Proof Gas-Barrier Pouch in Cold CTN',
     loading_port: 'Busan Port / Incheon Port',
-    export_price_usd: 24.80,
-    wholesale_price_krw: 27200, // 15% discount off 32,000 KRW
+    export_price_usd: 7.50,
+    wholesale_price_krw: 85000, // 15% discount off 100,000 KRW
     target_markets: ['USA', 'Japan', 'Middle East', 'Europe', 'Southeast Asia']
   },
   {
@@ -113,8 +114,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     name_en: 'K-Street Spicy Tteokbokki & Assorted Tempura Kit',
     collection: 'K-간편식/HMR',
     category: '떡볶이 & 밀키트',
-    price: 15000,
-    original_price: 19000,
+    price: 10000,
+    original_price: 14000,
     stock: 95,
     rating: 4.8,
     reviews_count: 64,
@@ -145,7 +146,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     certifications: ['HACCP', 'Halal', 'Gluten Free'],
 
     // Export Specs
-    carton_qty: 16,
+    carton_qty: 10,
+    wholesale_discount_rate: 0.15,
     carton_size: '450 x 350 x 220 mm',
     gross_weight: 11.8,
     cbm: 0.035,
@@ -154,8 +156,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     production_lead_time: '14 Days',
     export_packaging: 'Frozen Cold-Chain Carton',
     loading_port: 'Busan Port, Korea',
-    export_price_usd: 11.20,
-    wholesale_price_krw: 12750, // 15% discount off 15,000 KRW
+    export_price_usd: 7.50,
+    wholesale_price_krw: 85000,
     target_markets: ['USA', 'Southeast Asia', 'Japan', 'Middle East']
   },
   {
@@ -164,8 +166,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     name_en: 'Korean Boneless Fried Chicken Half & Half (Sweet & Garlic Soy)',
     collection: 'K-냉동식품',
     category: '치킨 & 안주',
-    price: 24000,
-    original_price: 29000,
+    price: 10000,
+    original_price: 14000,
     stock: 110,
     rating: 5.0,
     reviews_count: 145,
@@ -196,7 +198,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     certifications: ['HACCP', 'FSSC 22000'],
 
     // Export Specs
-    carton_qty: 12,
+    carton_qty: 10,
+    wholesale_discount_rate: 0.15,
     carton_size: '500 x 360 x 260 mm',
     gross_weight: 10.5,
     cbm: 0.046,
@@ -205,8 +208,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     production_lead_time: '14 Days',
     export_packaging: 'Export Cold-Chain Master Carton',
     loading_port: 'Busan Port, Korea',
-    export_price_usd: 18.00,
-    wholesale_price_krw: 20400, // 15% discount off 24,000 KRW
+    export_price_usd: 7.50,
+    wholesale_price_krw: 85000,
     target_markets: ['USA', 'Japan', 'Southeast Asia', 'Europe']
   },
   {
@@ -215,8 +218,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     name_en: 'Song Youngmin Artisanal Korean Bulgogi & Galbi Sauce 2kg',
     collection: 'K-소스/조미료',
     category: '소스 & 양념',
-    price: 19000,
-    original_price: 24000,
+    price: 10000,
+    original_price: 14000,
     stock: 180,
     rating: 4.9,
     reviews_count: 98,
@@ -247,7 +250,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     certifications: ['HACCP', 'Halal', 'Vegan', 'ISO', 'Gluten Free'],
 
     // Export Specs
-    carton_qty: 6,
+    carton_qty: 10,
+    wholesale_discount_rate: 0.15,
     carton_size: '440 x 300 x 300 mm',
     gross_weight: 13.2,
     cbm: 0.039,
@@ -256,8 +260,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     production_lead_time: '7 Days',
     export_packaging: 'Heavy-Duty HDPE Jug in Master CTN',
     loading_port: 'Busan / Incheon Port',
-    export_price_usd: 14.80,
-    wholesale_price_krw: 16150, // 15% discount off 19,000 KRW
+    export_price_usd: 7.50,
+    wholesale_price_krw: 85000,
     target_markets: ['USA', 'Japan', 'Middle East', 'Europe', 'China', 'Southeast Asia']
   },
   {
@@ -266,8 +270,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     name_en: 'WON SOJU Artisanal Distilled Rice Spirits 24% 375ml',
     collection: 'K-주류 & 전통주',
     category: '증류식 소주',
-    price: 28000,
-    original_price: 35000,
+    price: 10000,
+    original_price: 14000,
     stock: 80,
     rating: 5.0,
     reviews_count: 124,
@@ -297,7 +301,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     certifications: ['HACCP', 'ISO'],
 
     // Export Specs
-    carton_qty: 20,
+    carton_qty: 10,
+    wholesale_discount_rate: 0.15,
     carton_size: '380 x 310 x 260 mm',
     gross_weight: 15.0,
     cbm: 0.030,
@@ -306,8 +311,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     production_lead_time: '10 Days',
     export_packaging: 'Heavy Divider Safety Glass Bottle CTN',
     loading_port: 'Incheon / Busan Port',
-    export_price_usd: 21.00,
-    wholesale_price_krw: 23800, // 15% discount off 28,000 KRW
+    export_price_usd: 7.50,
+    wholesale_price_krw: 85000,
     target_markets: ['USA', 'Japan', 'Europe', 'Southeast Asia']
   },
   {
@@ -316,8 +321,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     name_en: 'Slow Village Artisanal Fresh Raw Makgeolli 750ml',
     collection: 'K-주류 & 전통주',
     category: '막걸리 & 탁주',
-    price: 14000,
-    original_price: 16000,
+    price: 10000,
+    original_price: 14000,
     stock: 60,
     rating: 4.9,
     reviews_count: 72,
@@ -330,7 +335,7 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     description: '인공 감미료 없이 쌀, 누룩, 물만으로 장기 순수 발효시킨 프레시 생막걸리. 부드러운 탄산과 순수한 단맛.',
     thickness: '750 ml',
     origin: '포천, 대한민국',
-    is_featured: false,
+    is_featured: true,
     is_todays_deal: false,
     is_best_seller: false,
 
@@ -347,7 +352,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     certifications: ['HACCP'],
 
     // Export Specs
-    carton_qty: 12,
+    carton_qty: 10,
+    wholesale_discount_rate: 0.15,
     carton_size: '340 x 260 x 300 mm',
     gross_weight: 10.8,
     cbm: 0.026,
@@ -356,8 +362,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     production_lead_time: '7 Days',
     export_packaging: 'Chilled Air-Freight / Cold-Chain Reefer CTN',
     loading_port: 'Incheon Airport / Busan Port',
-    export_price_usd: 9.80,
-    wholesale_price_krw: 11900, // 15% discount off 14,000 KRW
+    export_price_usd: 7.50,
+    wholesale_price_krw: 85000,
     target_markets: ['Japan', 'USA', 'Southeast Asia']
   },
   {
@@ -366,8 +372,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     name_en: 'Song Youngmin Premium Crunchy Sweet Potato Chips 100g',
     collection: 'K-스낵/음료',
     category: '과자 & 스낵',
-    price: 6000,
-    original_price: 8000,
+    price: 10000,
+    original_price: 14000,
     stock: 300,
     rating: 4.9,
     reviews_count: 56,
@@ -398,7 +404,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     certifications: ['HACCP', 'Halal', 'Vegan', 'Gluten Free'],
 
     // Export Specs
-    carton_qty: 24,
+    carton_qty: 10,
+    wholesale_discount_rate: 0.15,
     carton_size: '480 x 380 x 260 mm',
     gross_weight: 3.5,
     cbm: 0.047,
@@ -407,8 +414,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     production_lead_time: '7 Days',
     export_packaging: 'Nitrogen Flushed Foil Pouch in Heavy CTN',
     loading_port: 'Busan / Incheon Port',
-    export_price_usd: 4.20,
-    wholesale_price_krw: 5100, // 15% discount off 6,000 KRW
+    export_price_usd: 7.50,
+    wholesale_price_krw: 85000,
     target_markets: ['USA', 'Japan', 'Middle East', 'Europe', 'Southeast Asia']
   }
 ];
@@ -426,7 +433,7 @@ function ensureProductsFile(): ProductItem[] {
   try {
     const fileData = fs.readFileSync(PRODUCTS_DATA_PATH, 'utf-8');
     const parsed = JSON.parse(fileData) as ProductItem[];
-    if (!parsed || parsed.length === 0) {
+    if (!parsed || parsed.length === 0 || parsed.some((p) => p.price !== 10000 || p.carton_qty !== 10)) {
       saveProductsData(INITIAL_PRODUCTS);
       return INITIAL_PRODUCTS;
     }

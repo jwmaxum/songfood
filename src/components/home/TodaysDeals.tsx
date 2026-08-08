@@ -115,30 +115,37 @@ export default function TodaysDeals({ products }: TodaysDealsProps) {
                     <span className="text-stone-400">({product.reviews_count || 32}개 후기)</span>
                   </div>
 
-                  <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
-                    <div>
-                      <div className="flex items-baseline space-x-2">
-                        <span className="font-jakarta text-xl font-extrabold text-[#14532D]">
-                          ₩{(product.price || 0).toLocaleString()}원
-                        </span>
-                        {product.original_price && (
-                          <span className="text-xs text-stone-400 line-through">
-                            ₩{product.original_price.toLocaleString()}원
-                          </span>
-                        )}
+                  <div className="pt-3 border-t border-stone-100 space-y-2">
+                    <div className="flex flex-col text-xs font-mono">
+                      <div className="flex justify-between items-center text-[#14532D] font-bold">
+                        <span>소량 특가 개별가:</span>
+                        <span>₩{(product.price || 10000).toLocaleString()}원</span>
                       </div>
-                      <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded">
-                        당일 즉시 출고 (재고 {product.stock || 99}개)
-                      </span>
+                      <div className="flex justify-between items-center text-amber-700 font-bold">
+                        <span>📦 대용량(10개입):</span>
+                        <span>₩{Math.round((product.price || 10000) * (product.carton_qty || 10) * 0.85).toLocaleString()}원</span>
+                      </div>
                     </div>
 
-                    <button
-                      onClick={() => addToCart(product, 1)}
-                      className="flex items-center space-x-1 bg-[#14532D] hover:bg-[#166534] text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-md hover:shadow-lg transition-all"
-                    >
-                      <ShoppingBag size={14} />
-                      <span>담기</span>
-                    </button>
+                    <div className="flex items-center justify-between pt-1 gap-2">
+                      <button
+                        onClick={() => addToCart(product, 1)}
+                        className="flex-1 flex items-center justify-center space-x-1 bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-300 px-3 py-2.5 rounded-xl font-bold text-xs transition-all"
+                      >
+                        <ShoppingBag size={14} />
+                        <span>장바구니</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          addToCart(product, 1);
+                          window.location.href = '/checkout';
+                        }}
+                        className="flex-1 flex items-center justify-center space-x-1 bg-[#14532D] hover:bg-emerald-800 text-white font-extrabold text-xs px-3 py-2.5 rounded-xl transition-all shadow"
+                      >
+                        <span>⚡ 바로 결제</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
