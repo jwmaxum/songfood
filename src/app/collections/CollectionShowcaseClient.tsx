@@ -141,16 +141,9 @@ export default function CollectionShowcaseClient({
       {/* Top Page Banner Header */}
       <div className="relative py-20 bg-gradient-to-b from-[#121218] via-[#0e0e12] to-[#0a0a0c] border-b border-stone-800/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-          <div className="inline-flex items-center space-x-2 text-[#c5a880] text-xs uppercase tracking-[0.3em]">
-            <Sparkles size={14} />
-            <span>Lookbook Showcase</span>
-          </div>
-          <h1 className="font-serif-luxury text-4xl sm:text-6xl font-light text-white tracking-tight">
-            Artisanal Gourmet & Fine Foods
+          <h1 className="font-serif-luxury text-3xl sm:text-5xl font-light text-white tracking-tight">
+            송영민푸드 K-Food 프리미엄 컬렉션
           </h1>
-          <p className="text-stone-400 text-xs sm:text-sm max-w-xl mx-auto font-light leading-relaxed">
-            Filter by packaging size, aging process, flavor profile, and organic origin to discover Anatolia’s precision-curated gourmet collections.
-          </p>
 
           {/* Quick Collection Tabs */}
           <div className="pt-6 flex flex-wrap justify-center gap-2">
