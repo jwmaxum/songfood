@@ -198,13 +198,15 @@ SUPABASE_ACCESS_TOKEN=sbp_...
 | `journal_articles` | id, title, slug, category, content, cover_image, is_published | 저널/블로그 |
 | `content_blocks` | id, section_key, page, title, subtitle, description, media_url | 페이지 섹션 CMS |
 | `media_library` | id, name, url, type, size, created_at | 미디어 자산 |
-| `user_profiles` | id, email, name, role, status, company | 사용자 프로필/권한 |
-| `orders` | id, status, items, total, shipping_address, payment_method | 주문 내역 |
+| `user_profiles` | id, email, name, role, status, company | 사용자 프로필 & 서브 관리자 직원 권한 |
+| `orders` | id, status, items, total, shipping_address, payment_method, payment_key, courier_company, tracking_number | 국내/도매 회원 주문 내역 & 택배 운송장 |
+| `rfq_requests` | id, company_name, buyer_name, destination_country, incoterms, items, total_usd | 해외 바이어 RFQ & Pro Forma Invoice |
+| `payments` | id, payment_key, order_id, amount, status, method, raw_response | 토스페이먼츠 서버 승인 감도 데이터 |
 
 ### RLS (Row Level Security) 정책
 - `menus`, `hero_slides`, `products`, `content_blocks`, `media_library`: **공개 읽기** (is_active=true)
 - 쓰기 작업: `service_role` 키 전용 (서버 사이드 `supabaseAdmin`)
-- `user_profiles`, `orders`: 인증된 사용자 본인 데이터만 읽기/수정
+- `user_profiles`, `orders`, `rfq_requests`: 인증된 사용자 및 담당 권한 직원의 데이터만 읽기/수정
 
 ---
 
@@ -221,8 +223,8 @@ npm run test:coverage  # 커버리지 보고서
 |------|-----------|-----------|
 | `admin-auth.test.ts` | 7개 | PIN 검증 로직, 환경변수화, 보안 케이스 |
 | `api-kpi.test.ts` | 9개 | KpiData 형식, 음수 방지, 통화 포맷 함수 |
-| `upload-validation.test.ts` | 11개 | MIME 타입 화이트리스트, 크기 제한, 파일명 sanitize |
-| **합계** | **27개** | **전체 통과** ✅ |
+| `upload-validation.test.ts` | 12개 | MIME 타입 화이트리스트, 크기 제한, 파일명 sanitize |
+| **합계** | **28개** | **전체 통과** ✅ |
 
 ---
 
@@ -230,7 +232,7 @@ npm run test:coverage  # 커버리지 보고서
 
 ```bash
 npm run dev            # 개발 서버 (localhost:3000)
-npm run build          # 프로덕션 빌드 (40페이지 정적/동적 생성)
+npm run build          # 프로덕션 빌드 (53페이지 정적/동적 생성)
 npm run test           # Jest 단위 테스트
 npm run lint           # ESLint 검사
 ```
@@ -238,6 +240,16 @@ npm run lint           # ESLint 검사
 ---
 
 ## 구현 이력 (Changelog)
+
+### v1.2.0 — 2026-08-08 (K-Food 마켓플레이스 & 엑스포트 RFQ 플랫폼 통합 개편)
+- **[이중 가격 엔진]**: 개별 소매가(`개당 ₩10,000원`)와 박스당 대용량가(`10개입 Box ₩85,000원`, 15% 대량할인) 동시 표기 및 모든 일반 가입 회원의 [개별상품/대용량박스] 자유 선택 구매 구축.
+- **[토스페이먼츠 실시간 결제]**: 클라이언트 SDK + 서버 인증 승인 API(`/api/payments/confirm`) 및 가상계좌 입금 통보 웹훅(`/api/payments/webhook`) 구현. 관리자 CMS 토스페이먼츠 연동 진단 연동 완료.
+- **[배송비 정책]**: 결제 총액 5만원 미만 시 **3,000원 배송비** 자동 청구, 5만원 이상 구매 시 **0원 무료배송** 적용.
+- **[택배사 운송장 & 주문 조회]**: CJ대한통운, 로젠택배, 한진택배 운송장 입력 지원 및 마이페이지 실시간 배송 조회 연동.
+- **[서브 관리자 직원 권한]**: `inquiry_staff`(문의/바이어 담당), `product_staff`(상품/가격 담당), `order_staff`(주문/송장 담당), `admin`(전체 권한) 역할 분담 구축.
+- **[해외 바이어 엑스포트 허브]**: `/global` 카탈로그 내 **수출 상품 이미지 카드 직접 클릭 선택** 기능 및 하단 실시간 플로팅 RFQ 바 구현. 선택 상품 ID가 7단계 RFQ 위저드(`/rfq`) 및 Pro Forma Invoice(PFI)에 즉시 세팅됨.
+- **[추천/메인 Featured 결제 연결]**: 메인 베스트셀러 및 특가 상품 카드마다 `[🛒 장바구니]` 및 `[⚡ 바로 결제]` 버튼 적용으로 즉시 `/checkout` 결제 라우팅.
+- **[Supabase DDL 점검]**: `supabase/schema.sql` 점검 및 `rfq_requests`, `payments` 신규 테이블 DDL, 인덱스, RLS 정책 및 더미 데이터(₩10,000 / 10개입) 전면 동기화.
 
 ### v1.1.0 — 2026-08-04 (보안점검 권고조치 8개 항목)
 - **[보안]** Admin PIN 하드코딩 제거 → `NEXT_PUBLIC_ADMIN_PIN` 환경변수화
