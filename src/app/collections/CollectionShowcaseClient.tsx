@@ -224,151 +224,22 @@ export default function CollectionShowcaseClient({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          
-          {/* Left Sidebar Filter Column (Desktop) */}
-          <aside className="hidden lg:block lg:col-span-3 space-y-8 pr-4 border-r border-stone-800/60">
-            
-            {/* 1. Format Filter */}
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#c5a880] mb-3 pb-1 border-b border-stone-800/50 flex justify-between items-center">
-                <span>Format</span>
-                <span className="text-[10px] text-stone-500 font-mono">Size</span>
-              </h3>
-              <div className="space-y-2">
-                {FORMAT_OPTIONS.map((fmt) => {
-                  const isChecked = selectedFormats.includes(fmt);
-                  return (
-                    <label
-                      key={fmt}
-                      className="flex items-center space-x-2.5 text-xs text-stone-300 hover:text-white cursor-pointer select-none py-0.5"
-                    >
-                      <div
-                        onClick={() => toggleFilterItem(selectedFormats, setSelectedFormats, fmt)}
-                        className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                          isChecked
-                            ? 'bg-[#c5a880] border-[#c5a880] text-black'
-                            : 'bg-[#121218] border-stone-700'
-                        }`}
-                      >
-                        {isChecked && <Check size={12} strokeWidth={3} />}
-                      </div>
-                      <span>{fmt}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 2. Surface Finish Filter */}
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#c5a880] mb-3 pb-1 border-b border-stone-800/50 flex justify-between items-center">
-                <span>Surface Finish</span>
-                <span className="text-[10px] text-stone-500 font-mono">Texture</span>
-              </h3>
-              <div className="space-y-2">
-                {FINISH_OPTIONS.map((fn) => {
-                  const isChecked = selectedFinishes.includes(fn);
-                  return (
-                    <label
-                      key={fn}
-                      className="flex items-center space-x-2.5 text-xs text-stone-300 hover:text-white cursor-pointer select-none py-0.5"
-                    >
-                      <div
-                        onClick={() => toggleFilterItem(selectedFinishes, setSelectedFinishes, fn)}
-                        className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                          isChecked
-                            ? 'bg-[#c5a880] border-[#c5a880] text-black'
-                            : 'bg-[#121218] border-stone-700'
-                        }`}
-                      >
-                        {isChecked && <Check size={12} strokeWidth={3} />}
-                      </div>
-                      <span>{fn}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 3. Color Filter */}
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#c5a880] mb-3 pb-1 border-b border-stone-800/50 flex justify-between items-center">
-                <span>Color</span>
-                <span className="text-[10px] text-stone-500 font-mono">Tone</span>
-              </h3>
-              <div className="space-y-2">
-                {COLOR_OPTIONS.map((clr) => {
-                  const isChecked = selectedColors.includes(clr);
-                  return (
-                    <label
-                      key={clr}
-                      className="flex items-center space-x-2.5 text-xs text-stone-300 hover:text-white cursor-pointer select-none py-0.5"
-                    >
-                      <div
-                        onClick={() => toggleFilterItem(selectedColors, setSelectedColors, clr)}
-                        className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                          isChecked
-                            ? 'bg-[#c5a880] border-[#c5a880] text-black'
-                            : 'bg-[#121218] border-stone-700'
-                        }`}
-                      >
-                        {isChecked && <Check size={12} strokeWidth={3} />}
-                      </div>
-                      <span>{clr}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 4. Look Filter */}
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#c5a880] mb-3 pb-1 border-b border-stone-800/50 flex justify-between items-center">
-                <span>Look</span>
-                <span className="text-[10px] text-stone-500 font-mono">Aesthetic</span>
-              </h3>
-              <div className="space-y-2">
-                {LOOK_OPTIONS.map((lk) => {
-                  const isChecked = selectedLooks.includes(lk);
-                  return (
-                    <label
-                      key={lk}
-                      className="flex items-center space-x-2.5 text-xs text-stone-300 hover:text-white cursor-pointer select-none py-0.5"
-                    >
-                      <div
-                        onClick={() => toggleFilterItem(selectedLooks, setSelectedLooks, lk)}
-                        className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                          isChecked
-                            ? 'bg-[#c5a880] border-[#c5a880] text-black'
-                            : 'bg-[#121218] border-stone-700'
-                        }`}
-                      >
-                        {isChecked && <Check size={12} strokeWidth={3} />}
-                      </div>
-                      <span>{lk}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-          </aside>
-
-          {/* Right Visual Grid Area (Lookbook Style) */}
-          <main className="lg:col-span-9">
+        {/* Full-width Product Grid Section */}
+        <div>
+          <main className="w-full">
             {filteredProducts.length === 0 ? (
               <div className="py-24 text-center space-y-4 bg-[#121218]/50 border border-stone-800 rounded-lg">
                 <Grid size={32} className="mx-auto text-stone-600" />
-                <p className="text-stone-400 text-sm">No items found matching the selected filters.</p>
+                <p className="text-stone-400 text-sm">No items found matching the selected category.</p>
                 <button
                   onClick={clearAllFilters}
                   className="px-4 py-2 bg-[#c5a880] text-black text-xs font-semibold uppercase tracking-wider rounded"
                 >
-                  Reset All Filters
+                  Reset Category Filter
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {filteredProducts.map((product) => (
                   <div
                     key={product.id}
