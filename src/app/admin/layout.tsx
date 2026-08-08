@@ -113,6 +113,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin', label: '실시간 대시보드', icon: LayoutDashboard },
     { href: '/admin/orders', label: '🚚 회원 주문 & 송장 관리', icon: Truck },
     { href: '/admin/crm', label: '🏢 해외/도매 바이어 CRM', icon: Shield },
+    { href: '/admin/payments', label: '💳 토스 결제 시스템 설정', icon: Lock },
     { href: '/admin/navigation', label: '메뉴 엔진 (GNB/Footer)', icon: Layers },
     { href: '/admin/hero', label: '히어로 비디오/슬라이더', icon: Film },
     { href: '/admin/products', label: 'K-푸드 & 주류 제품 관리', icon: Shield },
