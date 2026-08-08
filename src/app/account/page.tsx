@@ -15,6 +15,7 @@ import {
   LogOut,
   ChevronRight,
   Package,
+  Truck,
   Plus,
   Trash2,
   CheckCircle,
@@ -281,13 +282,30 @@ function MyAccountContent() {
                     >
                       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-emerald-900/30 pb-3 font-mono text-xs">
                         <div>
-                          <span className="text-stone-400">Order ID: </span>
+                          <span className="text-stone-400">주문 번호: </span>
                           <span className="text-[#c59b27] font-bold">{ord.id}</span>
                           <span className="text-stone-500 ml-3">({ord.createdAt})</span>
                         </div>
-                        <span className="bg-emerald-950 text-emerald-400 border border-emerald-800 px-2.5 py-0.5 rounded text-[11px]">
-                          Status: {ord.status}
-                        </span>
+                        <div className="flex items-center space-x-2">
+                          <span className="bg-[#3182f6]/20 text-[#3182f6] border border-[#3182f6]/40 px-2 py-0.5 rounded text-[10px] font-bold">
+                            {ord.tossMethod || '토스페이먼츠 승인'}
+                          </span>
+                          <span
+                            className={`px-2.5 py-0.5 rounded text-[11px] font-bold ${
+                              ord.status === 'PAID'
+                                ? 'bg-blue-950 text-blue-400 border border-blue-800'
+                                : ord.status === 'Shipped'
+                                ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                                : 'bg-amber-950 text-amber-400 border border-amber-800'
+                            }`}
+                          >
+                            {ord.status === 'PAID'
+                              ? '결제완료 (배송준비중)'
+                              : ord.status === 'Shipped'
+                              ? '배송중 (택배출고)'
+                              : ord.status}
+                          </span>
+                        </div>
                       </div>
 
                       <div className="divide-y divide-emerald-900/20">
@@ -300,22 +318,55 @@ function MyAccountContent() {
                             />
                             <div className="flex-1">
                               <div className="font-serif-luxury font-medium text-stone-200">{it.name}</div>
-                              <div className="text-[10px] text-stone-500 font-mono">Qty: {it.quantity}</div>
+                              <div className="text-[10px] text-stone-500 font-mono">수량: {it.quantity}개</div>
                             </div>
                             <span className="font-mono font-semibold text-[#c59b27]">
-                              ${(it.price * it.quantity).toFixed(2)}
+                              ₩{(it.price * it.quantity).toLocaleString()}원
                             </span>
                           </div>
                         ))}
                       </div>
 
+                      {/* Courier Tracking Section */}
+                      {ord.trackingNumber ? (
+                        <div className="bg-[#1a221d] border border-emerald-700/40 p-3 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs gap-2">
+                          <div className="flex items-center space-x-2">
+                            <Truck size={16} className="text-emerald-400" />
+                            <span className="text-stone-300 font-bold">
+                              {ord.carrier || 'CJ대한통운'} 운송장번호: <span className="font-mono text-amber-400">{ord.trackingNumber}</span>
+                            </span>
+                          </div>
+                          <a
+                            href={
+                              ord.carrier === '로젠택배'
+                                ? `https://www.ilogen.com/web/personal/trace/`
+                                : ord.carrier === '한진택배'
+                                ? `https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillResult.do?mCode=MN038&wblnum=${ord.trackingNumber}`
+                                : ord.carrier === '우체국택배'
+                                ? `https://service.epost.go.kr/trace.RetrieveDomRcvInvoiceTrace.comm?sid1=${ord.trackingNumber}`
+                                : `https://trace.cjlogistics.com/next/tracking.html?wblNo=${ord.trackingNumber}`
+                            }
+                            target="_blank"
+                            rel="noreferrer"
+                            className="bg-[#14532D] hover:bg-emerald-700 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg flex items-center space-x-1 shadow transition-all"
+                          >
+                            <span>🚚 실시간 택배 배송 추적</span>
+                            <ExternalLink size={12} />
+                          </a>
+                        </div>
+                      ) : (
+                        <div className="text-[11px] text-stone-500 font-mono italic">
+                          ℹ 신선 포장 준비 중입니다. 송장 등록 시 실시간 추적 버튼이 활성화됩니다.
+                        </div>
+                      )}
+
                       <div className="border-t border-emerald-900/30 pt-3 flex justify-between items-center text-xs">
-                        <span className="text-stone-400">Total: <strong className="text-white font-mono">${ord.total.toFixed(2)}</strong></span>
+                        <span className="text-stone-400">총 결제 금액: <strong className="text-white font-mono text-sm">₩{ord.total.toLocaleString()}원</strong></span>
                         <Link
                           href={`/checkout/success?orderId=${ord.id}`}
                           className="text-[#c59b27] hover:underline flex items-center space-x-1 font-mono text-[11px]"
                         >
-                          <span>Order Receipt</span>
+                          <span>구매 영수증 / 승인서</span>
                           <ExternalLink size={12} />
                         </Link>
                       </div>

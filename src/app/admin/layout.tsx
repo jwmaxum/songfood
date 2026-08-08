@@ -14,6 +14,7 @@ import {
   Lock,
   LogOut,
   Users,
+  Truck,
   KeyRound,
   Check,
   X,
@@ -110,13 +111,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navLinks = [
     { href: '/admin', label: '실시간 대시보드', icon: LayoutDashboard },
+    { href: '/admin/orders', label: '🚚 회원 주문 & 송장 관리', icon: Truck },
+    { href: '/admin/crm', label: '🏢 해외/도매 바이어 CRM', icon: Shield },
     { href: '/admin/navigation', label: '메뉴 엔진 (GNB/Footer)', icon: Layers },
     { href: '/admin/hero', label: '히어로 비디오/슬라이더', icon: Film },
     { href: '/admin/products', label: 'K-푸드 & 주류 제품 관리', icon: Shield },
     { href: '/admin/content-blocks', label: '페이지 섹션 콘텐츠', icon: FileText },
     { href: '/admin/journal', label: 'K-레시피 & 저널 에디터', icon: FileText },
     { href: '/admin/media', label: '미디어 라이브러리 CDN', icon: ImageIcon },
-    { href: '/admin/users', label: '사용자 권한 관리', icon: Users },
+    { href: '/admin/users', label: '서브 관리자 직원/권한', icon: Users },
   ];
 
   if (isAuthenticated === false) {

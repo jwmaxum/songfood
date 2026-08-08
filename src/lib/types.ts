@@ -154,17 +154,24 @@ export interface OrderItem {
   format?: string;
 }
 
+export type SubAdminRole = 'ROLE_SUPER_ADMIN' | 'ROLE_CRM_BUYER' | 'ROLE_PRODUCT_MANAGER' | 'ROLE_ORDER_SHIPPING';
+
 export interface Order {
   id: string;
   createdAt: string;
-  status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+  status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | 'PAID';
   items: OrderItem[];
   subtotal: number;
   discount: number;
   shipping: number;
   total: number;
   shippingAddress: ShippingAddress;
-  paymentMethod: 'credit_card' | 'bank_transfer' | 'kakao_pay';
+  paymentMethod: 'credit_card' | 'bank_transfer' | 'kakao_pay' | 'toss_payments';
+  tossPaymentKey?: string;
+  tossMethod?: string;
+  carrier?: 'CJ대한통운' | '로젠택배' | '한진택배' | '우체국택배' | '롯데택배' | string;
+  trackingNumber?: string;
+  shippedAt?: string;
 }
 
 export interface RFQItem {
