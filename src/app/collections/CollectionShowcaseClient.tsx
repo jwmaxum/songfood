@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ProductItem } from '@/lib/types';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { useCart } from '@/context/CartContext';
 import {
   Filter,
   X,
@@ -15,6 +16,7 @@ import {
   Sparkles,
   SlidersHorizontal,
   ChevronDown,
+  ShoppingBag,
 } from 'lucide-react';
 
 interface CollectionShowcaseClientProps {
@@ -34,6 +36,7 @@ export default function CollectionShowcaseClient({
   initialCollectionFilter,
 }: CollectionShowcaseClientProps) {
   const { t } = useLanguage();
+  const { addToCart } = useCart();
   const searchParams = useSearchParams();
   const urlLook = searchParams.get('look');
   const urlCollection = searchParams.get('collection');
@@ -301,11 +304,45 @@ export default function CollectionShowcaseClient({
                         <span className="px-2 py-0.5 bg-[#181822] rounded border border-stone-800">
                           Tone: {product.color}
                         </span>
-                        {product.thickness && (
-                          <span className="px-2 py-0.5 bg-[#181822] rounded border border-stone-800">
-                            {product.thickness}
-                          </span>
-                        )}
+                      </div>
+
+                      {/* Dual Price Box */}
+                      <div className="bg-[#101411] border border-emerald-900/40 p-3 rounded-lg space-y-1 font-mono text-xs">
+                        <div className="flex justify-between items-center text-[#c59b27] font-bold">
+                          <span>소량 개별가:</span>
+                          <span>₩{(product.price || 10000).toLocaleString()}원 / 개</span>
+                        </div>
+                        <div className="flex justify-between items-center text-amber-400 font-bold">
+                          <span>📦 대용량({product.carton_qty || 10}개):</span>
+                          <span>₩{Math.round((product.price || 10000) * (product.carton_qty || 10) * (1 - (product.wholesale_discount_rate || 0.15))).toLocaleString()}원</span>
+                        </div>
+                      </div>
+
+                      {/* Purchase Action Buttons */}
+                      <div className="flex items-center justify-between gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart(product, 1);
+                          }}
+                          className="flex-1 py-2 bg-stone-900 hover:bg-stone-800 text-stone-200 border border-stone-700 font-bold text-xs rounded-lg flex items-center justify-center space-x-1 transition-all"
+                        >
+                          <ShoppingBag size={13} />
+                          <span>장바구니</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart(product, 1);
+                            window.location.href = '/checkout';
+                          }}
+                          className="flex-1 py-2 bg-[#14532D] hover:bg-emerald-700 text-white font-extrabold text-xs rounded-lg flex items-center justify-center space-x-1 transition-all shadow-lg"
+                        >
+                          <span>⚡ 바로 결제</span>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -386,12 +423,38 @@ export default function CollectionShowcaseClient({
                 </div>
               </div>
 
+              {/* Dual Price Display in Modal */}
+              <div className="bg-[#101411] border border-emerald-900/40 p-4 rounded-xl space-y-1.5 font-mono text-xs">
+                <div className="flex justify-between items-center text-[#c59b27] font-bold">
+                  <span>소량 개별가:</span>
+                  <span>₩{(activeModalProduct.price || 10000).toLocaleString()}원 / 개</span>
+                </div>
+                <div className="flex justify-between items-center text-amber-400 font-bold">
+                  <span>📦 대용량({activeModalProduct.carton_qty || 10}개입):</span>
+                  <span>₩{Math.round((activeModalProduct.price || 10000) * (activeModalProduct.carton_qty || 10) * (1 - (activeModalProduct.wholesale_discount_rate || 0.15))).toLocaleString()}원</span>
+                </div>
+              </div>
+
               <div className="pt-2 flex gap-3">
                 <button
-                  onClick={() => setActiveModalProduct(null)}
-                  className="w-full py-2.5 bg-[#c5a880] hover:bg-[#dbbc93] text-black font-semibold text-xs tracking-wider uppercase rounded transition-colors"
+                  onClick={() => {
+                    addToCart(activeModalProduct, 1);
+                    setActiveModalProduct(null);
+                  }}
+                  className="flex-1 py-3 bg-stone-800 hover:bg-stone-700 text-white font-bold text-xs rounded-xl flex items-center justify-center space-x-1.5 transition-colors border border-stone-700"
                 >
-                  Close Spec Preview
+                  <ShoppingBag size={14} />
+                  <span>장바구니 담기</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    addToCart(activeModalProduct, 1);
+                    window.location.href = '/checkout';
+                  }}
+                  className="flex-1 py-3 bg-[#14532D] hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl flex items-center justify-center space-x-1.5 transition-all shadow-lg"
+                >
+                  <span>⚡ 바로 결제 (Checkout)</span>
                 </button>
               </div>
             </div>
