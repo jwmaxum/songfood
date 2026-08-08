@@ -70,6 +70,7 @@
 | 저널 편집기 | `/admin/journal` | `JournalManager.tsx` | 뉴스/이벤트/블로그 게시글 Markdown 편집기 |
 | 미디어 라이브러리 | `/admin/media` | `MediaManager.tsx` | 이미지·영상 업로드, CDN URL 등록, URL 복사 |
 | 사용자 권한 | `/admin/users` | `src/app/admin/users/page.tsx` | 역할(admin/editor/viewer) CRUD, 상태 토글 |
+| 바이어 CRM | `/admin/crm` | `src/app/admin/crm/page.tsx` | 해외 바이어 파이프라인 (Lead ➔ Export), 가격 Markup/Discount Slider |
 
 ---
 
@@ -85,6 +86,7 @@ src/
 │   ├── admin/
 │   │   ├── layout.tsx            # Admin 사이드바 + PIN 인증 가드
 │   │   ├── page.tsx              # 대시보드 (KPI API 연동)
+│   │   ├── crm/                  # 해외 바이어 CRM & RFQ 파이프라인 (/admin/crm)
 │   │   ├── navigation/           # 메뉴 관리 (NavigationManager)
 │   │   ├── hero/                 # 히어로 슬라이더 CMS (HeroManager)
 │   │   ├── products/             # 제품 CRUD (ProductManager)
@@ -102,7 +104,11 @@ src/
 │   │   ├── journal/route.ts      # 저널 API
 │   │   ├── content-blocks/       # 콘텐츠 블록 API
 │   │   └── media/route.ts        # 미디어 API
-│   ├── (public pages)/           # /, /collections, /journal, /products, /cart 등
+│   ├── global/                   # 해외 B2B 수출 전용 카탈로그 & 인증 필터 (/global)
+│   ├── rfq/                      # 대화형 RFQ 7단계 위저드 & FOB 견적 계산기 (/rfq)
+│   ├── wholesale/                # 국내 B2B 도매 & 식자재 공급 문의 (/wholesale)
+│   ├── why-kfood/                # Why K-Food & Why Us 브랜딩 페이지 (/why-kfood)
+│   ├── (public pages)/           # /, /shop, /collections, /journal, /products, /cart 등
 │   └── account/                  # 로그인, 마이페이지
 ├── components/                   # 공통 컴포넌트 (Header, Footer, Hero, etc.)
 ├── context/                      # CartContext 등 전역 상태
