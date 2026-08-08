@@ -96,8 +96,8 @@ export default function CartPage() {
                     <Truck size={16} className="text-[#c59b27]" />
                     <span>
                       {remainingForFreeShipping > 0
-                        ? `Add $${remainingForFreeShipping.toFixed(2)} more for FREE Express Cold-Chain Shipping!`
-                        : '🎉 You qualify for FREE Express Shipping!'}
+                        ? `₩${remainingForFreeShipping.toLocaleString()}원 더 담으시면 무료배송 적용! (5만원 미만 배송비 3,000원)`
+                        : '🎉 5만원 이상 구매로 무료배송(0원) 혜택이 적용되었습니다!'}
                     </span>
                   </span>
                   <span className="font-mono text-xs text-[#c59b27] font-bold">
@@ -115,81 +115,103 @@ export default function CartPage() {
               {/* Table Container */}
               <div className="bg-[#101411] border border-emerald-900/30 rounded-lg overflow-hidden shadow-xl">
                 <div className="hidden sm:grid grid-cols-12 gap-4 p-4 border-b border-emerald-900/30 text-[11px] uppercase tracking-wider font-semibold text-stone-400 bg-[#0c100d]">
-                  <div className="col-span-6">Product Details</div>
-                  <div className="col-span-2 text-center">Price</div>
-                  <div className="col-span-2 text-center">Quantity</div>
-                  <div className="col-span-2 text-right">Subtotal</div>
+                  <div className="col-span-6">상품 정보 (소매 / 도매)</div>
+                  <div className="col-span-2 text-center">단가</div>
+                  <div className="col-span-2 text-center">수량</div>
+                  <div className="col-span-2 text-right">소계</div>
                 </div>
 
                 <div className="divide-y divide-emerald-900/20 p-4 sm:p-0">
-                  {cartItems.map((item) => (
-                    <div
-                      key={item.product.id}
-                      className="py-4 sm:p-4 grid grid-cols-1 sm:grid-cols-12 gap-4 items-center group"
-                    >
-                      {/* Product details */}
-                      <div className="sm:col-span-6 flex items-center space-x-4">
-                        <img
-                          src={item.product.image_url}
-                          alt={item.product.name}
-                          className="w-16 h-16 object-cover rounded border border-emerald-900/40 bg-stone-950"
-                        />
-                        <div className="space-y-1">
-                          <Link
-                            href={`/products/${item.product.id}`}
-                            className="font-serif-luxury text-sm font-medium text-stone-200 hover:text-[#c59b27] transition-colors line-clamp-1"
-                          >
-                            {item.product.name}
-                          </Link>
-                          <div className="text-[11px] text-stone-400 space-x-2">
-                            <span>{item.selectedFormat || item.product.format}</span>
-                            <span>•</span>
-                            <span className="text-stone-500">{item.product.origin}</span>
+                  {cartItems.map((item) => {
+                    const retailPrice = item.product.price || 18000;
+                    const cartonQty = item.product.carton_qty || 10;
+                    const discountRate = item.product.wholesale_discount_rate || 0.15;
+
+                    const effectiveUnitPrice =
+                      item.unitPrice ??
+                      (item.purchaseType === 'wholesale'
+                        ? Math.round(retailPrice * cartonQty * (1 - discountRate))
+                        : retailPrice);
+
+                    const lineSubtotal = effectiveUnitPrice * item.quantity;
+
+                    return (
+                      <div
+                        key={item.product.id + (item.purchaseType || 'retail')}
+                        className="py-4 sm:p-4 grid grid-cols-1 sm:grid-cols-12 gap-4 items-center group"
+                      >
+                        {/* Product details */}
+                        <div className="sm:col-span-6 flex items-center space-x-4">
+                          <img
+                            src={item.product.image_url}
+                            alt={item.product.name}
+                            className="w-16 h-16 object-cover rounded border border-emerald-900/40 bg-stone-950"
+                          />
+                          <div className="space-y-1">
+                            <Link
+                              href={`/products/${item.product.id}`}
+                              className="font-serif-luxury text-sm font-medium text-stone-200 hover:text-[#c59b27] transition-colors line-clamp-1"
+                            >
+                              {item.product.name}
+                            </Link>
+                            <div className="text-[11px] text-stone-400 space-x-2 flex items-center">
+                              {item.purchaseType === 'wholesale' ? (
+                                <span className="bg-amber-950 text-amber-300 border border-amber-700/60 px-2 py-0.5 rounded font-mono font-bold text-[10px]">
+                                  📦 도매 15% 할인 ({cartonQty}개입 Box)
+                                </span>
+                              ) : (
+                                <span className="bg-stone-800 text-stone-300 px-2 py-0.5 rounded font-mono text-[10px]">
+                                  🛒 소매 낱개
+                                </span>
+                              )}
+                              <span>•</span>
+                              <span className="text-stone-500">{item.product.origin}</span>
+                            </div>
+                            <button
+                              onClick={() => removeFromCart(item.product.id)}
+                              className="text-[11px] text-stone-500 hover:text-red-400 flex items-center space-x-1 pt-1 transition-colors"
+                            >
+                              <Trash2 size={12} />
+                              <span>삭제</span>
+                            </button>
                           </div>
-                          <button
-                            onClick={() => removeFromCart(item.product.id)}
-                            className="text-[11px] text-stone-500 hover:text-red-400 flex items-center space-x-1 pt-1 transition-colors"
-                          >
-                            <Trash2 size={12} />
-                            <span>Remove</span>
-                          </button>
+                        </div>
+
+                        {/* Unit Price */}
+                        <div className="sm:col-span-2 text-left sm:text-center text-xs font-mono font-medium text-stone-300">
+                          <span className="sm:hidden text-stone-500 mr-2">가격:</span>
+                          ₩{effectiveUnitPrice.toLocaleString()}원
+                        </div>
+
+                        {/* Quantity Controls */}
+                        <div className="sm:col-span-2 flex justify-start sm:justify-center items-center">
+                          <div className="flex items-center border border-emerald-800/40 rounded bg-stone-900">
+                            <button
+                              onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                              className="p-1.5 text-stone-400 hover:text-white"
+                            >
+                              <Minus size={13} />
+                            </button>
+                            <span className="px-3 text-xs font-mono font-medium text-stone-200">
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                              className="p-1.5 text-stone-400 hover:text-white"
+                            >
+                              <Plus size={13} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Line Item Total */}
+                        <div className="sm:col-span-2 text-left sm:text-right font-mono text-sm font-semibold text-[#c59b27]">
+                          <span className="sm:hidden text-stone-500 text-xs mr-2">소계:</span>
+                          ₩{lineSubtotal.toLocaleString()}원
                         </div>
                       </div>
-
-                    {/* Unit Price */}
-                      <div className="sm:col-span-2 text-left sm:text-center text-xs font-mono font-medium text-stone-300">
-                        <span className="sm:hidden text-stone-500 mr-2">가격:</span>
-                        ₩{(item.product.price || 18000).toLocaleString()}원
-                      </div>
-
-                      {/* Quantity Controls */}
-                      <div className="sm:col-span-2 flex justify-start sm:justify-center items-center">
-                        <div className="flex items-center border border-emerald-800/40 rounded bg-stone-900">
-                          <button
-                            onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                            className="p-1.5 text-stone-400 hover:text-white"
-                          >
-                            <Minus size={13} />
-                          </button>
-                          <span className="px-3 text-xs font-mono font-medium text-stone-200">
-                            {item.quantity}
-                          </span>
-                          <button
-                            onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                            className="p-1.5 text-stone-400 hover:text-white"
-                          >
-                            <Plus size={13} />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Line Item Total */}
-                      <div className="sm:col-span-2 text-left sm:text-right font-mono text-sm font-semibold text-[#c59b27]">
-                        <span className="sm:hidden text-stone-500 text-xs mr-2">소계:</span>
-                        ₩{((item.product.price || 18000) * item.quantity).toLocaleString()}원
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Table Footer Controls */}

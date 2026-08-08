@@ -113,6 +113,7 @@ export interface ProductItem {
   loading_port?: string; // e.g. "Busan Port, Korea"
   export_price_usd?: number; // Export Price per CTN (USD)
   wholesale_price_krw?: number; // Domestic Wholesale Price (KRW)
+  wholesale_discount_rate?: number; // Default 0.15 (15% discount)
   target_markets?: string[]; // e.g. ['USA', 'Japan', 'China', 'Southeast Asia', 'Middle East', 'Europe']
 }
 
@@ -121,6 +122,8 @@ export interface CartItem {
   quantity: number;
   selectedFormat?: string;
   selectedFinish?: string;
+  purchaseType?: 'retail' | 'wholesale'; // 'retail' 낱개 vs 'wholesale' 박스
+  unitPrice?: number;
 }
 
 export interface UserProfile {
@@ -152,6 +155,7 @@ export interface OrderItem {
   quantity: number;
   image_url: string;
   format?: string;
+  purchaseType?: 'retail' | 'wholesale';
 }
 
 export type SubAdminRole = 'ROLE_SUPER_ADMIN' | 'ROLE_CRM_BUYER' | 'ROLE_PRODUCT_MANAGER' | 'ROLE_ORDER_SHIPPING';

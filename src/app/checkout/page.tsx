@@ -379,24 +379,44 @@ export default function CheckoutPage() {
 
               {/* Items Summary */}
               <div className="space-y-3 max-h-64 overflow-y-auto pr-1 divide-y divide-emerald-900/20">
-                {cartItems.map((ci) => (
-                  <div key={ci.product.id} className="pt-3 first:pt-0 flex items-center justify-between text-xs">
-                    <div className="flex items-center space-x-3">
-                      <img
-                        src={ci.product.image_url}
-                        alt={ci.product.name}
-                        className="w-10 h-10 object-cover rounded border border-emerald-900/30"
-                      />
-                      <div>
-                        <div className="font-medium text-stone-200 line-clamp-1">{ci.product.name}</div>
-                        <div className="text-[10px] text-stone-500 font-mono">수량: {ci.quantity}개</div>
+                {cartItems.map((ci) => {
+                  const retailPrice = ci.product.price || 18000;
+                  const cartonQty = ci.product.carton_qty || 10;
+                  const discountRate = ci.product.wholesale_discount_rate || 0.15;
+
+                  const effectiveUnitPrice =
+                    ci.unitPrice ??
+                    (ci.purchaseType === 'wholesale'
+                      ? Math.round(retailPrice * cartonQty * (1 - discountRate))
+                      : retailPrice);
+
+                  return (
+                    <div key={ci.product.id + (ci.purchaseType || 'retail')} className="pt-3 first:pt-0 flex items-center justify-between text-xs">
+                      <div className="flex items-center space-x-3">
+                        <img
+                          src={ci.product.image_url}
+                          alt={ci.product.name}
+                          className="w-10 h-10 object-cover rounded border border-emerald-900/30"
+                        />
+                        <div>
+                          <div className="font-medium text-stone-200 line-clamp-1">{ci.product.name}</div>
+                          <div className="text-[10px] text-stone-400 font-mono flex items-center space-x-1">
+                            {ci.purchaseType === 'wholesale' ? (
+                              <span className="text-amber-400 font-bold">📦 도매 Box ({cartonQty}개입)</span>
+                            ) : (
+                              <span>🛒 소매 낱개</span>
+                            )}
+                            <span>•</span>
+                            <span>수량: {ci.quantity}개</span>
+                          </div>
+                        </div>
                       </div>
+                      <span className="font-mono font-semibold text-[#c59b27]">
+                        ₩{(effectiveUnitPrice * ci.quantity).toLocaleString()}원
+                      </span>
                     </div>
-                    <span className="font-mono font-semibold text-[#c59b27]">
-                      ₩{((ci.product.price || 18000) * ci.quantity).toLocaleString()}원
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Price Calculations */}

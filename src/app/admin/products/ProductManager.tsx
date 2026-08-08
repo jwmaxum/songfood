@@ -150,6 +150,8 @@ export default function ProductManager() {
   const [isFeatured, setIsFeatured] = useState(true);
   const [isTodaysDeal, setIsTodaysDeal] = useState(false);
   const [isBestSeller, setIsBestSeller] = useState(true);
+  const [cartonQty, setCartonQty] = useState('10');
+  const [wholesaleDiscountRate, setWholesaleDiscountRate] = useState('15');
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -223,6 +225,8 @@ export default function ProductManager() {
     setCategory('만두 & 교자');
     setPrice('18000');
     setOriginalPrice('22000');
+    setCartonQty('10');
+    setWholesaleDiscountRate('15');
     setFormat('1.05kg 패밀리팩');
     setFinish('-40°C IQF 급속냉동');
     setColor('노릇노릇 바삭함');
@@ -243,6 +247,8 @@ export default function ProductManager() {
     setCategory(p.category || '기타');
     setPrice(String(p.price || 18000));
     setOriginalPrice(p.original_price ? String(p.original_price) : '');
+    setCartonQty(String(p.carton_qty || 10));
+    setWholesaleDiscountRate(String(Math.round((p.wholesale_discount_rate ?? 0.15) * 100)));
     setFormat(p.format);
     setFinish(p.finish);
     setColor(p.color);
@@ -288,7 +294,12 @@ export default function ProductManager() {
 
     const numericPrice = Number(price) || 0;
     const numericOriginalPrice = originalPrice ? Number(originalPrice) : null;
-    const calculatedWholesale = Math.round(numericPrice * 0.85); // 15% discount for wholesale quote
+    const numericCartonQty = Number(cartonQty) || 10;
+    const numericDiscountPercent = Number(wholesaleDiscountRate) || 15;
+    const discountRateDecimal = numericDiscountPercent / 100;
+    
+    // Wholesale Box Price = Price * CartonQty * (1 - DiscountRate)
+    const calculatedWholesaleBoxPrice = Math.round(numericPrice * numericCartonQty * (1 - discountRateDecimal));
 
     const newOrUpdated: ProductItem = {
       id: editingProduct ? editingProduct.id : `prod-${Date.now()}`,
@@ -297,7 +308,9 @@ export default function ProductManager() {
       category,
       price: numericPrice,
       original_price: numericOriginalPrice,
-      wholesale_price_krw: calculatedWholesale,
+      carton_qty: numericCartonQty,
+      wholesale_discount_rate: discountRateDecimal,
+      wholesale_price_krw: calculatedWholesaleBoxPrice,
       format,
       finish,
       color,
@@ -441,8 +454,8 @@ export default function ProductManager() {
                       <span className="font-semibold">{p.rating || 4.9}</span>
                       <span className="text-stone-500 font-mono text-[10px]">({p.reviews_count || 12})</span>
                     </div>
-                    <span className="text-stone-400 text-[10px] font-mono">
-                      도매가: ₩{(p.wholesale_price_krw || Math.round((p.price || 0) * 0.85)).toLocaleString()}원 (-15%)
+                    <span className="text-emerald-400 text-[10px] font-mono font-bold">
+                      📦 도매 Box: ₩{(p.wholesale_price_krw || Math.round((p.price || 18000) * (p.carton_qty || 10) * (1 - (p.wholesale_discount_rate || 0.15)))).toLocaleString()}원 ({p.carton_qty || 10}개입)
                     </span>
                   </div>
 
@@ -530,7 +543,7 @@ export default function ProductManager() {
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">소매 판매가 (원 ₩)</label>
+                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">소매 낱개 판매가 (₩)</label>
                   <input
                     type="number"
                     required
@@ -542,25 +555,41 @@ export default function ProductManager() {
                 </div>
 
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">할인 전 정가 (원 ₩)</label>
+                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">박스당 개수 (입수량)</label>
                   <input
                     type="number"
-                    value={originalPrice}
-                    onChange={(e) => setOriginalPrice(e.target.value)}
-                    placeholder="22000"
-                    className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
+                    required
+                    min="1"
+                    value={cartonQty}
+                    onChange={(e) => setCartonQty(e.target.value)}
+                    placeholder="10"
+                    className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none font-bold text-amber-400"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">원산지</label>
+                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">도매 할인율 (%)</label>
                   <input
-                    type="text"
-                    value={origin}
-                    onChange={(e) => setOrigin(e.target.value)}
-                    placeholder="대한민국"
-                    className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
+                    type="number"
+                    required
+                    min="0"
+                    max="90"
+                    value={wholesaleDiscountRate}
+                    onChange={(e) => setWholesaleDiscountRate(e.target.value)}
+                    placeholder="15"
+                    className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none font-bold text-emerald-400"
                   />
+                </div>
+              </div>
+
+              {/* Wholesale Live Calculation Box */}
+              <div className="p-3 bg-[#131720] border border-emerald-500/40 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs gap-2 font-mono">
+                <div className="text-stone-300">
+                  <span className="text-emerald-400 font-bold">📦 도매 박스 결제액 자동 산출:</span>{' '}
+                  (소매가 ₩{Number(price || 0).toLocaleString()}원 × {cartonQty || 10}개입) × {100 - (Number(wholesaleDiscountRate) || 15)}%
+                </div>
+                <div className="text-[#EAB308] font-bold text-sm">
+                  = ₩{Math.round((Number(price || 0) * (Number(cartonQty) || 10) * (100 - (Number(wholesaleDiscountRate) || 15))) / 100).toLocaleString()}원 / Box
                 </div>
               </div>
 

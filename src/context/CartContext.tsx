@@ -7,7 +7,13 @@ interface CartContextType {
   cartItems: CartItem[];
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
-  addToCart: (product: ProductItem, quantity?: number, selectedFormat?: string, selectedFinish?: string) => void;
+  addToCart: (
+    product: ProductItem,
+    quantity?: number,
+    selectedFormat?: string,
+    selectedFinish?: string,
+    purchaseType?: 'retail' | 'wholesale'
+  ) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -23,8 +29,8 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const FREE_SHIPPING_THRESHOLD = 200;
-const DEFAULT_SHIPPING_FEE = 25;
+const FREE_SHIPPING_THRESHOLD = 50000; // 5만원 이상 무료배송
+const DEFAULT_SHIPPING_FEE = 3000; // 5만원 미만 배송비 3,000원 청구
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -72,10 +78,23 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     product: ProductItem,
     quantity = 1,
     selectedFormat?: string,
-    selectedFinish?: string
+    selectedFinish?: string,
+    purchaseType: 'retail' | 'wholesale' = 'retail'
   ) => {
     setCartItems((prev) => {
-      const existingIndex = prev.findIndex((item) => item.product.id === product.id);
+      const existingIndex = prev.findIndex(
+        (item) => item.product.id === product.id && (item.purchaseType || 'retail') === purchaseType
+      );
+      
+      const retailPrice = product.price || 18000;
+      const cartonQty = product.carton_qty || 10;
+      const discountRate = product.wholesale_discount_rate || 0.15;
+      
+      const unitPrice =
+        purchaseType === 'wholesale'
+          ? Math.round(retailPrice * cartonQty * (1 - discountRate))
+          : retailPrice;
+
       if (existingIndex > -1) {
         const updated = [...prev];
         updated[existingIndex].quantity += quantity;
@@ -83,13 +102,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (selectedFinish) updated[existingIndex].selectedFinish = selectedFinish;
         return updated;
       }
+
       return [
         ...prev,
         {
           product,
           quantity,
-          selectedFormat: selectedFormat || product.format,
+          selectedFormat: selectedFormat || (purchaseType === 'wholesale' ? `[도매 15%할인] ${cartonQty}개입 Box` : product.format),
           selectedFinish: selectedFinish || product.finish,
+          purchaseType,
+          unitPrice,
         },
       ];
     });
@@ -116,10 +138,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setDiscountPercent(0);
   };
 
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + (item.product.price || 50) * item.quantity,
-    0
-  );
+  // Subtotal Calculation for retail & wholesale box items
+  const subtotal = cartItems.reduce((sum, item) => {
+    const retailPrice = item.product.price || 18000;
+    const cartonQty = item.product.carton_qty || 10;
+    const discountRate = item.product.wholesale_discount_rate || 0.15;
+
+    const itemUnitPrice =
+      item.unitPrice ??
+      (item.purchaseType === 'wholesale'
+        ? Math.round(retailPrice * cartonQty * (1 - discountRate))
+        : retailPrice);
+
+    return sum + itemUnitPrice * item.quantity;
+  }, 0);
 
   const discountAmount = Math.round((subtotal * discountPercent) / 100);
   const eligibleAmount = subtotal - discountAmount;

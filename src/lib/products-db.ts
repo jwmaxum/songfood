@@ -44,6 +44,7 @@ const INITIAL_PRODUCTS: ProductItem[] = [
 
     // Export Specs
     carton_qty: 10,
+    wholesale_discount_rate: 0.15,
     carton_size: '480 x 320 x 240 mm',
     gross_weight: 11.2,
     cbm: 0.037,
