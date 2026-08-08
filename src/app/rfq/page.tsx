@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ProductItem, RFQItem, RFQRequest } from '@/lib/types';
 import { Globe, Calculator, FileText, CheckCircle2, ChevronRight, ArrowLeft, Package, ShieldCheck, Download, Printer } from 'lucide-react';
 
-export default function RFQPage() {
+function RFQContent() {
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState(1);
@@ -35,7 +37,16 @@ export default function RFQPage() {
         const data = await res.json();
         if (data.success && Array.isArray(data.data)) {
           setProducts(data.data);
-          if (data.data.length > 0) {
+          
+          const rawProducts = searchParams.get('products') || searchParams.get('product');
+          if (rawProducts) {
+            const productIds = rawProducts.split(',').map((s) => s.trim());
+            const initialSelection: { [id: string]: number } = {};
+            productIds.forEach((id) => {
+              initialSelection[id] = 50; // default 50 CTNs
+            });
+            setSelectedProducts(initialSelection);
+          } else if (data.data.length > 0) {
             setSelectedProducts({ [data.data[0].id]: 50 });
           }
         }
@@ -46,7 +57,7 @@ export default function RFQPage() {
       }
     }
     loadData();
-  }, []);
+  }, [searchParams]);
 
   const toggleProduct = (id: string) => {
     setSelectedProducts((prev) => {
@@ -682,5 +693,13 @@ export default function RFQPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function RFQPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0A0A0C] text-stone-400 p-10 font-mono text-xs">Loading RFQ Platform...</div>}>
+      <RFQContent />
+    </Suspense>
   );
 }
