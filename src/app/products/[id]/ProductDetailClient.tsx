@@ -150,9 +150,9 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
               </div>
             </div>
 
-            {/* Retail vs Wholesale Purchase Option Selector */}
+            {/* Individual vs Bulk Box Purchase Option Selector */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 font-mono text-xs">
-              {/* Option A: Retail Item */}
+              {/* Option A: Individual Item */}
               <div
                 onClick={() => setPurchaseType('retail')}
                 className={`cursor-pointer rounded-xl border p-4 transition-all ${
@@ -162,18 +162,18 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
                 }`}
               >
                 <div className="flex justify-between items-center mb-1">
-                  <span className="font-bold text-white text-xs">🛒 소매 낱개 구매</span>
-                  <span className="text-[10px] bg-stone-800 text-stone-300 px-2 py-0.5 rounded">일반 B2C</span>
+                  <span className="font-bold text-white text-xs">🛒 개별상품 구매 (소량)</span>
+                  <span className="text-[10px] bg-stone-800 text-stone-300 px-2 py-0.5 rounded font-bold">1개 단위</span>
                 </div>
                 <div className="font-mono text-lg font-bold text-[#c59b27]">
                   ₩{retailUnitPrice.toLocaleString()}원 <span className="text-xs text-stone-400 font-normal">/ 개</span>
                 </div>
                 <div className="text-[10px] text-stone-400 mt-1">
-                  ℹ 5만원 미만 결제 시 배송비 3,000원 적용
+                  ℹ 5만원 미만 결제 시 배송비 3,000원 (5만원 이상 무료배송)
                 </div>
               </div>
 
-              {/* Option B: Wholesale Master Box */}
+              {/* Option B: Bulk Master Box */}
               <div
                 onClick={() => setPurchaseType('wholesale')}
                 className={`cursor-pointer rounded-xl border p-4 transition-all ${
@@ -183,31 +183,46 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
                 }`}
               >
                 <div className="flex justify-between items-center mb-1">
-                  <span className="font-bold text-amber-300 text-xs">📦 도매 박스 구매 (-15%)</span>
+                  <span className="font-bold text-amber-300 text-xs">📦 대용량 박스 구매 (대량할인)</span>
                   <span className="text-[10px] bg-amber-900 text-amber-200 px-2 py-0.5 rounded font-bold">
-                    도매 B2B 15% 할인
+                    10개입 Box 대량할인
                   </span>
                 </div>
                 <div className="font-mono text-lg font-bold text-amber-400">
                   ₩{wholesaleBoxPrice.toLocaleString()}원 <span className="text-xs text-stone-400 font-normal">/ Box ({cartonQty}개입)</span>
                 </div>
                 <div className="text-[10px] text-stone-400 mt-1">
-                  정가 ₩{retailBoxPrice.toLocaleString()}원 ➔ <strong className="text-emerald-400">₩{wholesaleBoxPrice.toLocaleString()}원</strong>
+                  정가 ₩{retailBoxPrice.toLocaleString()}원 ➔ <strong className="text-emerald-400">₩{wholesaleBoxPrice.toLocaleString()}원</strong> (대량 특가)
                 </div>
               </div>
             </div>
 
-            {/* Price Box */}
-            <div className="bg-[#101411] border border-emerald-900/40 p-4 rounded-md flex items-baseline space-x-3">
-              <span className="font-mono text-3xl font-bold text-[#c59b27]">
-                ₩{(purchaseType === 'wholesale' ? wholesaleBoxPrice : retailUnitPrice).toLocaleString()}원
-              </span>
-              <span className="text-xs text-emerald-400 font-mono font-bold">
-                {purchaseType === 'wholesale' ? `(박스당 ${cartonQty}개입 -15% 도매가 적용)` : '(소매 낱개 기준가)'}
-              </span>
-              <span className="text-xs text-stone-400 font-mono ml-auto">
-                SKU: {product.sku || 'KFD-PROD-001'}
-              </span>
+            {/* Price Box - Dual Price Simultaneous Display */}
+            <div className="bg-[#101411] border border-emerald-900/40 p-4 rounded-xl space-y-2">
+              <div className="text-[11px] text-stone-400 font-mono font-bold flex items-center justify-between border-b border-emerald-900/30 pb-2">
+                <span>개별가 &amp; 대용량 박스가 동시 표기</span>
+                <span className="text-emerald-400 font-bold">모든 회원 구매 가능</span>
+              </div>
+
+              <div className="flex flex-wrap items-baseline gap-4">
+                <div>
+                  <span className="text-[10px] text-stone-400 block font-mono">소량 개별가</span>
+                  <span className="font-mono text-2xl font-bold text-[#c59b27]">
+                    ₩{retailUnitPrice.toLocaleString()}원
+                  </span>
+                </div>
+
+                <div className="border-l border-emerald-900/40 pl-4">
+                  <span className="text-[10px] text-amber-400 block font-mono font-bold">📦 대용량 박스가 ({cartonQty}개입)</span>
+                  <span className="font-mono text-2xl font-bold text-amber-400">
+                    ₩{wholesaleBoxPrice.toLocaleString()}원
+                  </span>
+                </div>
+
+                <span className="text-xs text-stone-400 font-mono ml-auto">
+                  SKU: {product.sku || 'KFD-PROD-001'}
+                </span>
+              </div>
             </div>
 
             <p className="text-sm text-stone-300 font-light leading-relaxed">

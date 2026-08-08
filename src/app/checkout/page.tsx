@@ -402,9 +402,9 @@ export default function CheckoutPage() {
                           <div className="font-medium text-stone-200 line-clamp-1">{ci.product.name}</div>
                           <div className="text-[10px] text-stone-400 font-mono flex items-center space-x-1">
                             {ci.purchaseType === 'wholesale' ? (
-                              <span className="text-amber-400 font-bold">📦 도매 Box ({cartonQty}개입)</span>
+                              <span className="text-amber-400 font-bold">📦 대용량 박스팩 ({cartonQty}개입)</span>
                             ) : (
-                              <span>🛒 소매 낱개</span>
+                              <span>🛒 소량 개별상품</span>
                             )}
                             <span>•</span>
                             <span>수량: {ci.quantity}개</span>

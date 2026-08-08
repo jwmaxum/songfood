@@ -356,33 +356,34 @@ export default function ShopPage() {
                           </p>
                         </div>
 
-                        {/* Price & Add to Cart */}
-                        <div className="pt-3 border-t border-emerald-900/30 flex items-center justify-between">
-                          <div>
-                            <div className="flex items-center space-x-1.5">
-                              <span className="font-mono text-base font-bold text-[#c59b27]">
-                                ₩{(p.price || 18000).toLocaleString()}원
-                              </span>
-                              {p.original_price && (
-                                <span className="font-mono text-xs text-stone-500 line-through">
-                                  ₩{p.original_price.toLocaleString()}원
-                                </span>
-                              )}
+                        {/* Dual Price & Add to Cart */}
+                        <div className="pt-3 border-t border-emerald-900/30 space-y-2">
+                          <div className="flex flex-col text-xs font-mono">
+                            <div className="flex justify-between items-center text-[#c59b27] font-bold">
+                              <span>개별가:</span>
+                              <span>₩{(p.price || 18000).toLocaleString()}원 / 개</span>
                             </div>
-                            <div className="flex items-center space-x-1 text-[11px] text-amber-400 mt-0.5">
+                            <div className="flex justify-between items-center text-amber-400 font-bold">
+                              <span>📦 대용량({p.carton_qty || 10}개):</span>
+                              <span>₩{Math.round((p.price || 18000) * (p.carton_qty || 10) * (1 - (p.wholesale_discount_rate || 0.15))).toLocaleString()}원</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-1">
+                            <div className="flex items-center space-x-1 text-[11px] text-amber-400">
                               <Star size={11} fill="currentColor" />
                               <span className="font-mono">{p.rating || 4.9}</span>
                               <span className="text-stone-500">({p.reviews_count || 12})</span>
                             </div>
-                          </div>
 
-                          <button
-                            onClick={(e) => handleAddToCart(p, 1, e)}
-                            className="bg-[#c59b27] hover:bg-[#b08820] text-black font-semibold p-2.5 rounded transition-colors"
-                            title="Add to Cart"
-                          >
-                            <ShoppingBag size={16} />
-                          </button>
+                            <Link
+                              href={`/products/${p.id}`}
+                              className="bg-[#14532D] hover:bg-emerald-700 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg flex items-center space-x-1 shadow transition-all"
+                            >
+                              <ShoppingBag size={13} />
+                              <span>구매 옵션</span>
+                            </Link>
+                          </div>
                         </div>
                       </div>
                     </div>

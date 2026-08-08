@@ -157,7 +157,7 @@ export default function CartPage() {
                             <div className="text-[11px] text-stone-400 space-x-2 flex items-center">
                               {item.purchaseType === 'wholesale' ? (
                                 <span className="bg-amber-950 text-amber-300 border border-amber-700/60 px-2 py-0.5 rounded font-mono font-bold text-[10px]">
-                                  📦 도매 15% 할인 ({cartonQty}개입 Box)
+                                  📦 대용량 박스팩 ({cartonQty}개입 대량할인)
                                 </span>
                               ) : (
                                 <span className="bg-stone-800 text-stone-300 px-2 py-0.5 rounded font-mono text-[10px]">

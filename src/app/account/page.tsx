@@ -138,10 +138,10 @@ function MyAccountContent() {
           >
             <div className="flex items-center space-x-3">
               <ShieldCheck size={16} className="text-[#EAB308]" />
-              <span>도매 &amp; B2B 파트너 회원</span>
+              <span>📦 대용량/식자재 구매 가이드</span>
             </div>
             <span className="font-mono text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
-              15% 할인
+              전체회원 적용
             </span>
           </button>
 
@@ -394,35 +394,35 @@ function MyAccountContent() {
             </div>
           )}
 
-          {/* Tab: Wholesale & B2B Partner */}
+          {/* Tab: Bulk Box & RFQ Guide */}
           {activeTab === 'wholesale' && (
             <div className="bg-[#101411] border border-emerald-900/40 rounded-xl p-6 sm:p-8 space-y-6 text-xs font-sans shadow-xl">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-emerald-900/30 pb-4 gap-2">
                 <div>
                   <h2 className="font-serif-luxury text-xl text-white font-bold flex items-center space-x-2">
                     <ShieldCheck className="text-[#EAB308]" size={22} />
-                    <span>도매 &amp; B2B 식자재 파트너 회원 정보</span>
+                    <span>📦 대용량 박스 구매 &amp; 식자재 RFQ 가이드</span>
                   </h2>
                   <p className="text-stone-400 text-xs mt-1">
-                    송영민푸드 공식 B2B 도매 파트너 회원 전용 혜택 및 견적 관리 상태입니다.
+                    송영민푸드의 모든 가입 회원은 제한 없이 개별 낱개 상품 또는 대용량 박스팩을 자유롭게 구매하실 수 있습니다.
                   </p>
                 </div>
                 <span className="bg-emerald-950 text-emerald-400 border border-emerald-700 px-3 py-1 rounded-full text-xs font-mono font-bold">
-                  도매 회원 등급: VIP 1등급
+                  모든 회원 구매가능
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="bg-[#18221b] border border-emerald-900/30 p-4 rounded-lg space-y-1">
-                  <div className="text-stone-400 font-mono text-[11px]">사업자 등록번호</div>
-                  <div className="font-mono font-bold text-white text-sm">104-81-29401 (식자재 도매)</div>
-                  <div className="text-emerald-400 text-[10px]">인증완료 (세금계산서 자동 발행)</div>
+                  <div className="text-stone-400 font-mono text-[11px]">🛒 소량 개별상품 구매</div>
+                  <div className="font-mono font-bold text-white text-sm">개별 단위 주문 (5만원 이상 무료배송)</div>
+                  <div className="text-stone-400 text-[10px]">5만원 미만 결제 시 배송비 3,000원 적용</div>
                 </div>
 
                 <div className="bg-[#18221b] border border-emerald-900/30 p-4 rounded-lg space-y-1">
-                  <div className="text-stone-400 font-mono text-[11px]">B2B 도매 적용 할인율</div>
-                  <div className="font-mono font-extrabold text-[#EAB308] text-sm">기본 소매가 대비 15% 할인</div>
-                  <div className="text-stone-400 text-[10px]">대량 구매 시 추가 구간 할인 적용</div>
+                  <div className="text-stone-400 font-mono text-[11px]">📦 대용량 박스팩 구매</div>
+                  <div className="font-mono font-extrabold text-[#EAB308] text-sm">Master Box 입수량 (대량 할인 적용)</div>
+                  <div className="text-emerald-400 text-[10px]">박스 단위 구매 시 상시 대량할인 혜택</div>
                 </div>
               </div>
 
