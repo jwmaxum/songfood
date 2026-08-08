@@ -6,6 +6,7 @@ import { getJournalArticles } from '@/lib/journal-db';
 
 // Home Section Components
 import HeroSlider from '@/components/home/HeroSlider';
+import DualPortalSection from '@/components/home/DualPortalSection';
 import TodaysDeals from '@/components/home/TodaysDeals';
 import CategoryIcons from '@/components/home/CategoryIcons';
 import BestSellers from '@/components/home/BestSellers';
@@ -30,6 +31,9 @@ export default async function Home() {
       
       {/* 1. Hero Visual Banner */}
       <HeroSlider initialSlides={heroSlides} />
+
+      {/* Dual Entrance Portal (Domestic Consumers vs Global B2B Export Hub) */}
+      <DualPortalSection />
 
       {/* Admin Quick Control Banner */}
       <div className="bg-[#14532D] text-emerald-100 border-b border-emerald-800/40 py-2 px-4 sm:px-8 text-xs font-medium">

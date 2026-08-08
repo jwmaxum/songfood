@@ -235,6 +235,24 @@ export default async function AdminDashboardPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Link
+            href="/admin/crm"
+            className="group bg-[#121218] border border-amber-500/50 hover:border-amber-400 p-6 rounded-lg transition-all duration-300 flex items-start space-x-4 shadow-xl"
+          >
+            <div className="p-3 bg-amber-950/60 rounded border border-amber-500/50 text-amber-400">
+              <Users size={24} />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-serif-luxury text-lg text-white group-hover:text-amber-300 transition-colors flex items-center space-x-2">
+                <span>Buyer CRM &amp; RFQ Pipeline</span>
+                <span className="bg-amber-500 text-black text-[10px] font-extrabold px-2 py-0.5 rounded uppercase">B2B Trade</span>
+              </h3>
+              <p className="text-xs text-stone-400 font-light leading-relaxed">
+                해외 바이어 관리, 8단계 파이프라인 (Lead ➔ Export), 글로벌 가격 마크업/할인 % Slider 제어.
+              </p>
+            </div>
+          </Link>
+
+          <Link
             href="/admin/navigation"
             className="group bg-[#121218] border border-stone-800 hover:border-[#c5a880] p-6 rounded-lg transition-all duration-300 flex items-start space-x-4"
           >

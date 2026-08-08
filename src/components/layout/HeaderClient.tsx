@@ -2,23 +2,30 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { MenuItem } from '@/lib/types';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useWishlist } from '@/context/WishlistContext';
 import LanguageSelector from './LanguageSelector';
-import { Menu, X, ChevronDown, Search, Shield, Heart, User, ShoppingBag } from 'lucide-react';
+import { Menu, X, ChevronDown, Search, Shield, Heart, User, ShoppingBag, Globe, Store, Building2, FileText } from 'lucide-react';
 
 interface HeaderClientProps {
   menus: MenuItem[];
 }
 
 export default function HeaderClient({ menus }: HeaderClientProps) {
+  const pathname = usePathname();
   const { t } = useLanguage();
   const { cartItems, setIsCartOpen } = useCart();
   const { user, isLoggedIn } = useAuth();
   const { wishlist } = useWishlist();
+
+  // Determine current active hub
+  const isGlobalHub = pathname?.startsWith('/global') || pathname?.startsWith('/rfq') || pathname?.startsWith('/why-kfood');
+  const isWholesaleHub = pathname?.startsWith('/wholesale');
+  const isDomesticHub = !isGlobalHub && !isWholesaleHub;
 
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -132,23 +139,69 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full glass-header transition-all duration-300">
-      {/* Top Notification Bar */}
-      <div className="bg-[#14532D] py-1.5 px-4 text-xs text-emerald-100 flex justify-between items-center tracking-wider font-medium">
-        <div className="flex items-center space-x-3">
-          <span className="inline-block w-2 h-2 rounded-full bg-[#EAB308] animate-pulse"></span>
-          <span>{t('site_tagline', 'ANATOLIA LUXURY GOURMET & FINE FOODS')}</span>
-        </div>
-        <div className="flex items-center space-x-4">
-          <Link
-            href="/admin"
-            className="flex items-center space-x-1.5 text-[#EAB308] hover:text-white transition-colors bg-black/20 border border-[#EAB308]/40 px-2.5 py-0.5 rounded text-[11px] font-semibold"
-          >
-            <Shield size={12} />
-            <span>Admin Studio</span>
-          </Link>
+      {/* 3-Hub Business Navigation Bar */}
+      <div className="bg-[#0A0A0C] text-stone-200 border-b border-stone-800/60 py-1.5 px-4 text-xs font-medium">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+          {/* 3-Hub Switcher Tabs */}
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <Link
+              href="/shop"
+              className={`flex items-center space-x-1.5 px-3 py-1 rounded-md text-[11px] font-bold transition-all ${
+                isDomesticHub
+                  ? 'bg-[#14532D] text-white shadow-sm ring-1 ring-emerald-400/30'
+                  : 'text-stone-400 hover:text-white hover:bg-stone-800/70'
+              }`}
+            >
+              <Store size={13} className="text-[#EAB308]" />
+              <span>🇰🇷 국내 쇼핑몰 (B2C)</span>
+            </Link>
 
-          {/* 7-Language i18n Selector Component */}
-          <LanguageSelector />
+            <Link
+              href="/wholesale"
+              className={`flex items-center space-x-1.5 px-3 py-1 rounded-md text-[11px] font-bold transition-all ${
+                isWholesaleHub
+                  ? 'bg-[#14532D] text-white shadow-sm ring-1 ring-emerald-400/30'
+                  : 'text-stone-400 hover:text-white hover:bg-stone-800/70'
+              }`}
+            >
+              <Building2 size={13} className="text-[#EAB308]" />
+              <span>🏢 국내 B2B 도매 (Wholesale)</span>
+            </Link>
+
+            <Link
+              href="/global"
+              className={`flex items-center space-x-1.5 px-3 py-1 rounded-md text-[11px] font-bold transition-all ${
+                isGlobalHub
+                  ? 'bg-amber-600 text-white shadow-sm ring-1 ring-amber-400/40'
+                  : 'text-amber-400 hover:text-white hover:bg-amber-950/40 border border-amber-500/30'
+              }`}
+            >
+              <Globe size={13} className="animate-pulse" />
+              <span>🌎 GLOBAL B2B / EXPORT</span>
+            </Link>
+          </div>
+
+          {/* Quick Action Links & Admin */}
+          <div className="flex items-center space-x-3 text-[11px]">
+            <Link
+              href="/rfq"
+              className="flex items-center space-x-1 text-[#EAB308] hover:underline font-bold"
+            >
+              <FileText size={12} />
+              <span>Request a Quote (RFQ)</span>
+            </Link>
+
+            <Link
+              href="/admin"
+              className="flex items-center space-x-1 text-stone-400 hover:text-amber-400 transition-colors bg-stone-900 border border-stone-700 px-2 py-0.5 rounded"
+            >
+              <Shield size={11} />
+              <span>Admin Studio</span>
+            </Link>
+
+            {/* 7-Language i18n Selector Component */}
+            <LanguageSelector />
+          </div>
         </div>
       </div>
 

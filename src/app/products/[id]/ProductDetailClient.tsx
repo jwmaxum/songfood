@@ -205,17 +205,26 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <button
                   onClick={handleAddToCart}
-                  className="bg-[#c59b27] hover:bg-[#b08820] text-black font-semibold py-3 px-4 rounded text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2 shadow-lg"
+                  className="bg-[#14532D] hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2 shadow-lg"
                 >
                   <ShoppingBag size={16} />
-                  <span>Add to Cart</span>
+                  <span>Add to Cart (Domestic)</span>
                 </button>
+
+                <Link
+                  href={`/rfq?product=${product.id}`}
+                  className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-extrabold py-3.5 px-4 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2 shadow-xl ring-2 ring-amber-400/40"
+                >
+                  <Award size={16} />
+                  <span>Request a Quote (Global)</span>
+                </Link>
+
                 <button
                   onClick={handleBuyNow}
-                  className="bg-stone-800 hover:bg-stone-700 text-stone-100 font-semibold py-3 px-4 rounded text-xs uppercase tracking-wider transition-all border border-stone-700 text-center"
+                  className="bg-stone-800 hover:bg-stone-700 text-stone-100 font-semibold py-3.5 px-4 rounded-xl text-xs uppercase tracking-wider transition-all border border-stone-700 text-center"
                 >
                   Buy Now
                 </button>
@@ -225,91 +234,146 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
             {/* Shipping & Security Guarantees */}
             <div className="space-y-2 pt-4 text-xs text-stone-400 border-t border-emerald-900/30 font-light">
               <div className="flex items-center space-x-2">
-                <Truck size={14} className="text-[#c59b27]" />
-                <span>Express Cold-Chain Shipping available worldwide.</span>
+                <Truck size={14} className="text-[#EAB308]" />
+                <span>Cold-Chain Container Logistics to USA, Europe, Japan, Middle East &amp; SEA.</span>
               </div>
               <div className="flex items-center space-x-2">
-                <ShieldCheck size={14} className="text-[#c59b27]" />
-                <span>100% Authentic DOP & IGP Certified Guarantee.</span>
+                <ShieldCheck size={14} className="text-[#EAB308]" />
+                <span>HACCP, Halal, Vegan &amp; FSSC 22000 Certified Korean Food Production.</span>
               </div>
               <div className="flex items-center space-x-2">
-                <RotateCcw size={14} className="text-[#c59b27]" />
-                <span>Hassle-free 14-day return policy for sealed items.</span>
+                <RotateCcw size={14} className="text-[#EAB308]" />
+                <span>Official Pro Forma Invoice &amp; HS Code Certificate provided upon RFQ.</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Detailed Tabs */}
-        <div className="bg-[#101411] border border-emerald-900/30 rounded-lg p-6 sm:p-8">
-          <div className="flex border-b border-emerald-900/30 space-x-8">
+        {/* Detailed Tabs: Domestic Specs vs Export Info */}
+        <div className="bg-[#101411] border border-emerald-900/30 rounded-2xl p-6 sm:p-8 shadow-xl">
+          <div className="flex border-b border-emerald-900/30 space-x-6 overflow-x-auto">
             <button
               onClick={() => setActiveTab('desc')}
-              className={`pb-4 text-sm font-medium uppercase tracking-wider transition-all border-b-2 ${
+              className={`pb-4 text-xs sm:text-sm font-bold uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
                 activeTab === 'desc'
-                  ? 'border-[#c59b27] text-[#c59b27]'
+                  ? 'border-[#EAB308] text-[#EAB308]'
                   : 'border-transparent text-stone-400 hover:text-stone-200'
               }`}
             >
-              Description & Origin
+              Domestic Product Specs (국내 정보)
             </button>
+
             <button
               onClick={() => setActiveTab('specs')}
-              className={`pb-4 text-sm font-medium uppercase tracking-wider transition-all border-b-2 ${
+              className={`pb-4 text-xs sm:text-sm font-bold uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
                 activeTab === 'specs'
-                  ? 'border-[#c59b27] text-[#c59b27]'
-                  : 'border-transparent text-stone-400 hover:text-stone-200'
+                  ? 'border-amber-400 text-amber-300'
+                  : 'border-transparent text-stone-400 hover:text-amber-400'
               }`}
             >
-              Specifications
+              Export Information (해외 바이어 필수 정보)
             </button>
+
             <button
               onClick={() => setActiveTab('reviews')}
-              className={`pb-4 text-sm font-medium uppercase tracking-wider transition-all border-b-2 ${
+              className={`pb-4 text-xs sm:text-sm font-bold uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
                 activeTab === 'reviews'
-                  ? 'border-[#c59b27] text-[#c59b27]'
+                  ? 'border-[#EAB308] text-[#EAB308]'
                   : 'border-transparent text-stone-400 hover:text-stone-200'
               }`}
             >
-              Customer Reviews ({product.reviews_count || 24})
+              Reviews ({product.reviews_count || 24})
             </button>
           </div>
 
           <div className="pt-6">
             {activeTab === 'desc' && (
-              <div className="space-y-4 text-sm text-stone-300 leading-relaxed font-light">
-                <p>{product.description}</p>
-                <p>
-                  Handcrafted according to age-old tradition in {product.origin || 'Europe'}, this product represents the zenith of gourmet dining. Perfect for fine culinary pairing, artisanal gifting, and daily luxury indulgence.
-                </p>
+              <div className="space-y-6 text-xs sm:text-sm text-stone-300 leading-relaxed font-light">
+                <p className="text-sm font-medium text-stone-100">{product.description}</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-sans text-xs pt-4 border-t border-stone-800">
+                  <div className="p-3 bg-stone-900/80 rounded-xl border border-stone-800 space-y-1">
+                    <span className="text-stone-500 font-bold">브랜드 / 제조사</span>
+                    <div className="text-stone-100 font-bold">{product.brand || '송영민푸드'} / {product.manufacturer || '송영민푸드(주)'}</div>
+                  </div>
+                  <div className="p-3 bg-stone-900/80 rounded-xl border border-stone-800 space-y-1">
+                    <span className="text-stone-500 font-bold">원산지 / 내용량</span>
+                    <div className="text-stone-100 font-bold">{product.country_of_origin || '대한민국'} / {product.net_weight || product.thickness || '500g'}</div>
+                  </div>
+                  <div className="p-3 bg-stone-900/80 rounded-xl border border-stone-800 space-y-1">
+                    <span className="text-stone-500 font-bold">유통기한 &amp; 보관방법</span>
+                    <div className="text-stone-100 font-bold">{product.shelf_life || '12개월'} ({product.storage || '냉동 보관'})</div>
+                  </div>
+                  <div className="p-3 bg-stone-900/80 rounded-xl border border-stone-800 space-y-1">
+                    <span className="text-stone-500 font-bold">원재료 및 알레르기 유발물질</span>
+                    <div className="text-stone-100">{product.ingredients || '상세 라벨 참조'} (알레르기: {product.allergens || '해당 없음'})</div>
+                  </div>
+                </div>
+
+                {/* Certifications Badge row */}
+                {product.certifications && (
+                  <div className="pt-2">
+                    <span className="text-xs font-bold text-stone-400 block mb-2">보유 품질 및 수출 인증:</span>
+                    <div className="flex flex-wrap gap-2">
+                      {product.certifications.map((c) => (
+                        <span key={c} className="px-3 py-1 bg-emerald-950 text-emerald-300 border border-emerald-500/40 rounded-full text-xs font-bold">
+                          ✓ {c}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === 'specs' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
-                <div className="p-3 bg-stone-900 rounded border border-emerald-900/30 flex justify-between">
-                  <span className="text-stone-500">Collection</span>
-                  <span className="text-stone-200">{product.collection}</span>
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs font-mono">
+                  <div className="p-4 bg-stone-900/90 rounded-xl border border-amber-500/30 space-y-1">
+                    <span className="text-amber-400 font-bold">Carton Quantity</span>
+                    <div className="text-stone-100 text-sm font-bold">{product.carton_qty || 10} units / CTN</div>
+                  </div>
+                  <div className="p-4 bg-stone-900/90 rounded-xl border border-amber-500/30 space-y-1">
+                    <span className="text-amber-400 font-bold">Carton Size &amp; Gross Weight</span>
+                    <div className="text-stone-100 text-sm font-bold">{product.carton_size || '480x320x240 mm'} ({product.gross_weight || 11.2} kg)</div>
+                  </div>
+                  <div className="p-4 bg-stone-900/90 rounded-xl border border-amber-500/30 space-y-1">
+                    <span className="text-amber-400 font-bold">CBM per Carton</span>
+                    <div className="text-amber-300 text-sm font-bold">{product.cbm || 0.035} m³</div>
+                  </div>
+                  <div className="p-4 bg-stone-900/90 rounded-xl border border-amber-500/30 space-y-1">
+                    <span className="text-amber-400 font-bold">MOQ (Minimum Order Qty)</span>
+                    <div className="text-stone-100 text-sm font-bold">{product.moq_cartons || 50} Cartons</div>
+                  </div>
+                  <div className="p-4 bg-stone-900/90 rounded-xl border border-amber-500/30 space-y-1">
+                    <span className="text-amber-400 font-bold">HS Code</span>
+                    <div className="text-stone-100 text-sm font-bold">{product.hs_code || '1902.20-1000'}</div>
+                  </div>
+                  <div className="p-4 bg-stone-900/90 rounded-xl border border-amber-500/30 space-y-1">
+                    <span className="text-amber-400 font-bold">Production Lead Time</span>
+                    <div className="text-stone-100 text-sm font-bold">{product.production_lead_time || '14 Days'}</div>
+                  </div>
+                  <div className="p-4 bg-stone-900/90 rounded-xl border border-amber-500/30 space-y-1">
+                    <span className="text-amber-400 font-bold">Export Packaging</span>
+                    <div className="text-stone-100 text-sm font-bold">{product.export_packaging || 'Reefer Cold Chain CTN'}</div>
+                  </div>
+                  <div className="p-4 bg-stone-900/90 rounded-xl border border-amber-500/30 space-y-1">
+                    <span className="text-amber-400 font-bold">Loading Port</span>
+                    <div className="text-stone-100 text-sm font-bold">{product.loading_port || 'Busan Port, Korea'}</div>
+                  </div>
+                  <div className="p-4 bg-amber-950/80 rounded-xl border border-amber-400 space-y-1">
+                    <span className="text-amber-300 font-bold">Export Price (FOB)</span>
+                    <div className="text-amber-400 text-base font-extrabold">${product.export_price_usd || 15} USD / CTN</div>
+                  </div>
                 </div>
-                <div className="p-3 bg-stone-900 rounded border border-emerald-900/30 flex justify-between">
-                  <span className="text-stone-500">Format</span>
-                  <span className="text-stone-200">{product.format}</span>
-                </div>
-                <div className="p-3 bg-stone-900 rounded border border-emerald-900/30 flex justify-between">
-                  <span className="text-stone-500">Finish</span>
-                  <span className="text-stone-200">{product.finish}</span>
-                </div>
-                <div className="p-3 bg-stone-900 rounded border border-emerald-900/30 flex justify-between">
-                  <span className="text-stone-500">Color Notes</span>
-                  <span className="text-stone-200">{product.color}</span>
-                </div>
-                <div className="p-3 bg-stone-900 rounded border border-emerald-900/30 flex justify-between">
-                  <span className="text-stone-500">Look & Grade</span>
-                  <span className="text-stone-200">{product.look}</span>
-                </div>
-                <div className="p-3 bg-stone-900 rounded border border-emerald-900/30 flex justify-between">
-                  <span className="text-stone-500">Country of Origin</span>
-                  <span className="text-stone-200">{product.origin || 'Italy'}</span>
+
+                <div className="pt-2 flex justify-end">
+                  <Link
+                    href={`/rfq?product=${product.id}`}
+                    className="px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-black font-extrabold text-xs uppercase tracking-wider rounded-xl hover:from-amber-600 hover:to-amber-700 shadow-lg"
+                  >
+                    Calculate FOB Quote for {product.name_en || product.name} →
+                  </Link>
                 </div>
               </div>
             )}

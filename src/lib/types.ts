@@ -67,6 +67,7 @@ export interface JournalArticle {
 export interface ProductItem {
   id: string;
   name: string;
+  name_en?: string;
   collection: string;
   category?: string;
   price?: number;
@@ -84,6 +85,32 @@ export interface ProductItem {
   thickness?: string;
   origin?: string;
   is_featured?: boolean;
+  
+  // Domestic Product Specs
+  brand?: string;
+  manufacturer?: string;
+  country_of_origin?: string;
+  net_weight?: string;
+  package_size?: string;
+  shelf_life?: string;
+  storage?: string;
+  ingredients?: string;
+  allergens?: string;
+  certifications?: string[]; // e.g. ['HACCP', 'Halal', 'FSSC 22000', 'ISO', 'Vegan', 'Gluten Free']
+
+  // Export Specs (Global B2B)
+  carton_qty?: number; // Packets per Carton box
+  carton_size?: string; // e.g. "450 x 320 x 240 mm"
+  gross_weight?: number; // Gross weight per Carton in kg
+  cbm?: number; // Volume per Carton in m^3
+  moq_cartons?: number; // Minimum Order Quantity in Cartons
+  hs_code?: string; // HS Code e.g. "1902.20"
+  production_lead_time?: string; // e.g. "14 Days"
+  export_packaging?: string; // e.g. "Reefer Cold Chain Box / Vacuum"
+  loading_port?: string; // e.g. "Busan Port, Korea"
+  export_price_usd?: number; // Export Price per CTN (USD)
+  wholesale_price_krw?: number; // Domestic Wholesale Price (KRW)
+  target_markets?: string[]; // e.g. ['USA', 'Japan', 'China', 'Southeast Asia', 'Middle East', 'Europe']
 }
 
 export interface CartItem {
@@ -136,5 +163,54 @@ export interface Order {
   shippingAddress: ShippingAddress;
   paymentMethod: 'credit_card' | 'bank_transfer' | 'kakao_pay';
 }
+
+export interface RFQItem {
+  productId: string;
+  name: string;
+  quantityCartons: number;
+  unitPriceUsd: number;
+  totalUsd: number;
+  cbm: number;
+  grossWeight: number;
+  hsCode: string;
+}
+
+export interface RFQRequest {
+  id: string;
+  quoteNo: string; // e.g. "EXQ-2026-000123"
+  company: string;
+  name: string;
+  email: string;
+  phone: string;
+  country: string;
+  destinationPort: string;
+  incoterms: 'FOB Busan' | 'CIF' | 'CFR' | 'EXW';
+  items: RFQItem[];
+  subtotalUsd: number;
+  packingFeeUsd: number;
+  totalUsd: number;
+  totalCbm: number;
+  totalGrossWeight: number;
+  reeferContainerFillPercent: number; // Utilization % of 20ft Reefer (28 CBM)
+  notes?: string;
+  status: 'NEW_LEAD' | 'INQUIRY' | 'PRODUCT_MATCHING' | 'QUOTATION' | 'NEGOTIATION' | 'PURCHASE_ORDER' | 'PAYMENT' | 'EXPORT';
+  createdAt: string;
+  businessType?: string;
+}
+
+export interface BuyerLead {
+  id: string;
+  company: string;
+  name: string;
+  email: string;
+  phone: string;
+  country: string;
+  status: RFQRequest['status'];
+  totalQuotesCount: number;
+  totalOrderValueUsd: number;
+  lastInquiryDate: string;
+  interestedProducts: string[];
+}
+
 
 

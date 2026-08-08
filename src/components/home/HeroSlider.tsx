@@ -76,36 +76,47 @@ export default function HeroSlider({ initialSlides }: HeroSliderProps) {
       ))}
 
       {/* Hero Text Overlay Content */}
-      <div className="relative z-10 max-w-5xl mx-auto text-center space-y-6 pt-12">
-        <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 backdrop-blur-md">
-          <Sparkles size={14} className="text-[#c5a880]" />
-          <span className="text-xs uppercase tracking-[0.3em] text-stone-200 font-light">
-            Architectural Surface Innovations
+      <div className="relative z-10 max-w-5xl mx-auto text-center space-y-6 pt-12 pb-16">
+        <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 backdrop-blur-md shadow-lg">
+          <Sparkles size={14} className="text-[#EAB308] animate-spin" />
+          <span className="text-xs uppercase tracking-[0.25em] text-emerald-200 font-bold">
+            Song Youngmin Food • Global K-Food Export Platform
           </span>
         </div>
 
-        <h1 className="font-serif-luxury text-4xl sm:text-6xl lg:text-7xl font-light tracking-tight text-white leading-tight transition-all duration-700">
-          {currentSlide.title}
+        <h1 className="font-extrabold text-4xl sm:text-6xl lg:text-7xl tracking-tight text-white leading-tight font-jakarta transition-all duration-700 drop-shadow-2xl">
+          KOREAN FOOD, <br />
+          <span className="bg-gradient-to-r from-[#EAB308] via-amber-300 to-emerald-400 bg-clip-text text-transparent">
+            FROM KOREA TO THE WORLD
+          </span>
         </h1>
 
-        <p className="text-stone-300 text-sm sm:text-base max-w-2xl mx-auto font-light leading-relaxed tracking-wide">
-          {currentSlide.subtitle}
+        <p className="text-stone-200 text-base sm:text-lg max-w-3xl mx-auto font-medium leading-relaxed tracking-wide drop-shadow">
+          Premium Korean Food Distribution &amp; Export Platform — 
+          <span className="text-[#EAB308] font-bold ml-1">냉동만두, 전통김치, HMR 떡볶이, K-치킨, 소스 &amp; 전통주</span>
         </p>
 
-        {/* CTA Buttons */}
-        <div className="pt-6 flex flex-col sm:flex-row justify-center items-center gap-4">
+        {/* 3 Primary Action CTAs */}
+        <div className="pt-6 flex flex-col sm:flex-row justify-center items-center gap-3 max-w-3xl mx-auto">
           <Link
-            href={currentSlide.cta_url || '/collections'}
-            className="w-full sm:w-auto px-8 py-3.5 bg-[#c5a880] hover:bg-[#dbbc93] text-black font-semibold text-xs uppercase tracking-[0.25em] transition-all duration-300 shadow-xl"
+            href="/shop"
+            className="w-full sm:w-auto px-7 py-3.5 bg-[#14532D] hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 shadow-xl rounded-lg border border-emerald-400/30 flex items-center justify-center space-x-2"
           >
-            {currentSlide.cta_label || 'Explore Collections'}
+            <span>🇰🇷 Shop Korean Food</span>
           </Link>
+          
           <Link
-            href="/admin/hero"
-            className="w-full sm:w-auto px-8 py-3.5 bg-black/60 hover:bg-white/10 text-stone-200 border border-[#c5a880]/50 hover:border-[#c5a880] font-medium text-xs uppercase tracking-[0.25em] transition-all backdrop-blur-md flex items-center justify-center space-x-2"
+            href="/wholesale"
+            className="w-full sm:w-auto px-7 py-3.5 bg-stone-900/90 hover:bg-stone-800 text-white border border-stone-600 hover:border-amber-400 font-bold text-xs uppercase tracking-wider transition-all duration-300 shadow-xl rounded-lg flex items-center justify-center space-x-2 backdrop-blur-md"
           >
-            <Film size={14} className="text-[#c5a880]" />
-            <span>Hero Slider CMS</span>
+            <span>🏢 Wholesale Inquiry</span>
+          </Link>
+
+          <Link
+            href="/global"
+            className="w-full sm:w-auto px-7 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-extrabold text-xs uppercase tracking-wider transition-all duration-300 shadow-2xl rounded-lg flex items-center justify-center space-x-2 ring-2 ring-amber-400/50"
+          >
+            <span>🌎 Global Buyer → Request Quote</span>
           </Link>
         </div>
       </div>

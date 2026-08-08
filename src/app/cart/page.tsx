@@ -300,18 +300,27 @@ export default function CartPage() {
                   </div>
                 </div>
 
-                {/* Checkout Button */}
-                <Link
-                  href="/checkout"
-                  className="w-full bg-[#c59b27] hover:bg-[#b08820] text-black font-semibold py-3 px-4 rounded text-xs uppercase tracking-widest transition-all shadow-xl flex items-center justify-center space-x-2"
-                >
-                  <span>Proceed to Checkout</span>
-                  <ArrowRight size={15} />
-                </Link>
+                {/* Checkout Buttons */}
+                <div className="space-y-3">
+                  <Link
+                    href="/checkout"
+                    className="w-full bg-[#14532D] hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl text-xs uppercase tracking-widest transition-all shadow-xl flex items-center justify-center space-x-2"
+                  >
+                    <span>Proceed to Domestic Checkout</span>
+                    <ArrowRight size={15} />
+                  </Link>
+
+                  <Link
+                    href="/rfq"
+                    className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-extrabold py-3.5 px-4 rounded-xl text-xs uppercase tracking-widest transition-all shadow-xl flex items-center justify-center space-x-2 ring-2 ring-amber-400/40"
+                  >
+                    <span>🌎 Convert Cart to Export Quote (RFQ)</span>
+                  </Link>
+                </div>
 
                 <div className="flex items-center justify-center space-x-2 text-[11px] text-stone-400 pt-1">
-                  <ShieldCheck size={14} className="text-[#c59b27]" />
-                  <span>Encrypted 256-bit SSL Secure Checkout</span>
+                  <ShieldCheck size={14} className="text-[#EAB308]" />
+                  <span>256-bit SSL Encrypted &amp; Official Export Pro Forma Invoice</span>
                 </div>
               </div>
             </div>
