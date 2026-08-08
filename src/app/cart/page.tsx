@@ -156,10 +156,10 @@ export default function CartPage() {
                         </div>
                       </div>
 
-                      {/* Unit Price */}
+                    {/* Unit Price */}
                       <div className="sm:col-span-2 text-left sm:text-center text-xs font-mono font-medium text-stone-300">
-                        <span className="sm:hidden text-stone-500 mr-2">Price:</span>
-                        ${(item.product.price || 50).toFixed(2)}
+                        <span className="sm:hidden text-stone-500 mr-2">가격:</span>
+                        ₩{(item.product.price || 18000).toLocaleString()}원
                       </div>
 
                       {/* Quantity Controls */}
@@ -185,8 +185,8 @@ export default function CartPage() {
 
                       {/* Line Item Total */}
                       <div className="sm:col-span-2 text-left sm:text-right font-mono text-sm font-semibold text-[#c59b27]">
-                        <span className="sm:hidden text-stone-500 text-xs mr-2">Subtotal:</span>
-                        ${((item.product.price || 50) * item.quantity).toFixed(2)}
+                        <span className="sm:hidden text-stone-500 text-xs mr-2">소계:</span>
+                        ₩{((item.product.price || 18000) * item.quantity).toLocaleString()}원
                       </div>
                     </div>
                   ))}
@@ -198,13 +198,13 @@ export default function CartPage() {
                     onClick={clearCart}
                     className="text-xs text-stone-400 hover:text-red-400 transition-colors underline font-mono"
                   >
-                    Clear Shopping Cart
+                    장바구니 비우기
                   </button>
                   <Link
                     href="/shop"
                     className="text-xs text-[#c59b27] hover:underline font-mono"
                   >
-                    ← Continue Shopping
+                    ← 쇼핑 계속하기
                   </Link>
                 </div>
               </div>
@@ -216,18 +216,18 @@ export default function CartPage() {
               {/* Cart Totals Box */}
               <div className="bg-[#101411] border border-emerald-900/30 rounded-lg p-6 space-y-6 shadow-xl sticky top-28">
                 <h3 className="font-serif-luxury text-lg text-white font-medium border-b border-emerald-900/30 pb-3">
-                  Cart Totals
+                  주문 금액 합계 (Cart Totals)
                 </h3>
 
                 {/* Coupon Input */}
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-stone-400 uppercase tracking-wider">Coupon Code</label>
+                  <label className="text-xs font-medium text-stone-400 uppercase tracking-wider">할인 쿠폰 코드</label>
                   <form onSubmit={handleApplyCoupon} className="flex space-x-2">
                     <div className="relative flex-1">
                       <Tag size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500" />
                       <input
                         type="text"
-                        placeholder="WELCOME10 or LUXURY20"
+                        placeholder="WELCOME10 또는 KFOOD15"
                         value={inputCoupon}
                         onChange={(e) => setInputCoupon(e.target.value)}
                         className="w-full bg-stone-900 border border-emerald-900/40 rounded pl-8 pr-3 py-2 text-xs text-stone-200 placeholder-stone-600 focus:outline-none focus:border-[#c59b27]"
@@ -237,7 +237,7 @@ export default function CartPage() {
                       type="submit"
                       className="bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs px-3 py-2 rounded transition-colors font-medium border border-stone-700"
                     >
-                      Apply
+                      적용
                     </button>
                   </form>
 
@@ -257,13 +257,13 @@ export default function CartPage() {
                     <div className="flex justify-between items-center text-xs bg-[#18221b] p-2.5 rounded border border-emerald-800/40">
                       <span className="text-emerald-400 font-medium flex items-center space-x-1.5">
                         <Sparkles size={13} />
-                        <span>Active Coupon: {couponCode}</span>
+                        <span>적용된 쿠폰: {couponCode}</span>
                       </span>
                       <button
                         onClick={removeCoupon}
                         className="text-stone-400 hover:text-red-400 text-[11px] underline"
                       >
-                        Remove
+                        삭제
                       </button>
                     </div>
                   )}
@@ -272,31 +272,31 @@ export default function CartPage() {
                 {/* Subtotals & Taxes */}
                 <div className="space-y-3 text-xs text-stone-300 border-t border-emerald-900/30 pt-4">
                   <div className="flex justify-between">
-                    <span className="text-stone-400">Subtotal</span>
-                    <span className="font-mono font-medium">${subtotal.toFixed(2)}</span>
+                    <span className="text-stone-400">상품 주문 소계</span>
+                    <span className="font-mono font-medium">₩{subtotal.toLocaleString()}원</span>
                   </div>
 
                   {discountAmount > 0 && (
                     <div className="flex justify-between text-emerald-400">
-                      <span>Discount</span>
-                      <span className="font-mono">-${discountAmount.toFixed(2)}</span>
+                      <span>쿠폰 할인 금액</span>
+                      <span className="font-mono">-₩{discountAmount.toLocaleString()}원</span>
                     </div>
                   )}
 
                   <div className="flex justify-between">
-                    <span className="text-stone-400">Shipping</span>
+                    <span className="text-stone-400">신선 냉동 배송비</span>
                     <span className="font-mono">
                       {shippingFee === 0 ? (
-                        <span className="text-emerald-400 uppercase font-semibold text-[11px]">Free Shipping</span>
+                        <span className="text-emerald-400 uppercase font-semibold text-[11px]">무료 배송</span>
                       ) : (
-                        `$${shippingFee.toFixed(2)}`
+                        `₩${shippingFee.toLocaleString()}원`
                       )}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center text-lg font-bold text-white pt-3 border-t border-emerald-900/30">
-                    <span>Total</span>
-                    <span className="font-mono text-[#c59b27]">${totalAmount.toFixed(2)}</span>
+                    <span>최종 결제 금액</span>
+                    <span className="font-mono text-[#c59b27]">₩{totalAmount.toLocaleString()}원</span>
                   </div>
                 </div>
 
@@ -306,7 +306,7 @@ export default function CartPage() {
                     href="/checkout"
                     className="w-full bg-[#14532D] hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl text-xs uppercase tracking-widest transition-all shadow-xl flex items-center justify-center space-x-2"
                   >
-                    <span>Proceed to Domestic Checkout</span>
+                    <span>국내 B2C/도매 주문 결제하기</span>
                     <ArrowRight size={15} />
                   </Link>
 
@@ -314,13 +314,13 @@ export default function CartPage() {
                     href="/rfq"
                     className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-extrabold py-3.5 px-4 rounded-xl text-xs uppercase tracking-widest transition-all shadow-xl flex items-center justify-center space-x-2 ring-2 ring-amber-400/40"
                   >
-                    <span>🌎 Convert Cart to Export Quote (RFQ)</span>
+                    <span>🌎 장바구니 상품 15% 할인 견적서(RFQ) 변환</span>
                   </Link>
                 </div>
 
                 <div className="flex items-center justify-center space-x-2 text-[11px] text-stone-400 pt-1">
                   <ShieldCheck size={14} className="text-[#EAB308]" />
-                  <span>256-bit SSL Encrypted &amp; Official Export Pro Forma Invoice</span>
+                  <span>256-bit SSL 암호화 결제 및 공식 Pro Forma Invoice 발급</span>
                 </div>
               </div>
             </div>

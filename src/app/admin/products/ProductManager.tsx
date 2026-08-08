@@ -136,16 +136,20 @@ export default function ProductManager() {
   const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
 
   const [name, setName] = useState('');
-  const [collection, setCollection] = useState('Artisanal Pantry');
-  const [price, setPrice] = useState('48');
-  const [format, setFormat] = useState('500ml Bottle');
-  const [finish, setFinish] = useState('First Cold-Pressed');
-  const [color, setColor] = useState('Emerald Gold');
-  const [look, setLook] = useState('Tuscan Heritage Estate');
+  const [collection, setCollection] = useState('K-냉동식품');
+  const [category, setCategory] = useState('만두 & 교자');
+  const [price, setPrice] = useState('18000');
+  const [originalPrice, setOriginalPrice] = useState('22000');
+  const [format, setFormat] = useState('1.05kg 패밀리팩');
+  const [finish, setFinish] = useState('-40°C IQF 급속냉동');
+  const [color, setColor] = useState('노릇노릇 바삭함');
+  const [look, setLook] = useState('수제 손주름 교자');
   const [imageUrl, setImageUrl] = useState('');
   const [description, setDescription] = useState('');
-  const [origin, setOrigin] = useState('Tuscany, Italy');
+  const [origin, setOrigin] = useState('대한민국');
   const [isFeatured, setIsFeatured] = useState(true);
+  const [isTodaysDeal, setIsTodaysDeal] = useState(false);
+  const [isBestSeller, setIsBestSeller] = useState(true);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -196,7 +200,7 @@ export default function ProductManager() {
   );
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    if (!confirm('정말로 이 상품을 삭제하시겠습니까?')) return;
     setProducts((prev) => prev.filter((p) => p.id !== id));
 
     try {
@@ -209,22 +213,26 @@ export default function ProductManager() {
       await supabase.from('products').delete().eq('id', id);
     }
 
-    showToast('Product deleted successfully');
+    showToast('상품이 성공적으로 삭제되었습니다.');
   };
 
   const openCreateModal = () => {
     setEditingProduct(null);
     setName('');
-    setCollection('Artisanal Pantry');
-    setPrice('48');
-    setFormat('500ml Bottle');
-    setFinish('First Cold-Pressed');
-    setColor('Emerald Gold');
-    setLook('Tuscan Heritage Estate');
+    setCollection('K-냉동식품');
+    setCategory('만두 & 교자');
+    setPrice('18000');
+    setOriginalPrice('22000');
+    setFormat('1.05kg 패밀리팩');
+    setFinish('-40°C IQF 급속냉동');
+    setColor('노릇노릇 바삭함');
+    setLook('수제 손주름 교자');
     setImageUrl('');
     setDescription('');
-    setOrigin('Tuscany, Italy');
+    setOrigin('대한민국');
     setIsFeatured(true);
+    setIsTodaysDeal(false);
+    setIsBestSeller(true);
     setIsModalOpen(true);
   };
 
@@ -232,15 +240,19 @@ export default function ProductManager() {
     setEditingProduct(p);
     setName(p.name);
     setCollection(p.collection);
-    setPrice(String(p.price || 48));
+    setCategory(p.category || '기타');
+    setPrice(String(p.price || 18000));
+    setOriginalPrice(p.original_price ? String(p.original_price) : '');
     setFormat(p.format);
     setFinish(p.finish);
     setColor(p.color);
     setLook(p.look);
     setImageUrl(p.image_url || '');
     setDescription(p.description || '');
-    setOrigin(p.origin || 'Tuscany, Italy');
+    setOrigin(p.origin || '대한민국');
     setIsFeatured(p.is_featured ?? true);
+    setIsTodaysDeal(p.is_todays_deal ?? false);
+    setIsBestSeller(p.is_best_seller ?? false);
     setIsModalOpen(true);
   };
 
@@ -257,14 +269,14 @@ export default function ProductManager() {
       const data = await res.json();
       if (data.success) {
         setImageUrl(data.url);
-        showToast('Image uploaded!');
+        showToast('이미지가 성공적으로 업로드되었습니다!');
       } else {
-        alert(data.error || 'Upload failed');
+        alert(data.error || '업로드에 실패했습니다.');
       }
     } catch {
       const localUrl = URL.createObjectURL(file);
       setImageUrl(localUrl);
-      showToast('Image attached locally!');
+      showToast('이미지가 로컬 첨부되었습니다!');
     } finally {
       setUploading(false);
     }
@@ -272,24 +284,33 @@ export default function ProductManager() {
 
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return alert('Product Name is required');
+    if (!name.trim()) return alert('상품명을 입력해주세요.');
+
+    const numericPrice = Number(price) || 0;
+    const numericOriginalPrice = originalPrice ? Number(originalPrice) : null;
+    const calculatedWholesale = Math.round(numericPrice * 0.85); // 15% discount for wholesale quote
 
     const newOrUpdated: ProductItem = {
       id: editingProduct ? editingProduct.id : `prod-${Date.now()}`,
       name,
       collection,
-      price: Number(price) || 0,
+      category,
+      price: numericPrice,
+      original_price: numericOriginalPrice,
+      wholesale_price_krw: calculatedWholesale,
       format,
       finish,
       color,
       look,
-      image_url: imageUrl || 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80',
+      image_url: imageUrl || 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=800&q=80',
       description,
       origin,
       is_featured: isFeatured,
+      is_todays_deal: isTodaysDeal,
+      is_best_seller: isBestSeller,
       rating: editingProduct?.rating || 4.9,
       reviews_count: editingProduct?.reviews_count || 12,
-      sku: editingProduct?.sku || `ANA-${Date.now().toString().slice(-4)}`,
+      sku: editingProduct?.sku || `KFD-${Date.now().toString().slice(-4)}`,
     };
 
     if (editingProduct) {
@@ -313,7 +334,7 @@ export default function ProductManager() {
     }
 
     setIsModalOpen(false);
-    showToast(editingProduct ? 'Product updated' : 'New product created');
+    showToast(editingProduct ? '상품 정보가 수정되었습니다.' : '신규 상품이 등록되었습니다.');
   };
 
   return (
@@ -334,14 +355,14 @@ export default function ProductManager() {
             className="inline-flex items-center space-x-2 text-xs text-stone-400 hover:text-[#c5a880] mb-2 transition-colors"
           >
             <ArrowLeft size={14} />
-            <span>Back to Dashboard</span>
+            <span>대시보드로 돌아가기</span>
           </Link>
           <h1 className="text-2xl sm:text-3xl font-serif-luxury font-bold text-white flex items-center space-x-3">
             <Shield className="text-[#c5a880]" size={28} />
-            <span>Product Catalog CRUD</span>
+            <span>상품 관리 & 메인 노출 지정 (CRUD)</span>
           </h1>
           <p className="text-xs text-stone-400 mt-1">
-            Manage Anatolia fine foods catalog &amp; 4 core attributes (Format, Finish, Color, Look).
+            송영민푸드 상품 등록, 가격 설정(원화 ₩), 이미지 업로드, 카테고리 관리 및 [오늘의 특가 / 베스트셀러] 노출을 관리합니다.
           </p>
         </div>
 
@@ -350,7 +371,7 @@ export default function ProductManager() {
           className="flex items-center space-x-2 px-5 py-2.5 bg-[#c5a880] hover:bg-[#b59870] text-black font-semibold rounded text-xs transition-colors shadow-lg"
         >
           <Plus size={16} />
-          <span>CREATE PRODUCT</span>
+          <span>신규 상품 등록</span>
         </button>
       </div>
 
@@ -361,7 +382,7 @@ export default function ProductManager() {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search catalog by product name, collection..."
+          placeholder="상품명, 카테고리, 컬렉션 검색..."
           className="w-full pl-10 pr-4 py-2.5 bg-[#111118] border border-stone-800 focus:border-[#c5a880] rounded text-xs text-white focus:outline-none"
         />
       </div>
@@ -369,12 +390,12 @@ export default function ProductManager() {
       {/* Product List Grid */}
       {loading ? (
         <div className="py-20 text-center text-stone-500 text-sm animate-pulse">
-          Loading Catalog Data...
+          상품 카탈로그를 불러오는 중입니다...
         </div>
       ) : filteredProducts.length === 0 ? (
         <div className="py-20 text-center bg-[#111118] border border-stone-800 rounded-xl space-y-3">
           <Package className="mx-auto text-stone-600" size={40} />
-          <p className="text-stone-400 text-sm">No products found matching criteria.</p>
+          <p className="text-stone-400 text-sm">검색 조건에 일치하는 상품이 없습니다.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -387,27 +408,42 @@ export default function ProductManager() {
                 {/* Product Image Header */}
                 <div className="h-44 relative bg-stone-900 overflow-hidden">
                   <img
-                    src={p.image_url || 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80'}
+                    src={p.image_url || 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=800&q=80'}
                     alt={p.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute top-3 left-3">
-                    <span className="bg-[#0a0a0c]/80 backdrop-blur border border-stone-700 text-[#c5a880] text-[10px] uppercase font-mono px-2.5 py-1 rounded">
+                  <div className="absolute top-3 left-3 flex flex-col gap-1">
+                    <span className="bg-[#0a0a0c]/80 backdrop-blur border border-stone-700 text-[#c5a880] text-[10px] uppercase font-mono px-2.5 py-0.5 rounded">
                       {p.collection}
                     </span>
+                    {p.is_todays_deal && (
+                      <span className="bg-red-900/90 text-red-200 border border-red-700 text-[10px] font-bold px-2 py-0.5 rounded">
+                        🔥 오늘의 특가
+                      </span>
+                    )}
+                    {p.is_best_seller && (
+                      <span className="bg-amber-900/90 text-amber-200 border border-amber-700 text-[10px] font-bold px-2 py-0.5 rounded">
+                        ⭐ 베스트셀러
+                      </span>
+                    )}
                   </div>
 
-                  <div className="absolute top-3 right-3 bg-black/80 backdrop-blur px-2.5 py-1 rounded text-xs font-bold text-white">
-                    ${p.price}
+                  <div className="absolute top-3 right-3 bg-black/80 backdrop-blur px-2.5 py-1 rounded text-xs font-bold text-[#c5a880]">
+                    ₩{(p.price || 0).toLocaleString()}원
                   </div>
                 </div>
 
                 {/* Info Content */}
                 <div className="p-5 space-y-2.5">
-                  <div className="flex items-center space-x-1 text-[#c5a880] text-xs">
-                    <Star size={13} className="fill-[#c5a880]" />
-                    <span className="font-semibold">{p.rating || 4.9}</span>
-                    <span className="text-stone-500 font-mono text-[10px]">({p.reviews_count || 12})</span>
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center space-x-1 text-[#c5a880]">
+                      <Star size={13} className="fill-[#c5a880]" />
+                      <span className="font-semibold">{p.rating || 4.9}</span>
+                      <span className="text-stone-500 font-mono text-[10px]">({p.reviews_count || 12})</span>
+                    </div>
+                    <span className="text-stone-400 text-[10px] font-mono">
+                      도매가: ₩{(p.wholesale_price_krw || Math.round((p.price || 0) * 0.85)).toLocaleString()}원 (-15%)
+                    </span>
                   </div>
 
                   <h3 className="font-serif-luxury text-base font-semibold text-white line-clamp-1 group-hover:text-[#c5a880] transition-colors">
@@ -416,10 +452,10 @@ export default function ProductManager() {
 
                   {/* Attributes Badges */}
                   <div className="grid grid-cols-2 gap-1.5 pt-1 text-[10px] font-mono text-stone-400">
-                    <div className="truncate">Format: <span className="text-stone-200">{p.format}</span></div>
-                    <div className="truncate">Finish: <span className="text-stone-200">{p.finish}</span></div>
-                    <div className="truncate">Color: <span className="text-stone-200">{p.color}</span></div>
-                    <div className="truncate">Origin: <span className="text-stone-200">{p.origin}</span></div>
+                    <div className="truncate">용량: <span className="text-stone-200">{p.format}</span></div>
+                    <div className="truncate">공법: <span className="text-stone-200">{p.finish}</span></div>
+                    <div className="truncate">특성: <span className="text-stone-200">{p.color}</span></div>
+                    <div className="truncate">원산지: <span className="text-stone-200">{p.origin || '대한민국'}</span></div>
                   </div>
                 </div>
               </div>
@@ -433,15 +469,17 @@ export default function ProductManager() {
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => openEditModal(p)}
-                    className="p-1.5 text-stone-400 hover:text-white bg-stone-900 hover:bg-stone-800 rounded border border-stone-800 transition-colors"
+                    className="p-1.5 text-stone-400 hover:text-white bg-stone-900 hover:bg-stone-800 rounded border border-stone-800 transition-colors flex items-center space-x-1 text-xs"
                   >
                     <Edit2 size={13} />
+                    <span>수정</span>
                   </button>
                   <button
                     onClick={() => handleDelete(p.id)}
-                    className="p-1.5 text-red-400 hover:text-red-300 bg-red-950/30 hover:bg-red-900/50 rounded border border-red-900/50 transition-colors"
+                    className="p-1.5 text-red-400 hover:text-red-300 bg-red-950/30 hover:bg-red-900/50 rounded border border-red-900/50 transition-colors flex items-center space-x-1 text-xs"
                   >
                     <Trash2 size={13} />
+                    <span>삭제</span>
                   </button>
                 </div>
               </div>
@@ -450,70 +488,122 @@ export default function ProductManager() {
         </div>
       )}
 
-      {/* Modal */}
+      {/* Modal Form */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-[#111118] border border-stone-800 rounded-xl max-w-2xl w-full p-6 space-y-5 shadow-2xl relative my-8">
             <h2 className="font-serif-luxury text-xl font-bold text-white flex items-center space-x-2">
               <Shield className="text-[#c5a880]" size={20} />
-              <span>{editingProduct ? 'Edit Product' : 'Create New Product'}</span>
+              <span>{editingProduct ? '상품 정보 수정' : '신규 상품 등록'}</span>
             </h2>
 
             <form onSubmit={handleSaveProduct} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">Product Name</label>
+                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">상품명</label>
                   <input
                     type="text"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Cold-Pressed EVOO"
+                    placeholder="예: CJ 비비고 수제 프리미엄 왕교자 만두 1.05kg"
                     className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">Collection</label>
+                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">컬렉션 분류</label>
                   <select
                     value={collection}
                     onChange={(e) => setCollection(e.target.value)}
                     className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
                   >
-                    <option value="Fresh & Gourmet">Fresh &amp; Gourmet</option>
-                    <option value="Artisanal Pantry">Artisanal Pantry</option>
-                    <option value="Dairy & Charcuterie">Dairy &amp; Charcuterie</option>
+                    <option value="K-냉동식품">K-냉동식품</option>
+                    <option value="K-간편식/HMR">K-간편식/HMR</option>
+                    <option value="K-전통식품">K-전통식품</option>
+                    <option value="K-주류 & 전통주">K-주류 & 전통주</option>
+                    <option value="K-소스/조미료">K-소스/조미료</option>
+                    <option value="K-스낵/음료">K-스낵/음료</option>
                   </select>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">Price ($ USD)</label>
+                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">소매 판매가 (원 ₩)</label>
                   <input
                     type="number"
                     required
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    placeholder="48"
+                    placeholder="18000"
                     className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">Origin / Region</label>
+                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">할인 전 정가 (원 ₩)</label>
+                  <input
+                    type="number"
+                    value={originalPrice}
+                    onChange={(e) => setOriginalPrice(e.target.value)}
+                    placeholder="22000"
+                    className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">원산지</label>
                   <input
                     type="text"
                     value={origin}
                     onChange={(e) => setOrigin(e.target.value)}
-                    placeholder="Tuscany, Italy"
+                    placeholder="대한민국"
                     className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
                   />
                 </div>
               </div>
 
+              {/* Main Homepage Display Toggles */}
+              <div className="p-3 bg-[#0d0d14] border border-[#c5a880]/30 rounded-lg space-y-2">
+                <label className="block text-xs uppercase font-semibold text-[#c5a880] font-mono">
+                  메인 페이지 노출 섹션 지정 (Best Sellers & Todays Deals)
+                </label>
+                <div className="flex flex-wrap gap-6 text-xs text-stone-200 pt-1">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isTodaysDeal}
+                      onChange={(e) => setIsTodaysDeal(e.target.checked)}
+                      className="w-4 h-4 rounded text-red-600 focus:ring-red-500 bg-stone-900 border-stone-700"
+                    />
+                    <span className="font-semibold text-red-400">🔥 오늘의 특가 노출</span>
+                  </label>
+
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isBestSeller}
+                      onChange={(e) => setIsBestSeller(e.target.checked)}
+                      className="w-4 h-4 rounded text-amber-500 focus:ring-amber-400 bg-stone-900 border-stone-700"
+                    />
+                    <span className="font-semibold text-amber-400">⭐ 베스트셀러 노출</span>
+                  </label>
+
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isFeatured}
+                      onChange={(e) => setIsFeatured(e.target.checked)}
+                      className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-400 bg-stone-900 border-stone-700"
+                    />
+                    <span className="font-semibold text-emerald-400">✨ 메인 추천상품 노출</span>
+                  </label>
+                </div>
+              </div>
+
               <div>
-                <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">Image URL</label>
+                <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">상품 이미지 Upload / URL</label>
                 <div className="flex space-x-2">
                   <input
                     type="text"
@@ -522,9 +612,9 @@ export default function ProductManager() {
                     placeholder="https://images.unsplash.com/..."
                     className="flex-grow px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
                   />
-                  <label className="px-4 py-2 bg-stone-900 border border-stone-800 text-stone-300 text-xs rounded cursor-pointer flex items-center space-x-1 shrink-0">
+                  <label className="px-4 py-2 bg-stone-900 border border-stone-800 text-stone-300 text-xs rounded cursor-pointer flex items-center space-x-1 shrink-0 hover:text-white">
                     <Upload size={14} />
-                    <span>{uploading ? 'Uploading...' : 'Upload'}</span>
+                    <span>{uploading ? '업로드중...' : '이미지 업로드'}</span>
                     <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                   </label>
                 </div>
@@ -533,7 +623,7 @@ export default function ProductManager() {
               {/* 4 Attributes */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#0d0d12] p-3 rounded border border-stone-800">
                 <div>
-                  <label className="block text-[10px] uppercase font-mono text-stone-400 mb-1">Format</label>
+                  <label className="block text-[10px] uppercase font-mono text-stone-400 mb-1">포장 용량</label>
                   <input
                     type="text"
                     value={format}
@@ -542,7 +632,7 @@ export default function ProductManager() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase font-mono text-stone-400 mb-1">Finish</label>
+                  <label className="block text-[10px] uppercase font-mono text-stone-400 mb-1">제조 공법</label>
                   <input
                     type="text"
                     value={finish}
@@ -551,7 +641,7 @@ export default function ProductManager() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase font-mono text-stone-400 mb-1">Color</label>
+                  <label className="block text-[10px] uppercase font-mono text-stone-400 mb-1">맛/원재료 특성</label>
                   <input
                     type="text"
                     value={color}
@@ -560,7 +650,7 @@ export default function ProductManager() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase font-mono text-stone-400 mb-1">Look / Cert</label>
+                  <label className="block text-[10px] uppercase font-mono text-stone-400 mb-1">인증 / 사양</label>
                   <input
                     type="text"
                     value={look}
@@ -571,12 +661,12 @@ export default function ProductManager() {
               </div>
 
               <div>
-                <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">Description</label>
+                <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">상품 설명</label>
                 <textarea
                   rows={2}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Artisanal ingredient description..."
+                  placeholder="상품의 특징, 원재료 및 조리법 안내..."
                   className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none resize-none"
                 />
               </div>
@@ -585,15 +675,15 @@ export default function ProductManager() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="w-1/2 py-2.5 bg-stone-800 text-stone-300 rounded text-xs"
+                  className="w-1/2 py-2.5 bg-stone-800 text-stone-300 rounded text-xs hover:bg-stone-700"
                 >
-                  Cancel
+                  취소
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 py-2.5 bg-[#c5a880] text-black font-semibold rounded text-xs shadow-lg"
+                  className="w-1/2 py-2.5 bg-[#c5a880] text-black font-semibold rounded text-xs shadow-lg hover:bg-[#d6b991]"
                 >
-                  Save Product
+                  저장하기
                 </button>
               </div>
             </form>
@@ -603,3 +693,4 @@ export default function ProductManager() {
     </div>
   );
 }
+

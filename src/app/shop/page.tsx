@@ -361,11 +361,11 @@ export default function ShopPage() {
                           <div>
                             <div className="flex items-center space-x-1.5">
                               <span className="font-mono text-base font-bold text-[#c59b27]">
-                                ${(p.price || 50).toFixed(2)}
+                                ₩{(p.price || 18000).toLocaleString()}원
                               </span>
                               {p.original_price && (
                                 <span className="font-mono text-xs text-stone-500 line-through">
-                                  ${p.original_price.toFixed(2)}
+                                  ₩{p.original_price.toLocaleString()}원
                                 </span>
                               )}
                             </div>
@@ -421,11 +421,11 @@ export default function ShopPage() {
                       <div className="flex flex-col items-end space-y-3 sm:w-44 border-t sm:border-t-0 sm:border-l border-emerald-900/30 pt-3 sm:pt-0 sm:pl-5">
                         <div className="text-right">
                           <span className="font-mono text-lg font-bold text-[#c59b27]">
-                            ${(p.price || 50).toFixed(2)}
+                            ₩{(p.price || 18000).toLocaleString()}원
                           </span>
                           {p.original_price && (
                             <div className="font-mono text-xs text-stone-500 line-through">
-                              ${p.original_price.toFixed(2)}
+                              ₩{p.original_price.toLocaleString()}원
                             </div>
                           )}
                         </div>

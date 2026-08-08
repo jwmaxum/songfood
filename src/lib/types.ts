@@ -85,6 +85,9 @@ export interface ProductItem {
   thickness?: string;
   origin?: string;
   is_featured?: boolean;
+  is_todays_deal?: boolean; // 오늘의 특가 지정 여부
+  is_best_seller?: boolean; // 베스트셀러 지정 여부
+  deal_discount_percent?: number; // 오늘의 특가 할인율 (%)
   
   // Domestic Product Specs
   brand?: string;

@@ -12,13 +12,18 @@ interface BestSellersProps {
 
 export default function BestSellers({ products }: BestSellersProps) {
   const { addToCart } = useCart();
-  const [activeCategory, setActiveCategory] = useState<string>('All');
+  const [activeCategory, setActiveCategory] = useState<string>('전체');
 
-  const categories = ['All', 'Artisanal Pantry', 'Dairy & Charcuterie', 'Fresh & Gourmet'];
+  const categories = ['전체', 'K-냉동식품', 'K-전통식품', 'K-간편식/HMR', 'K-주류 & 전통주', 'K-소스/조미료'];
 
-  const filteredProducts = activeCategory === 'All'
-    ? products
-    : products.filter((p) => p.collection.toLowerCase() === activeCategory.toLowerCase());
+  // Filter products by admin is_best_seller selection
+  const bestSellerPool = products.filter((p) => p.is_best_seller === true).length > 0
+    ? products.filter((p) => p.is_best_seller === true)
+    : products;
+
+  const filteredProducts = activeCategory === '전체'
+    ? bestSellerPool
+    : bestSellerPool.filter((p) => p.collection.toLowerCase() === activeCategory.toLowerCase());
 
   return (
     <section className="py-20 bg-[#FAFAF8] border-b border-stone-200">
@@ -29,10 +34,10 @@ export default function BestSellers({ products }: BestSellersProps) {
           <div>
             <div className="inline-flex items-center space-x-1.5 text-[#14532D] text-xs font-bold uppercase tracking-wider mb-1">
               <Award size={16} className="text-[#EAB308]" />
-              <span>Customer Favorites</span>
+              <span>관리자 엄선 인기 상품</span>
             </div>
             <h2 className="font-jakarta text-3xl font-extrabold text-stone-900 tracking-tight">
-              Best Sellers Collection
+              송영민푸드 베스트셀러 컬렉션
             </h2>
           </div>
 
@@ -79,7 +84,7 @@ export default function BestSellers({ products }: BestSellersProps) {
               <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
                 <div>
                   <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">
-                    {product.origin || 'Imported'}
+                    {product.origin || '대한민국 (Korea)'}
                   </span>
                   <Link href={`/products/${product.id}`}>
                     <h3 className="font-jakarta text-sm font-bold text-stone-900 group-hover:text-[#14532D] transition-colors mt-1 line-clamp-2">
@@ -91,12 +96,12 @@ export default function BestSellers({ products }: BestSellersProps) {
                 <div className="flex items-center space-x-1 text-amber-500 text-xs">
                   <Star size={13} fill="currentColor" />
                   <span className="font-bold text-stone-800 ml-1">{product.rating || 4.9}</span>
-                  <span className="text-stone-400">({product.reviews_count || 48})</span>
+                  <span className="text-stone-400">({product.reviews_count || 48}개 후기)</span>
                 </div>
 
                 <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
                   <span className="font-jakarta text-lg font-extrabold text-[#14532D]">
-                    ${product.price}
+                    ₩{(product.price || 0).toLocaleString()}원
                   </span>
 
                   <button
@@ -104,7 +109,7 @@ export default function BestSellers({ products }: BestSellersProps) {
                     className="flex items-center space-x-1 bg-[#FAFAF8] hover:bg-[#14532D] text-stone-700 hover:text-white border border-stone-200 hover:border-[#14532D] px-3 py-2 rounded-xl font-bold text-xs transition-all"
                   >
                     <ShoppingBag size={14} />
-                    <span>Cart</span>
+                    <span>담기</span>
                   </button>
                 </div>
               </div>
@@ -118,7 +123,7 @@ export default function BestSellers({ products }: BestSellersProps) {
             href="/shop"
             className="inline-flex items-center space-x-2 bg-white border border-stone-300 hover:border-[#14532D] text-stone-800 hover:text-[#14532D] font-bold text-sm px-8 py-3.5 rounded-xl shadow-sm hover:shadow transition-all"
           >
-            <span>Explore All Best Sellers</span>
+            <span>전체 베스트셀러 상품 보기</span>
             <ChevronRight size={16} />
           </Link>
         </div>
@@ -126,3 +131,5 @@ export default function BestSellers({ products }: BestSellersProps) {
     </section>
   );
 }
+
+

@@ -138,15 +138,15 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
             {/* Price Box */}
             <div className="bg-[#101411] border border-emerald-900/40 p-4 rounded-md flex items-baseline space-x-3">
               <span className="font-mono text-3xl font-bold text-[#c59b27]">
-                ${(product.price || 50).toFixed(2)}
+                ₩{(product.price || 18000).toLocaleString()}원
               </span>
               {product.original_price && (
                 <span className="font-mono text-base text-stone-500 line-through">
-                  ${product.original_price.toFixed(2)}
+                  ₩{product.original_price.toLocaleString()}원
                 </span>
               )}
               <span className="text-xs text-stone-400 font-mono ml-auto">
-                SKU: {product.sku || 'AN-PROD-001'}
+                SKU: {product.sku || 'KFD-PROD-001'}
               </span>
             </div>
 

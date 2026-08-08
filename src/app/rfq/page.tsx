@@ -12,6 +12,7 @@ export default function RFQPage() {
 
   // RFQ Form State
   const [selectedProducts, setSelectedProducts] = useState<{ [id: string]: number }>({});
+  const [discountRate, setDiscountRate] = useState<number>(15); // Default 15% discount off shop retail price
   const [country, setCountry] = useState('USA');
   const [destinationPort, setDestinationPort] = useState('Los Angeles Port (USLAX)');
   const [incoterms, setIncoterms] = useState<'FOB Busan' | 'CIF' | 'CFR' | 'EXW'>('FOB Busan');
@@ -32,9 +33,8 @@ export default function RFQPage() {
       try {
         const res = await fetch('/api/products');
         const data = await res.json();
-        if (data.success) {
+        if (data.success && Array.isArray(data.data)) {
           setProducts(data.data);
-          // Default select first product with 50 CTNs
           if (data.data.length > 0) {
             setSelectedProducts({ [data.data[0].id]: 50 });
           }
@@ -68,21 +68,25 @@ export default function RFQPage() {
     }));
   };
 
-  // Calculation Engine
+  // Calculation Engine based on 15% Discount off Shop Retail Price (KRW & USD)
   const selectedProductList = products.filter((p) => selectedProducts[p.id] !== undefined);
   
   const rfqItems: RFQItem[] = selectedProductList.map((p) => {
     const qty = selectedProducts[p.id] || 0;
-    const unitPrice = p.export_price_usd || Math.round((p.price || 15) * 0.8 * 10) / 10;
-    const totalUsd = Math.round(unitPrice * qty * 100) / 100;
+    const retailPriceKrw = p.price || 18000;
+    // Apply discountRate (default 15% off retail price)
+    const discountedPriceKrw = Math.round(retailPriceKrw * (1 - discountRate / 100));
+    // USD equivalent (assuming $1 = 1,350 KRW)
+    const unitPriceUsd = p.export_price_usd || Math.round((discountedPriceKrw / 1350) * 100) / 100;
+    const totalUsd = Math.round(unitPriceUsd * qty * 100) / 100;
     const cbmPerCtn = p.cbm || 0.035;
     const grossWeightPerCtn = p.gross_weight || 11.0;
 
     return {
       productId: p.id,
-      name: p.name_en || p.name,
+      name: p.name,
       quantityCartons: qty,
-      unitPriceUsd: unitPrice,
+      unitPriceUsd: unitPriceUsd,
       totalUsd,
       cbm: Math.round(cbmPerCtn * qty * 1000) / 1000,
       grossWeight: Math.round(grossWeightPerCtn * qty * 10) / 10,
@@ -91,6 +95,7 @@ export default function RFQPage() {
   });
 
   const subtotalUsd = Math.round(rfqItems.reduce((sum, item) => sum + item.totalUsd, 0) * 100) / 100;
+  const subtotalKrw = Math.round(subtotalUsd * 1350);
   const packingFeeUsd = selectedProductList.length > 0 ? 150 : 0;
   const totalUsd = Math.round((subtotalUsd + packingFeeUsd) * 100) / 100;
   const totalCbm = Math.round(rfqItems.reduce((sum, item) => sum + item.cbm, 0) * 1000) / 1000;
@@ -101,7 +106,7 @@ export default function RFQPage() {
   const handleGenerateQuote = (e: React.FormEvent) => {
     e.preventDefault();
     if (!company || !name || !email) {
-      alert('Please fill in required buyer details (Company, Name, Email).');
+      alert('바이어 기업 정보(회사명, 담당자 성함, 이메일)를 입력해주세요.');
       return;
     }
 
@@ -123,7 +128,7 @@ export default function RFQPage() {
       totalCbm,
       totalGrossWeight,
       reeferContainerFillPercent: fillRate,
-      notes,
+      notes: `${notes} (소매가 기준 ${discountRate}% 할인 적용)`,
       status: 'NEW_LEAD',
       createdAt: new Date().toISOString(),
       businessType,
@@ -141,21 +146,22 @@ export default function RFQPage() {
           <div>
             <Link href="/global" className="inline-flex items-center text-xs text-amber-400 hover:underline mb-2 space-x-1">
               <ArrowLeft size={14} />
-              <span>Back to Global Catalog</span>
+              <span>해외 B2B 카탈로그로 돌아가기</span>
             </Link>
             <h1 className="text-3xl sm:text-5xl font-extrabold text-white font-jakarta tracking-tight">
-              Request for Quotation (RFQ)
+              도매 &amp; 해외바이어 견적 신청 (RFQ)
             </h1>
             <p className="text-stone-300 text-xs sm:text-sm mt-2 max-w-2xl">
-              Select products, specify destination &amp; Incoterms to receive an instant FOB/CIF Pro Forma Export Invoice calculation from Song Youngmin Food.
+              Shop 상품을 선택하여 도매/해외바이어 수량별 견적을 즉시 산출하고 소매가 대비 15% 할인가로 공식 Pro Forma Invoice를 발행받으실 수 있습니다.
             </p>
           </div>
 
           <div className="flex items-center space-x-3 bg-stone-900/80 border border-amber-500/40 p-4 rounded-xl backdrop-blur">
             <Calculator className="text-[#EAB308] w-8 h-8" />
             <div>
-              <div className="text-[10px] uppercase text-stone-400 font-bold">Estimated FOB Total</div>
+              <div className="text-[10px] uppercase text-stone-400 font-bold">견적 예상 총액 (FOB USD)</div>
               <div className="text-2xl font-extrabold text-[#EAB308] font-jakarta">${totalUsd.toLocaleString()} USD</div>
+              <div className="text-xs text-stone-400 font-mono">약 ₩{subtotalKrw.toLocaleString()}원 (15% 할인 적용)</div>
             </div>
           </div>
         </div>
@@ -165,13 +171,13 @@ export default function RFQPage() {
         {/* Progress Step Bar */}
         <div className="grid grid-cols-7 gap-2 mb-10 text-center text-xs">
           {[
-            { num: 1, title: 'Products' },
-            { num: 2, title: 'Quantities' },
-            { num: 3, title: 'Country' },
-            { num: 4, title: 'Port' },
-            { num: 5, title: 'Incoterms' },
-            { num: 6, title: 'Buyer Info' },
-            { num: 7, title: 'Quotation' },
+            { num: 1, title: '상품 선택' },
+            { num: 2, title: '수량 설정' },
+            { num: 3, title: '목적지 국가' },
+            { num: 4, title: '입항 항구' },
+            { num: 5, title: '무역 조건' },
+            { num: 6, title: '바이어 정보' },
+            { num: 7, title: '견적서 발행' },
           ].map((s) => (
             <button
               key={s.num}
@@ -190,7 +196,7 @@ export default function RFQPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-20 text-stone-400">Loading product catalog...</div>
+          <div className="text-center py-20 text-stone-400">상품 카탈로그를 불러오는 중입니다...</div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Main Form Left Column (8 cols) */}
@@ -199,17 +205,44 @@ export default function RFQPage() {
               {/* STEP 1: Select Products */}
               {step === 1 && (
                 <div className="bg-stone-900/80 border border-stone-800 rounded-2xl p-6 sm:p-8 space-y-6">
-                  <div className="flex justify-between items-center border-b border-stone-800 pb-4">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-stone-800 pb-4 gap-2">
                     <div>
-                      <h2 className="text-xl font-bold text-white font-jakarta">Step 1. Select Export Products</h2>
-                      <p className="text-xs text-stone-400">Choose the K-Food items you wish to include in your quotation.</p>
+                      <h2 className="text-xl font-bold text-white font-jakarta">Step 1. 견적 대상 상품 선택</h2>
+                      <p className="text-xs text-stone-400">Shop에 등록된 K-Food 상품 중 견적에 포함할 제품을 선택해주세요.</p>
                     </div>
-                    <span className="text-xs text-amber-400 font-bold">{selectedProductList.length} Selected</span>
+                    <span className="text-xs text-amber-400 font-bold">{selectedProductList.length}개 상품 선택됨</span>
+                  </div>
+
+                  {/* Wholesale Discount Rate Slider */}
+                  <div className="p-4 bg-[#141815] border border-amber-500/30 rounded-xl space-y-2">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-[#EAB308]">도매/B2B 기본 할인율 적용</span>
+                      <span className="font-mono font-bold text-white bg-amber-950 px-2 py-0.5 rounded border border-amber-500/40">
+                        기본 소매가 대비 -{discountRate}% 할인
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="35"
+                      value={discountRate}
+                      onChange={(e) => setDiscountRate(Number(e.target.value))}
+                      className="w-full accent-[#c5a880] cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[10px] text-stone-400 font-mono">
+                      <span>0% (소매가 적용)</span>
+                      <span>15% (기본 도매 할인가)</span>
+                      <span>35% (대량 특가)</span>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {products.map((p) => {
                       const isSelected = selectedProducts[p.id] !== undefined;
+                      const retailPrice = p.price || 18000;
+                      const discountedPrice = Math.round(retailPrice * (1 - discountRate / 100));
+                      const usdPrice = p.export_price_usd || Math.round((discountedPrice / 1350) * 100) / 100;
+
                       return (
                         <div
                           key={p.id}
@@ -222,9 +255,16 @@ export default function RFQPage() {
                         >
                           <img src={p.image_url} alt={p.name} className="w-16 h-16 object-cover rounded-lg flex-shrink-0" />
                           <div className="flex-1 overflow-hidden">
-                            <h3 className="text-xs font-bold text-stone-100 truncate">{p.name_en || p.name}</h3>
-                            <p className="text-[11px] text-stone-400 mt-1">HS: {p.hs_code || '1902.20'} | MOQ: {p.moq_cartons || 50} CTN</p>
-                            <p className="text-xs font-bold text-[#EAB308] mt-1">${p.export_price_usd || 15} USD / CTN</p>
+                            <h3 className="text-xs font-bold text-stone-100 truncate">{p.name}</h3>
+                            <p className="text-[10px] text-stone-400 mt-0.5">HS: {p.hs_code || '1902.20'} | MOQ: {p.moq_cartons || 50} CTN</p>
+                            <div className="mt-1 flex items-baseline space-x-1.5">
+                              <span className="text-xs font-extrabold text-[#EAB308]">
+                                ₩{discountedPrice.toLocaleString()}원 (${usdPrice})
+                              </span>
+                              <span className="text-[10px] text-stone-500 line-through">
+                                ₩{retailPrice.toLocaleString()}원
+                              </span>
+                            </div>
                           </div>
                           <CheckCircle2 className={`w-5 h-5 ${isSelected ? 'text-emerald-400' : 'text-stone-700'}`} />
                         </div>
@@ -238,7 +278,7 @@ export default function RFQPage() {
                       onClick={() => setStep(2)}
                       className="px-8 py-3 bg-[#14532D] hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center space-x-2 disabled:opacity-50"
                     >
-                      <span>Next: Set Quantities</span>
+                      <span>다음: 수량 입력하기</span>
                       <ChevronRight size={16} />
                     </button>
                   </div>
