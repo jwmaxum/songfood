@@ -85,6 +85,7 @@ export default function CollectionShowcaseClient({
 
   // Quick View Detail Modal State
   const [activeModalProduct, setActiveModalProduct] = useState<ProductItem | null>(null);
+  const [modalSelectedTier, setModalSelectedTier] = useState<'ea' | 'box' | 'carton'>('ea');
 
   // Mobile Filter Drawer Toggle
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
@@ -479,56 +480,146 @@ export default function CollectionShowcaseClient({
                   <div>유통기한: <span className="text-stone-200">{activeModalProduct.shelf_life || '제조일로부터 12개월'}</span></div>
                 </div>
 
-                {/* 3-Tier Price Table */}
-                <div className="border border-emerald-900/40 rounded-lg overflow-hidden text-[11px] font-mono bg-[#101411]">
-                  <table className="w-full text-center divide-y divide-emerald-900/30">
-                    <thead className="bg-stone-900 text-stone-400 text-[10px]">
-                      <tr>
-                        <th className="py-1.5 px-2 text-left">구분</th>
-                        <th className="py-1.5 px-2">낱개(EA)</th>
-                        <th className="py-1.5 px-2">박스(Box)</th>
-                        <th className="py-1.5 px-2">카톤(Carton)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-emerald-900/20 text-stone-200">
-                      <tr>
-                        <td className="py-1.5 px-2 text-left text-stone-400">단위</td>
-                        <td className="py-1.5 px-2">1개</td>
-                        <td className="py-1.5 px-2">1박스 ({activeModalProduct.box_qty || 20}개입)</td>
-                        <td className="py-1.5 px-2">1카톤 ({(activeModalProduct.carton_box_qty || 5) * (activeModalProduct.box_qty || 20)}개입)</td>
-                      </tr>
-                      <tr className="font-bold">
-                        <td className="py-1.5 px-2 text-left text-stone-400">가격</td>
-                        <td className="py-1.5 px-2 text-[#c5a880]">₩{(activeModalProduct.price || 10000).toLocaleString()}원</td>
-                        <td className="py-1.5 px-2 text-amber-400">₩{(activeModalProduct.box_price || Math.round((activeModalProduct.price || 10000) * (activeModalProduct.box_qty || 20) * 0.9)).toLocaleString()}원</td>
-                        <td className="py-1.5 px-2 text-emerald-400">₩{(activeModalProduct.carton_price || Math.round((activeModalProduct.price || 10000) * (activeModalProduct.carton_box_qty || 5) * (activeModalProduct.box_qty || 20) * 0.8)).toLocaleString()}원</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+                {/* 3-Tier Price Table with Explicit Select Buttons */}
+                {(() => {
+                  const eaPrice = activeModalProduct.price || 10000;
+                  const boxQty = activeModalProduct.box_qty || 20;
+                  const boxPrice = activeModalProduct.box_price || Math.round(eaPrice * boxQty * 0.9);
+                  const cartonBoxQty = activeModalProduct.carton_box_qty || 5;
+                  const cartonTotalQty = cartonBoxQty * boxQty;
+                  const cartonPrice = activeModalProduct.carton_price || Math.round(eaPrice * cartonTotalQty * 0.8);
 
-                <div className="pt-2 flex gap-3">
-                  <button
-                    onClick={() => {
-                      addToCart(activeModalProduct, 1);
-                      setActiveModalProduct(null);
-                    }}
-                    className="flex-1 py-2.5 bg-stone-800 hover:bg-stone-700 text-white font-bold text-xs rounded-lg flex items-center justify-center space-x-1.5 transition-colors border border-stone-700"
-                  >
-                    <ShoppingBag size={14} />
-                    <span>장바구니 담기</span>
-                  </button>
+                  const selectedPrice =
+                    modalSelectedTier === 'box'
+                      ? boxPrice
+                      : modalSelectedTier === 'carton'
+                      ? cartonPrice
+                      : eaPrice;
 
-                  <button
-                    onClick={() => {
-                      addToCart(activeModalProduct, 1);
-                      window.location.href = '/checkout';
-                    }}
-                    className="flex-1 py-2.5 bg-[#14532D] hover:bg-emerald-700 text-white font-extrabold text-xs rounded-lg flex items-center justify-center space-x-1.5 transition-all shadow-lg"
-                  >
-                    <span>⚡ 바로 결제 (Checkout)</span>
-                  </button>
-                </div>
+                  const selectedLabel =
+                    modalSelectedTier === 'box'
+                      ? `1박스 (${boxQty}개입)`
+                      : modalSelectedTier === 'carton'
+                      ? `1카톤 (${cartonTotalQty}개입 / ${cartonBoxQty}박스)`
+                      : `1개 (EA)`;
+
+                  return (
+                    <div className="space-y-3">
+                      <div className="border border-emerald-900/40 rounded-lg overflow-hidden text-[11px] font-mono bg-[#101411]">
+                        <table className="w-full text-center divide-y divide-emerald-900/30">
+                          <thead className="bg-stone-900 text-stone-400 text-[10px]">
+                            <tr>
+                              <th className="py-1.5 px-2 text-left">구분</th>
+                              <th className="py-1.5 px-2">낱개 (EA)</th>
+                              <th className="py-1.5 px-2">박스 (Box)</th>
+                              <th className="py-1.5 px-2">카톤 (Carton)</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-emerald-900/20 text-stone-200">
+                            <tr>
+                              <td className="py-1.5 px-2 text-left text-stone-400 font-semibold">단위</td>
+                              <td className="py-1.5 px-2">1개 (EA)</td>
+                              <td className="py-1.5 px-2">1박스 ({boxQty}개입)</td>
+                              <td className="py-1.5 px-2">1카톤 ({cartonTotalQty}개입)</td>
+                            </tr>
+                            <tr className="font-bold">
+                              <td className="py-1.5 px-2 text-left text-stone-400 font-semibold">가격</td>
+                              <td className="py-1.5 px-2 text-[#c5a880]">₩{eaPrice.toLocaleString()}원</td>
+                              <td className="py-1.5 px-2 text-amber-400">₩{boxPrice.toLocaleString()}원</td>
+                              <td className="py-1.5 px-2 text-emerald-400">₩{cartonPrice.toLocaleString()}원</td>
+                            </tr>
+                            <tr>
+                              <td className="py-1.5 px-2 text-left text-stone-400 font-semibold">선택</td>
+                              <td className="py-1.5 px-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setModalSelectedTier('ea')}
+                                  className={`w-full py-1 rounded text-[10px] font-bold border transition-all ${
+                                    modalSelectedTier === 'ea'
+                                      ? 'bg-[#c5a880] text-black border-[#c5a880] shadow'
+                                      : 'bg-stone-900 text-stone-400 border-stone-700 hover:text-white'
+                                  }`}
+                                >
+                                  {modalSelectedTier === 'ea' ? '✓ 선택됨' : '낱개 선택'}
+                                </button>
+                              </td>
+                              <td className="py-1.5 px-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setModalSelectedTier('box')}
+                                  className={`w-full py-1 rounded text-[10px] font-bold border transition-all ${
+                                    modalSelectedTier === 'box'
+                                      ? 'bg-amber-400 text-black border-amber-400 shadow'
+                                      : 'bg-stone-900 text-stone-400 border-stone-700 hover:text-white'
+                                  }`}
+                                >
+                                  {modalSelectedTier === 'box' ? '✓ 선택됨' : '박스 선택'}
+                                </button>
+                              </td>
+                              <td className="py-1.5 px-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setModalSelectedTier('carton')}
+                                  className={`w-full py-1 rounded text-[10px] font-bold border transition-all ${
+                                    modalSelectedTier === 'carton'
+                                      ? 'bg-emerald-400 text-black border-emerald-400 shadow'
+                                      : 'bg-stone-900 text-stone-400 border-stone-700 hover:text-white'
+                                  }`}
+                                >
+                                  {modalSelectedTier === 'carton' ? '✓ 선택됨' : '카톤 선택'}
+                                </button>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div className="text-right text-xs font-mono text-stone-300">
+                        선택된 옵션: <strong className="text-[#c5a880]">{selectedLabel}</strong> ={' '}
+                        <span className="text-base font-bold text-white">₩{selectedPrice.toLocaleString()}원</span>
+                      </div>
+
+                      <div className="pt-1 flex gap-3">
+                        <button
+                          onClick={() => {
+                            addToCart(
+                              activeModalProduct,
+                              1,
+                              selectedLabel,
+                              activeModalProduct.finish,
+                              modalSelectedTier,
+                              selectedPrice,
+                              selectedLabel
+                            );
+                            setActiveModalProduct(null);
+                          }}
+                          className="flex-1 py-2.5 bg-stone-800 hover:bg-stone-700 text-white font-bold text-xs rounded-lg flex items-center justify-center space-x-1.5 transition-colors border border-stone-700"
+                        >
+                          <ShoppingBag size={14} />
+                          <span>장바구니 담기</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            addToCart(
+                              activeModalProduct,
+                              1,
+                              selectedLabel,
+                              activeModalProduct.finish,
+                              modalSelectedTier,
+                              selectedPrice,
+                              selectedLabel
+                            );
+                            window.location.href = '/checkout';
+                          }}
+                          className="flex-1 py-2.5 bg-[#14532D] hover:bg-emerald-700 text-white font-extrabold text-xs rounded-lg flex items-center justify-center space-x-1.5 transition-all shadow-lg"
+                        >
+                          <span>⚡ 바로 결제 (Checkout)</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>

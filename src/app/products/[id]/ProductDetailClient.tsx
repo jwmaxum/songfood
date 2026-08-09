@@ -289,6 +289,48 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
                         ₩{cartonPrice.toLocaleString()}원
                       </td>
                     </tr>
+                    <tr>
+                      <td className="py-2.5 px-3 text-stone-400 font-semibold bg-stone-900/30">선택</td>
+                      <td className="py-2.5 px-3 text-center">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedTier('ea')}
+                          className={`w-full py-1.5 rounded text-xs font-bold border transition-all ${
+                            selectedTier === 'ea'
+                              ? 'bg-[#c59b27] text-black border-[#c59b27] shadow'
+                              : 'bg-stone-900 text-stone-400 border-stone-700 hover:text-white'
+                          }`}
+                        >
+                          {selectedTier === 'ea' ? '✓ 낱개 선택됨' : '낱개 선택'}
+                        </button>
+                      </td>
+                      <td className="py-2.5 px-3 text-center">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedTier('box')}
+                          className={`w-full py-1.5 rounded text-xs font-bold border transition-all ${
+                            selectedTier === 'box'
+                              ? 'bg-amber-400 text-black border-amber-400 shadow'
+                              : 'bg-stone-900 text-stone-400 border-stone-700 hover:text-white'
+                          }`}
+                        >
+                          {selectedTier === 'box' ? '✓ 박스 선택됨' : '박스 선택'}
+                        </button>
+                      </td>
+                      <td className="py-2.5 px-3 text-center">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedTier('carton')}
+                          className={`w-full py-1.5 rounded text-xs font-bold border transition-all ${
+                            selectedTier === 'carton'
+                              ? 'bg-emerald-400 text-black border-emerald-400 shadow'
+                              : 'bg-stone-900 text-stone-400 border-stone-700 hover:text-white'
+                          }`}
+                        >
+                          {selectedTier === 'carton' ? '✓ 카톤 선택됨' : '카톤 선택'}
+                        </button>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>

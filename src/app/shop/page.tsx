@@ -37,6 +37,7 @@ export default function ShopPage() {
   // Quick View Modal State
   const [quickViewProduct, setQuickViewProduct] = useState<ProductItem | null>(null);
   const [quickViewQty, setQuickViewQty] = useState(1);
+  const [shopModalSelectedTier, setShopModalSelectedTier] = useState<'ea' | 'box' | 'carton'>('ea');
   const [addedToast, setAddedToast] = useState<string | null>(null);
 
   const collections = useMemo(() => {
@@ -449,48 +450,169 @@ export default function ShopPage() {
                     <span className="text-stone-500">({quickViewProduct.reviews_count || 12} reviews)</span>
                   </div>
 
-                  <div className="text-xl font-mono font-bold text-[#c59b27] mt-3">
-                    ${(quickViewProduct.price || 50).toFixed(2)}
-                  </div>
+                  {/* Certifications */}
+                  {quickViewProduct.certifications && quickViewProduct.certifications.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {quickViewProduct.certifications.map((cert) => (
+                        <span key={cert} className="bg-emerald-950 text-emerald-300 border border-emerald-700/50 text-[9px] font-mono px-1.5 py-0.5 rounded font-bold">
+                          ✓ {cert}
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
-                  <p className="text-xs text-stone-300 mt-3 leading-relaxed">
+                  <p className="text-xs text-stone-300 mt-2 leading-relaxed line-clamp-2">
                     {quickViewProduct.description}
                   </p>
 
-                  <div className="mt-4 pt-3 border-t border-emerald-900/30 text-xs space-y-1 text-stone-400 font-mono">
-                    <div>Origin: <span className="text-stone-200">{quickViewProduct.origin}</span></div>
-                    <div>Format: <span className="text-stone-200">{quickViewProduct.format}</span></div>
-                    <div>SKU: <span className="text-stone-200">{quickViewProduct.sku || 'N/A'}</span></div>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3 pt-4 border-t border-emerald-900/30">
-                  <div className="flex items-center border border-emerald-800/40 rounded bg-stone-900">
-                    <button
-                      onClick={() => setQuickViewQty(Math.max(1, quickViewQty - 1))}
-                      className="px-3 py-1.5 text-stone-400 hover:text-white"
-                    >
-                      -
-                    </button>
-                    <span className="px-3 text-xs font-mono font-medium text-stone-200">{quickViewQty}</span>
-                    <button
-                      onClick={() => setQuickViewQty(quickViewQty + 1)}
-                      className="px-3 py-1.5 text-stone-400 hover:text-white"
-                    >
-                      +
-                    </button>
+                  {/* Specs */}
+                  <div className="mt-3 pt-2 border-t border-emerald-900/30 text-[11px] space-y-0.5 text-stone-400 font-mono">
+                    <div>용량/무게: <span className="text-stone-200">{quickViewProduct.net_weight || quickViewProduct.format}</span></div>
+                    <div>보관방법: <span className="text-stone-200">{quickViewProduct.storage || '영하 18℃ 이하 냉동 보관'}</span></div>
                   </div>
 
-                  <button
-                    onClick={() => {
-                      addToCart(quickViewProduct, quickViewQty);
-                      setQuickViewProduct(null);
-                    }}
-                    className="flex-1 bg-[#c59b27] hover:bg-[#b08820] text-black font-semibold py-2.5 px-4 rounded text-xs uppercase tracking-wider flex items-center justify-center space-x-2"
-                  >
-                    <ShoppingBag size={15} />
-                    <span>Add to Cart</span>
-                  </button>
+                  {/* 3-Tier Table */}
+                  {(() => {
+                    const eaPrice = quickViewProduct.price || 10000;
+                    const boxQty = quickViewProduct.box_qty || 20;
+                    const boxPrice = quickViewProduct.box_price || Math.round(eaPrice * boxQty * 0.9);
+                    const cartonBoxQty = quickViewProduct.carton_box_qty || 5;
+                    const cartonTotalQty = cartonBoxQty * boxQty;
+                    const cartonPrice = quickViewProduct.carton_price || Math.round(eaPrice * cartonTotalQty * 0.8);
+
+                    const selectedPrice =
+                      shopModalSelectedTier === 'box'
+                        ? boxPrice
+                        : shopModalSelectedTier === 'carton'
+                        ? cartonPrice
+                        : eaPrice;
+
+                    const selectedLabel =
+                      shopModalSelectedTier === 'box'
+                        ? `1박스 (${boxQty}개입)`
+                        : shopModalSelectedTier === 'carton'
+                        ? `1카톤 (${cartonTotalQty}개입 / ${cartonBoxQty}박스)`
+                        : `1개 (EA)`;
+
+                    return (
+                      <div className="mt-3 space-y-2 font-mono text-[11px]">
+                        <div className="border border-emerald-900/40 rounded overflow-hidden bg-[#101411]">
+                          <table className="w-full text-center divide-y divide-emerald-900/30">
+                            <thead className="bg-stone-900 text-stone-400 text-[10px]">
+                              <tr>
+                                <th className="py-1 px-1.5 text-left">구분</th>
+                                <th className="py-1 px-1.5">낱개 (EA)</th>
+                                <th className="py-1 px-1.5">박스 (Box)</th>
+                                <th className="py-1 px-1.5">카톤 (Carton)</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-emerald-900/20 text-stone-200">
+                              <tr>
+                                <td className="py-1 px-1.5 text-left text-stone-400 font-semibold">단위</td>
+                                <td className="py-1 px-1.5">1개</td>
+                                <td className="py-1 px-1.5">1박스 ({boxQty}개입)</td>
+                                <td className="py-1 px-1.5">1카톤 ({cartonTotalQty}개입)</td>
+                              </tr>
+                              <tr className="font-bold">
+                                <td className="py-1 px-1.5 text-left text-stone-400 font-semibold">가격</td>
+                                <td className="py-1 px-1.5 text-[#c5a880]">₩{eaPrice.toLocaleString()}원</td>
+                                <td className="py-1 px-1.5 text-amber-400">₩{boxPrice.toLocaleString()}원</td>
+                                <td className="py-1 px-1.5 text-emerald-400">₩{cartonPrice.toLocaleString()}원</td>
+                              </tr>
+                              <tr>
+                                <td className="py-1 px-1.5 text-left text-stone-400 font-semibold">선택</td>
+                                <td className="py-1 px-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => setShopModalSelectedTier('ea')}
+                                    className={`w-full py-0.5 rounded text-[9px] font-bold border transition-all ${
+                                      shopModalSelectedTier === 'ea'
+                                        ? 'bg-[#c5a880] text-black border-[#c5a880] shadow'
+                                        : 'bg-stone-900 text-stone-400 border-stone-700 hover:text-white'
+                                    }`}
+                                  >
+                                    {shopModalSelectedTier === 'ea' ? '✓ 선택됨' : '낱개 선택'}
+                                  </button>
+                                </td>
+                                <td className="py-1 px-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => setShopModalSelectedTier('box')}
+                                    className={`w-full py-1 rounded text-[9px] font-bold border transition-all ${
+                                      shopModalSelectedTier === 'box'
+                                        ? 'bg-amber-400 text-black border-amber-400 shadow'
+                                        : 'bg-stone-900 text-stone-400 border-stone-700 hover:text-white'
+                                    }`}
+                                  >
+                                    {shopModalSelectedTier === 'box' ? '✓ 선택됨' : '박스 선택'}
+                                  </button>
+                                </td>
+                                <td className="py-1 px-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => setShopModalSelectedTier('carton')}
+                                    className={`w-full py-1 rounded text-[9px] font-bold border transition-all ${
+                                      shopModalSelectedTier === 'carton'
+                                        ? 'bg-emerald-400 text-black border-emerald-400 shadow'
+                                        : 'bg-stone-900 text-stone-400 border-stone-700 hover:text-white'
+                                    }`}
+                                  >
+                                    {shopModalSelectedTier === 'carton' ? '✓ 선택됨' : '카톤 선택'}
+                                  </button>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+
+                        <div className="flex justify-between items-center text-xs pt-1">
+                          <span className="text-stone-300">
+                            선택: <strong className="text-[#c5a880]">{selectedLabel}</strong>
+                          </span>
+                          <span className="text-[#c5a880] font-bold text-sm">
+                            ₩{(selectedPrice * quickViewQty).toLocaleString()}원
+                          </span>
+                        </div>
+
+                        <div className="flex items-center space-x-2 pt-2 border-t border-emerald-900/30">
+                          <div className="flex items-center border border-emerald-800/40 rounded bg-stone-900">
+                            <button
+                              onClick={() => setQuickViewQty(Math.max(1, quickViewQty - 1))}
+                              className="px-2.5 py-1 text-stone-400 hover:text-white"
+                            >
+                              -
+                            </button>
+                            <span className="px-2 text-xs font-mono font-medium text-stone-200">{quickViewQty}</span>
+                            <button
+                              onClick={() => setQuickViewQty(quickViewQty + 1)}
+                              className="px-2.5 py-1 text-stone-400 hover:text-white"
+                            >
+                              +
+                            </button>
+                          </div>
+
+                          <button
+                            onClick={() => {
+                              addToCart(
+                                quickViewProduct,
+                                quickViewQty,
+                                selectedLabel,
+                                quickViewProduct.finish,
+                                shopModalSelectedTier,
+                                selectedPrice,
+                                selectedLabel
+                              );
+                              setQuickViewProduct(null);
+                            }}
+                            className="flex-1 bg-[#c59b27] hover:bg-[#b08820] text-black font-bold py-2 px-3 rounded text-xs uppercase tracking-wider flex items-center justify-center space-x-1.5 shadow"
+                          >
+                            <ShoppingBag size={14} />
+                            <span>장바구니 담기</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
