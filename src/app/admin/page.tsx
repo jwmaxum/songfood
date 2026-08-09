@@ -110,13 +110,13 @@ export default async function AdminDashboardPage() {
       linkLabel: '미디어 라이브러리',
     },
     {
-      label: 'K-레시피 저널',
+      label: 'K-Food 저널 & Media Lab',
       value: kpi.publishedArticles.toString(),
-      sub: '발행된 아티클',
+      sub: '발행된 아티클 & 소식',
       icon: BookOpen,
       iconColor: 'text-amber-400',
       href: '/admin/journal',
-      linkLabel: '저널 편집 바로가기',
+      linkLabel: '저널 & Media Lab 바로가기',
     },
     {
       label: '미처리 대기 주문',

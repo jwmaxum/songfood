@@ -135,17 +135,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   const navLinks = [
-    { href: '/admin', label: '실시간 대시보드', icon: LayoutDashboard },
-    { href: '/admin/orders', label: '🚚 회원 주문 & 송장 관리', icon: Truck },
-    { href: '/admin/crm', label: '🏢 해외/도매 바이어 CRM', icon: Shield },
-    { href: '/admin/payments', label: '💳 토스 결제 시스템 설정', icon: Lock },
-    { href: '/admin/navigation', label: '메뉴 엔진 (GNB/Footer)', icon: Layers },
-    { href: '/admin/hero', label: '히어로 비디오/슬라이더', icon: Film },
-    { href: '/admin/products', label: 'K-푸드 & 주류 제품 관리', icon: Shield },
-    { href: '/admin/content-blocks', label: '페이지 섹션 콘텐츠', icon: FileText },
-    { href: '/admin/journal', label: 'K-레시피 & 저널 에디터', icon: FileText },
+    { href: '/admin', label: '실시간 KPI 대시보드', icon: LayoutDashboard },
+    { href: '/admin/orders', label: '🚚 주문 & 택배 운송장 관리', icon: Truck },
+    { href: '/admin/crm', label: '🏢 해외 바이어 RFQ & PFI CRM', icon: Shield },
+    { href: '/admin/payments', label: '💳 토스 결제 승인 연동', icon: Lock },
+    { href: '/admin/navigation', label: '메뉴 엔진 (Header GNB/Footer)', icon: Layers },
+    { href: '/admin/hero', label: '히어로 슬라이더 & 비디오 CMS', icon: Film },
+    { href: '/admin/products', label: 'K-Food 상품 CRUD & Carton 가격', icon: Shield },
+    { href: '/admin/content-blocks', label: '페이지 섹션 콘텐츠 CMS', icon: FileText },
+    { href: '/admin/journal', label: 'K-Food 저널 & Media Lab 에디터', icon: FileText },
     { href: '/admin/media', label: '미디어 라이브러리 CDN', icon: ImageIcon },
-    { href: '/admin/users', label: '서브 관리자 직원/권한', icon: Users },
+    { href: '/admin/users', label: '서브 관리자 직원/권한 CRUD', icon: Users },
   ];
 
   if (isAuthenticated === false) {
