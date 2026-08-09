@@ -25,11 +25,6 @@ interface CollectionShowcaseClientProps {
   initialCollectionFilter?: string;
 }
 
-const FORMAT_OPTIONS = ['500ml Bottle', '250g Jar', '500g Block', '100g Sliced Pack', '350g Prime Cut', '3kg Box'];
-const FINISH_OPTIONS = ['Cold-Pressed', '36-Month Aged', '25-Year Barrel Aged', 'Dry-Aged & Chilled', 'Wild Harvested'];
-const COLOR_OPTIONS = ['Emerald Gold', 'Warm Ivory', 'Obsidian Black', 'Deep Ruby', 'Dark Velvet Brown', 'Amber Gold'];
-const LOOK_OPTIONS = ['Italian Heritage', 'DOP Certified Organic', 'Gourmet Reserve', 'Artisan Charcuterie', 'A5 Prime Grade', 'Certified Organic'];
-
 export default function CollectionShowcaseClient({
   initialProducts,
   initialLookFilter,
@@ -38,8 +33,45 @@ export default function CollectionShowcaseClient({
   const { t } = useLanguage();
   const { addToCart } = useCart();
   const searchParams = useSearchParams();
+  const catParam = searchParams.get('cat');
   const urlLook = searchParams.get('look');
   const urlCollection = searchParams.get('collection');
+
+  // Dynamic Options derived from products DB
+  const formatOptions = useMemo(
+    () => Array.from(new Set(initialProducts.map((p) => p.format).filter(Boolean))),
+    [initialProducts]
+  );
+  const finishOptions = useMemo(
+    () => Array.from(new Set(initialProducts.map((p) => p.finish).filter(Boolean))),
+    [initialProducts]
+  );
+  const colorOptions = useMemo(
+    () => Array.from(new Set(initialProducts.map((p) => p.color).filter(Boolean))),
+    [initialProducts]
+  );
+  const lookOptions = useMemo(
+    () => Array.from(new Set(initialProducts.map((p) => p.look).filter(Boolean))),
+    [initialProducts]
+  );
+
+  const getInitialCollection = () => {
+    if (urlCollection) return urlCollection;
+    if (initialCollectionFilter) return initialCollectionFilter;
+    if (catParam) {
+      const catMap: Record<string, string> = {
+        fresh: 'K-냉동식품',
+        dairy: 'K-주류 & 전통주',
+        pantry: 'K-간편식/HMR',
+        traditional: 'K-전통식품',
+        kimchi: 'K-전통식품',
+        sauce: 'K-소스/조미료',
+        snack: 'K-스낵/음료',
+      };
+      return catMap[catParam.toLowerCase()] || 'All';
+    }
+    return 'All';
+  };
 
   // Filter States
   const [selectedFormats, setSelectedFormats] = useState<string[]>([]);
@@ -48,9 +80,7 @@ export default function CollectionShowcaseClient({
   const [selectedLooks, setSelectedLooks] = useState<string[]>(
     urlLook ? [urlLook] : initialLookFilter ? [initialLookFilter] : []
   );
-  const [selectedCollection, setSelectedCollection] = useState<string>(
-    urlCollection || initialCollectionFilter || 'All'
-  );
+  const [selectedCollection, setSelectedCollection] = useState<string>(getInitialCollection());
   const [searchQuery, setSearchQuery] = useState('');
 
   // Quick View Detail Modal State
@@ -62,6 +92,11 @@ export default function CollectionShowcaseClient({
   // Client-side Interactive Filter logic
   const filteredProducts = useMemo(() => {
     return initialProducts.filter((product) => {
+      // catParam === 'deals' special filter
+      if (catParam?.toLowerCase() === 'deals' && !product.is_todays_deal && !product.is_featured) {
+        return false;
+      }
+
       // Collection Filter
       if (
         selectedCollection !== 'All' &&
@@ -103,6 +138,7 @@ export default function CollectionShowcaseClient({
     });
   }, [
     initialProducts,
+    catParam,
     selectedCollection,
     selectedFormats,
     selectedFinishes,
@@ -139,6 +175,16 @@ export default function CollectionShowcaseClient({
     selectedLooks.length +
     (selectedCollection !== 'All' ? 1 : 0);
 
+  const collectionTabs = [
+    'All',
+    'K-냉동식품',
+    'K-전통식품',
+    'K-간편식/HMR',
+    'K-소스/조미료',
+    'K-주류 & 전통주',
+    'K-스낵/음료',
+  ];
+
   return (
     <div className="min-h-screen bg-[#0a0a0c] text-stone-100 font-sans pb-24">
       {/* Top Page Banner Header */}
@@ -150,7 +196,7 @@ export default function CollectionShowcaseClient({
 
           {/* Quick Collection Tabs */}
           <div className="pt-6 flex flex-wrap justify-center gap-2">
-            {['All', 'Fresh & Gourmet', 'Artisanal Pantry', 'Dairy & Charcuterie'].map((coll) => (
+            {collectionTabs.map((coll) => (
               <button
                 key={coll}
                 onClick={() => setSelectedCollection(coll)}
@@ -477,7 +523,7 @@ export default function CollectionShowcaseClient({
             <div className="space-y-6 text-xs">
               <div>
                 <h3 className="text-[#c5a880] uppercase tracking-wider mb-2 font-semibold">Format</h3>
-                {FORMAT_OPTIONS.map((fmt) => (
+                {formatOptions.map((fmt: string) => (
                   <label key={fmt} className="flex items-center space-x-2 py-1 text-stone-300">
                     <input
                       type="checkbox"
@@ -491,7 +537,7 @@ export default function CollectionShowcaseClient({
 
               <div>
                 <h3 className="text-[#c5a880] uppercase tracking-wider mb-2 font-semibold">Finish</h3>
-                {FINISH_OPTIONS.map((fn) => (
+                {finishOptions.map((fn: string) => (
                   <label key={fn} className="flex items-center space-x-2 py-1 text-stone-300">
                     <input
                       type="checkbox"
@@ -505,7 +551,7 @@ export default function CollectionShowcaseClient({
 
               <div>
                 <h3 className="text-[#c5a880] uppercase tracking-wider mb-2 font-semibold">Look</h3>
-                {LOOK_OPTIONS.map((lk) => (
+                {lookOptions.map((lk: string) => (
                   <label key={lk} className="flex items-center space-x-2 py-1 text-stone-300">
                     <input
                       type="checkbox"

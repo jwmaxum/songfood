@@ -3,9 +3,9 @@ import { getProducts } from '@/lib/products-db';
 import CollectionShowcaseClient from './CollectionShowcaseClient';
 
 export const metadata = {
-  title: 'Fine Food Collections & Showcase | Anatolia Gourmet',
+  title: 'K-Food 프리미엄 컬렉션 | 송영민푸드 (Song Youngmin Food)',
   description:
-    'Explore Anatolia Gourmet artisanal extra virgin olive oil, DOP cheeses, and organic ingredients. Filter by Size, Processing, Flavor, and Origin.',
+    '대한민국 대표 프리미엄 K-Food, K-냉동식품, K-전통식품, K-간편식, K-소스, K-주류 및 명품 전통주 컬렉션 쇼케이스.',
 };
 
 export default async function CollectionsPage() {
