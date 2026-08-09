@@ -283,33 +283,30 @@ export default function CollectionShowcaseClient({
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {filteredProducts.map((product) => (
+                {filteredProducts.map((product, idx) => (
                   <div
                     key={product.id}
-                    className="group bg-[#121217] border border-stone-800 rounded overflow-hidden hover:border-[#c5a880]/60 transition-all duration-300 flex flex-col justify-between shadow-lg"
+                    className="group bg-white dark:bg-[#121217] text-stone-900 dark:text-stone-100 border border-stone-200/80 dark:border-stone-800 rounded-2xl overflow-hidden hover:border-[#14532D] dark:hover:border-[#c5a880]/80 transition-all duration-300 flex flex-col justify-between shadow-xl hover:shadow-2xl"
                   >
                     {/* Visual Card Image */}
                     <div
-                      className="relative h-64 overflow-hidden bg-stone-900 cursor-pointer"
+                      className="relative h-64 overflow-hidden bg-stone-100 dark:bg-stone-900 cursor-pointer"
                       onClick={() => setActiveModalProduct(product)}
                     >
                       <img
                         src={product.image_url}
                         alt={product.name}
-                        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 filter brightness-95 group-hover:brightness-105"
+                        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
                       />
-                      
-                      {/* Dark Gradient Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#121217] via-transparent to-black/30 opacity-75 group-hover:opacity-60 transition-opacity" />
 
-                      {/* Top Badges */}
+                      {/* Top Badges (Image 2 style: #1 Best, #2 Best...) */}
                       <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                        <span className="px-2 py-0.5 bg-black/70 border border-white/10 backdrop-blur-md rounded text-[10px] uppercase font-mono text-[#c5a880]">
-                          {product.collection}
+                        <span className="px-2.5 py-1 bg-[#14532D] text-emerald-100 font-extrabold text-[11px] rounded-md shadow-md tracking-wider">
+                          #{idx + 1} Best
                         </span>
-                        {product.is_featured && (
-                          <span className="px-2 py-0.5 bg-[#c5a880] text-black font-semibold rounded text-[10px] uppercase tracking-wider">
-                            Featured
+                        {product.collection && (
+                          <span className="px-2 py-0.5 bg-stone-900/80 text-amber-300 font-bold rounded text-[10px] uppercase backdrop-blur-sm">
+                            {product.collection}
                           </span>
                         )}
                       </div>
@@ -321,7 +318,7 @@ export default function CollectionShowcaseClient({
                             e.stopPropagation();
                             setActiveModalProduct(product);
                           }}
-                          className="px-4 py-2 bg-[#c5a880] hover:bg-white text-black font-semibold text-xs uppercase tracking-widest rounded flex items-center space-x-1.5 shadow-2xl transform translate-y-2 group-hover:translate-y-0 transition-all"
+                          className="px-4 py-2 bg-[#c5a880] hover:bg-white text-black font-extrabold text-xs uppercase tracking-widest rounded-lg flex items-center space-x-1.5 shadow-2xl transform translate-y-2 group-hover:translate-y-0 transition-all"
                         >
                           <Maximize2 size={13} />
                           <span>Quick View</span>
@@ -330,42 +327,49 @@ export default function CollectionShowcaseClient({
                     </div>
 
                     {/* Card Body Info */}
-                    <div className="p-5 space-y-3 flex-grow">
-                      <div>
-                        <span className="text-[10px] font-mono text-stone-500 uppercase tracking-widest">
-                          {product.look} • {product.format}
+                    <div className="p-5 space-y-3 flex-grow flex flex-col justify-between">
+                      <div className="space-y-1.5">
+                        <span className="text-[11px] font-semibold text-stone-500 dark:text-stone-400">
+                          {product.origin || '대한민국 (KOREA)'}
                         </span>
+
                         <h3
                           onClick={() => setActiveModalProduct(product)}
-                          className="font-serif-luxury text-lg text-white font-medium group-hover:text-[#c5a880] transition-colors cursor-pointer"
+                          className="font-bold text-base text-stone-900 dark:text-white group-hover:text-[#14532D] dark:group-hover:text-[#c5a880] transition-colors cursor-pointer leading-snug line-clamp-2"
                         >
                           {product.name}
                         </h3>
+
+                        {/* Rating Row (Image 2 style) */}
+                        <div className="flex items-center space-x-1 text-xs text-stone-600 dark:text-stone-400 font-medium">
+                          <span className="text-amber-500 font-bold flex items-center space-x-0.5">
+                            <span>★</span>
+                            <span>{product.rating || 4.9}</span>
+                          </span>
+                          <span className="text-stone-400 font-normal">({product.reviews_count || (80 + idx * 12)}개 후기)</span>
+                        </div>
                       </div>
 
-                      {/* Specs Row */}
-                      <div className="flex flex-wrap gap-2 text-[10px] text-stone-400 font-mono pt-1 border-t border-stone-800/50">
-                        <span className="px-2 py-0.5 bg-[#181822] rounded border border-stone-800">
-                          Finish: {product.finish}
-                        </span>
-                        <span className="px-2 py-0.5 bg-[#181822] rounded border border-stone-800">
-                          Tone: {product.color}
-                        </span>
-                      </div>
-
-                      {/* Dual Price Box */}
-                      <div className="bg-[#101411] border border-emerald-900/40 p-3 rounded-lg space-y-1 font-mono text-xs">
-                        <div className="flex justify-between items-center text-[#c59b27] font-bold">
+                      {/* Dual Price Box (Image 2 100% 1:1 Matching) */}
+                      <div className="bg-stone-50 dark:bg-[#101411] border border-stone-200/80 dark:border-emerald-900/40 p-3 rounded-xl space-y-1 font-mono text-xs">
+                        <div className="flex justify-between items-center text-stone-700 dark:text-[#c59b27] font-bold">
                           <span>소량 개별가:</span>
-                          <span>₩{(product.price || 10000).toLocaleString()}원 / 개</span>
+                          <span className="text-emerald-700 dark:text-emerald-400 font-extrabold">
+                            ₩{(product.price || 10000).toLocaleString()}원
+                          </span>
                         </div>
-                        <div className="flex justify-between items-center text-amber-400 font-bold">
+                        <div className="flex justify-between items-center text-amber-700 dark:text-amber-400 font-bold text-[11px]">
                           <span>📦 대용량({product.carton_qty || 10}개):</span>
-                          <span>₩{Math.round((product.price || 10000) * (product.carton_qty || 10) * (1 - (product.wholesale_discount_rate || 0.15))).toLocaleString()}원</span>
+                          <span className="line-through text-stone-400 mr-1 text-[10px]">
+                            ₩{((product.price || 10000) * (product.carton_qty || 10)).toLocaleString()}원
+                          </span>
+                          <span className="font-extrabold">
+                            ₩{Math.round((product.price || 10000) * (product.carton_qty || 10) * (1 - (product.wholesale_discount_rate || 0.15))).toLocaleString()}원
+                          </span>
                         </div>
                       </div>
 
-                      {/* Purchase Action Buttons */}
+                      {/* Purchase Action Buttons (Image 2 style: 장바구니 & 바로 결제) */}
                       <div className="flex items-center justify-between gap-2 pt-1">
                         <button
                           type="button"
@@ -373,9 +377,9 @@ export default function CollectionShowcaseClient({
                             e.stopPropagation();
                             addToCart(product, 1);
                           }}
-                          className="flex-1 py-2 bg-stone-900 hover:bg-stone-800 text-stone-200 border border-stone-700 font-bold text-xs rounded-lg flex items-center justify-center space-x-1 transition-all"
+                          className="flex-1 py-2.5 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 border border-stone-200 dark:border-stone-700 font-bold text-xs rounded-xl flex items-center justify-center space-x-1.5 transition-all shadow-xs"
                         >
-                          <ShoppingBag size={13} />
+                          <ShoppingBag size={14} />
                           <span>장바구니</span>
                         </button>
 
@@ -386,7 +390,7 @@ export default function CollectionShowcaseClient({
                             addToCart(product, 1);
                             window.location.href = '/checkout';
                           }}
-                          className="flex-1 py-2 bg-[#14532D] hover:bg-emerald-700 text-white font-extrabold text-xs rounded-lg flex items-center justify-center space-x-1 transition-all shadow-lg"
+                          className="flex-1 py-2.5 bg-[#14532D] hover:bg-emerald-800 text-white font-extrabold text-xs rounded-xl flex items-center justify-center space-x-1.5 transition-all shadow-md"
                         >
                           <span>⚡ 바로 결제</span>
                         </button>
