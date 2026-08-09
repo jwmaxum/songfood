@@ -14,7 +14,6 @@ function RFQContent() {
 
   // RFQ Form State
   const [selectedProducts, setSelectedProducts] = useState<{ [id: string]: number }>({});
-  const [discountRate, setDiscountRate] = useState<number>(15); // Default 15% discount off shop retail price
   const [country, setCountry] = useState('USA');
   const [destinationPort, setDestinationPort] = useState('Los Angeles Port (USLAX)');
   const [incoterms, setIncoterms] = useState<'FOB Busan' | 'CIF' | 'CFR' | 'EXW'>('FOB Busan');
@@ -79,17 +78,18 @@ function RFQContent() {
     }));
   };
 
-  // Calculation Engine based on 15% Discount off Shop Retail Price (KRW & USD)
+  // Calculation Engine based on Carton (Master Carton) Standard Pricing
   const selectedProductList = products.filter((p) => selectedProducts[p.id] !== undefined);
   
   const rfqItems: RFQItem[] = selectedProductList.map((p) => {
     const qty = selectedProducts[p.id] || 0;
-    const retailPriceKrw = p.price || 18000;
-    // Apply discountRate (default 15% off retail price)
-    const discountedPriceKrw = Math.round(retailPriceKrw * (1 - discountRate / 100));
-    // USD equivalent (assuming $1 = 1,350 KRW)
-    const unitPriceUsd = p.export_price_usd || Math.round((discountedPriceKrw / 1350) * 100) / 100;
-    const totalUsd = Math.round(unitPriceUsd * qty * 100) / 100;
+    const cartonQty = p.carton_qty || 10;
+    const cartonPriceKrw = p.carton_price || Math.round((p.price || 10000) * cartonQty);
+    const cartonPriceUsd = p.export_price_usd
+      ? Math.round(p.export_price_usd * cartonQty * 100) / 100
+      : Math.round((cartonPriceKrw / 1350) * 100) / 100;
+
+    const totalUsd = Math.round(cartonPriceUsd * qty * 100) / 100;
     const cbmPerCtn = p.cbm || 0.035;
     const grossWeightPerCtn = p.gross_weight || 11.0;
 
@@ -97,7 +97,7 @@ function RFQContent() {
       productId: p.id,
       name: p.name,
       quantityCartons: qty,
-      unitPriceUsd: unitPriceUsd,
+      unitPriceUsd: cartonPriceUsd, // Unit price per Master Carton (USD)
       totalUsd,
       cbm: Math.round(cbmPerCtn * qty * 1000) / 1000,
       grossWeight: Math.round(grossWeightPerCtn * qty * 10) / 10,
@@ -139,7 +139,7 @@ function RFQContent() {
       totalCbm,
       totalGrossWeight,
       reeferContainerFillPercent: fillRate,
-      notes: `${notes} (소매가 기준 ${discountRate}% 할인 적용)`,
+      notes: notes,
       status: 'NEW_LEAD',
       createdAt: new Date().toISOString(),
       businessType,
@@ -163,7 +163,7 @@ function RFQContent() {
               도매 &amp; 해외바이어 견적 신청 (RFQ)
             </h1>
             <p className="text-stone-300 text-xs sm:text-sm mt-2 max-w-2xl">
-              Shop 상품을 선택하여 도매/해외바이어 수량별 견적을 즉시 산출하고 소매가 대비 15% 할인가로 공식 Pro Forma Invoice를 발행받으실 수 있습니다.
+              DB에 등록된 K-Food 상품을 자유롭게 선택하여 표준 Carton(마스터 카톤) 단가 기준 수량별 견적을 즉시 산출하고 공식 Pro Forma Invoice를 발행받으실 수 있습니다.
             </p>
           </div>
 
@@ -172,7 +172,7 @@ function RFQContent() {
             <div>
               <div className="text-[10px] uppercase text-stone-400 font-bold">견적 예상 총액 (FOB USD)</div>
               <div className="text-2xl font-extrabold text-[#EAB308] font-jakarta">${totalUsd.toLocaleString()} USD</div>
-              <div className="text-xs text-stone-400 font-mono">약 ₩{subtotalKrw.toLocaleString()}원 (15% 할인 적용)</div>
+              <div className="text-xs text-stone-400 font-mono">약 ₩{subtotalKrw.toLocaleString()}원 (Carton 단가 기준)</div>
             </div>
           </div>
         </div>
@@ -219,65 +219,64 @@ function RFQContent() {
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-stone-800 pb-4 gap-2">
                     <div>
                       <h2 className="text-xl font-bold text-white font-jakarta">Step 1. 견적 대상 상품 선택</h2>
-                      <p className="text-xs text-stone-400">Shop에 등록된 K-Food 상품 중 견적에 포함할 제품을 선택해주세요.</p>
+                      <p className="text-xs text-stone-400">상품 이미지를 클릭하여 견적에 포함할 K-Food 제품을 선택해주세요. (Carton 단가 표기)</p>
                     </div>
                     <span className="text-xs text-amber-400 font-bold">{selectedProductList.length}개 상품 선택됨</span>
-                  </div>
-
-                  {/* Wholesale Discount Rate Slider */}
-                  <div className="p-4 bg-[#141815] border border-amber-500/30 rounded-xl space-y-2">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="font-bold text-[#EAB308]">도매/B2B 기본 할인율 적용</span>
-                      <span className="font-mono font-bold text-white bg-amber-950 px-2 py-0.5 rounded border border-amber-500/40">
-                        기본 소매가 대비 -{discountRate}% 할인
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="35"
-                      value={discountRate}
-                      onChange={(e) => setDiscountRate(Number(e.target.value))}
-                      className="w-full accent-[#c5a880] cursor-pointer"
-                    />
-                    <div className="flex justify-between text-[10px] text-stone-400 font-mono">
-                      <span>0% (소매가 적용)</span>
-                      <span>15% (기본 도매 할인가)</span>
-                      <span>35% (대량 특가)</span>
-                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {products.map((p) => {
                       const isSelected = selectedProducts[p.id] !== undefined;
-                      const retailPrice = p.price || 18000;
-                      const discountedPrice = Math.round(retailPrice * (1 - discountRate / 100));
-                      const usdPrice = p.export_price_usd || Math.round((discountedPrice / 1350) * 100) / 100;
+                      const cartonQty = p.carton_qty || 10;
+                      const cartonPriceKrw = p.carton_price || Math.round((p.price || 10000) * cartonQty);
+                      const cartonPriceUsd = p.export_price_usd
+                        ? Math.round(p.export_price_usd * cartonQty * 100) / 100
+                        : Math.round((cartonPriceKrw / 1350) * 100) / 100;
 
                       return (
                         <div
                           key={p.id}
                           onClick={() => toggleProduct(p.id)}
-                          className={`cursor-pointer rounded-xl border p-4 transition-all flex items-center space-x-4 ${
+                          className={`cursor-pointer rounded-xl border p-4 transition-all flex items-center space-x-4 group hover:scale-[1.01] ${
                             isSelected
-                              ? 'bg-emerald-950/40 border-emerald-500 shadow-lg ring-1 ring-emerald-500/40'
-                              : 'bg-stone-950/60 border-stone-800 hover:border-stone-700'
+                              ? 'bg-emerald-950/50 border-emerald-500 shadow-xl ring-2 ring-emerald-500/40'
+                              : 'bg-stone-950/60 border-stone-800 hover:border-emerald-600/60'
                           }`}
                         >
-                          <img src={p.image_url} alt={p.name} className="w-16 h-16 object-cover rounded-lg flex-shrink-0" />
+                          <div className="relative overflow-hidden rounded-lg flex-shrink-0">
+                            <img
+                              src={p.image_url}
+                              alt={p.name}
+                              className="w-20 h-20 object-cover rounded-lg border border-stone-700/60 shadow-md group-hover:scale-105 transition-transform duration-300"
+                            />
+                            {isSelected && (
+                              <div className="absolute inset-0 bg-emerald-950/40 backdrop-blur-[1px] flex items-center justify-center">
+                                <CheckCircle2 className="w-8 h-8 text-emerald-400 drop-shadow-md" />
+                              </div>
+                            )}
+                          </div>
+
                           <div className="flex-1 overflow-hidden">
-                            <h3 className="text-xs font-bold text-stone-100 truncate">{p.name}</h3>
-                            <p className="text-[10px] text-stone-400 mt-0.5">HS: {p.hs_code || '1902.20'} | MOQ: {p.moq_cartons || 50} CTN</p>
-                            <div className="mt-1 flex items-baseline space-x-1.5">
-                              <span className="text-xs font-extrabold text-[#EAB308]">
-                                ₩{discountedPrice.toLocaleString()}원 (${usdPrice})
-                              </span>
-                              <span className="text-[10px] text-stone-500 line-through">
-                                ₩{retailPrice.toLocaleString()}원
-                              </span>
+                            <h3 className="text-xs font-bold text-stone-100 group-hover:text-amber-400 transition-colors line-clamp-1">
+                              {p.name}
+                            </h3>
+                            <p className="text-[10px] text-stone-400 mt-0.5 font-mono">
+                              HS: {p.hs_code || '1902.20'} | MOQ: {p.moq_cartons || 50} CTN
+                            </p>
+                            
+                            {/* Carton Price Badge */}
+                            <div className="mt-2 bg-stone-900 border border-stone-800 rounded px-2 py-1 text-[11px] font-mono space-y-0.5">
+                              <div className="text-stone-400 font-bold">📦 1 Carton ({cartonQty}개입)</div>
+                              <div className="flex justify-between items-center text-[#EAB308] font-extrabold">
+                                <span>₩{cartonPriceKrw.toLocaleString()}원</span>
+                                <span className="text-emerald-400">(${cartonPriceUsd} USD)</span>
+                              </div>
                             </div>
                           </div>
-                          <CheckCircle2 className={`w-5 h-5 ${isSelected ? 'text-emerald-400' : 'text-stone-700'}`} />
+
+                          <div className="flex-shrink-0">
+                            <CheckCircle2 className={`w-6 h-6 transition-colors ${isSelected ? 'text-emerald-400' : 'text-stone-700 group-hover:text-stone-500'}`} />
+                          </div>
                         </div>
                       );
                     })}
@@ -305,46 +304,56 @@ function RFQContent() {
                   </div>
 
                   <div className="space-y-4">
-                    {selectedProductList.map((p) => (
-                      <div key={p.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-stone-950/80 border border-stone-800 p-4 rounded-xl gap-4">
-                        <div className="flex items-center space-x-3">
-                          <img src={p.image_url} alt={p.name} className="w-12 h-12 object-cover rounded-lg" />
-                          <div>
-                            <div className="text-xs font-bold text-stone-100">{p.name_en || p.name}</div>
-                            <div className="text-[11px] text-stone-400">
-                              Carton Spec: {p.carton_qty || 10} pkts/CTN | CBM: {p.cbm || 0.035} m³
+                    {selectedProductList.map((p) => {
+                      const cartonQty = p.carton_qty || 10;
+                      const cartonPriceKrw = p.carton_price || Math.round((p.price || 10000) * cartonQty);
+                      const cartonPriceUsd = p.export_price_usd
+                        ? Math.round(p.export_price_usd * cartonQty * 100) / 100
+                        : Math.round((cartonPriceKrw / 1350) * 100) / 100;
+                      const ctnQty = selectedProducts[p.id] || 0;
+                      const lineTotalUsd = Math.round(cartonPriceUsd * ctnQty * 100) / 100;
+
+                      return (
+                        <div key={p.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-stone-950/80 border border-stone-800 p-4 rounded-xl gap-4">
+                          <div className="flex items-center space-x-3">
+                            <img src={p.image_url} alt={p.name} className="w-12 h-12 object-cover rounded-lg flex-shrink-0" />
+                            <div>
+                              <div className="text-xs font-bold text-stone-100">{p.name_en || p.name}</div>
+                              <div className="text-[11px] text-stone-400 font-mono">
+                                📦 1 CTN ({cartonQty}개입): ${cartonPriceUsd} USD (₩{cartonPriceKrw.toLocaleString()}원)
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={() => updateQuantity(p.id, (selectedProducts[p.id] || 10) - 10)}
+                                className="w-8 h-8 rounded-lg bg-stone-800 text-stone-300 font-bold hover:bg-stone-700"
+                              >
+                                -
+                              </button>
+                              <input
+                                type="number"
+                                value={selectedProducts[p.id] || 0}
+                                onChange={(e) => updateQuantity(p.id, parseInt(e.target.value) || 0)}
+                                className="w-20 bg-stone-900 border border-stone-700 rounded-lg py-1 px-2 text-center text-xs font-bold text-amber-400"
+                              />
+                              <button
+                                onClick={() => updateQuantity(p.id, (selectedProducts[p.id] || 0) + 10)}
+                                className="w-8 h-8 rounded-lg bg-stone-800 text-stone-300 font-bold hover:bg-stone-700"
+                              >
+                                +
+                              </button>
+                              <span className="text-xs text-stone-400 font-bold">CTNs</span>
+                            </div>
+                            <div className="text-xs font-extrabold text-[#EAB308] w-28 text-right font-mono">
+                              ${lineTotalUsd.toLocaleString()} USD
                             </div>
                           </div>
                         </div>
-
-                        <div className="flex items-center space-x-4">
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={() => updateQuantity(p.id, (selectedProducts[p.id] || 10) - 10)}
-                              className="w-8 h-8 rounded-lg bg-stone-800 text-stone-300 font-bold hover:bg-stone-700"
-                            >
-                              -
-                            </button>
-                            <input
-                              type="number"
-                              value={selectedProducts[p.id] || 0}
-                              onChange={(e) => updateQuantity(p.id, parseInt(e.target.value) || 0)}
-                              className="w-20 bg-stone-900 border border-stone-700 rounded-lg py-1 px-2 text-center text-xs font-bold text-amber-400"
-                            />
-                            <button
-                              onClick={() => updateQuantity(p.id, (selectedProducts[p.id] || 0) + 10)}
-                              className="w-8 h-8 rounded-lg bg-stone-800 text-stone-300 font-bold hover:bg-stone-700"
-                            >
-                              +
-                            </button>
-                            <span className="text-xs text-stone-400 font-bold">CTNs</span>
-                          </div>
-                          <div className="text-xs font-bold text-[#EAB308] w-24 text-right">
-                            ${((p.export_price_usd || 15) * (selectedProducts[p.id] || 0)).toLocaleString()}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   <div className="pt-4 flex justify-between">
