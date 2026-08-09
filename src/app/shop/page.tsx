@@ -29,7 +29,6 @@ export default function ShopPage() {
 
   // Filters & State
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedCollection, setSelectedCollection] = useState<string>('All');
   const [sortBy, setSortBy] = useState<string>('featured');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -39,12 +38,6 @@ export default function ShopPage() {
   const [quickViewProduct, setQuickViewProduct] = useState<ProductItem | null>(null);
   const [quickViewQty, setQuickViewQty] = useState(1);
   const [addedToast, setAddedToast] = useState<string | null>(null);
-
-  // Extract Categories & Collections
-  const categories = useMemo(() => {
-    const cats = Array.from(new Set(products.map((p) => p.category).filter(Boolean)));
-    return ['All', ...cats];
-  }, [products]);
 
   const collections = useMemo(() => {
     const cols = Array.from(new Set(products.map((p) => p.collection)));
@@ -59,12 +52,10 @@ export default function ShopPage() {
           p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
           p.origin?.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory =
-          selectedCategory === 'All' || p.category === selectedCategory;
         const matchesCollection =
           selectedCollection === 'All' || p.collection === selectedCollection;
         const matchesPrice = (p.price || 50) <= maxPrice;
-        return matchesSearch && matchesCategory && matchesCollection && matchesPrice;
+        return matchesSearch && matchesCollection && matchesPrice;
       })
       .sort((a, b) => {
         if (sortBy === 'price-low') return (a.price || 0) - (b.price || 0);
@@ -73,7 +64,7 @@ export default function ShopPage() {
         if (sortBy === 'name') return a.name.localeCompare(b.name);
         return (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0);
       });
-  }, [products, searchQuery, selectedCategory, selectedCollection, maxPrice, sortBy]);
+  }, [products, searchQuery, selectedCollection, maxPrice, sortBy]);
 
   const handleAddToCart = (product: ProductItem, qty = 1, e?: React.MouseEvent) => {
     if (e) e.preventDefault();
@@ -86,29 +77,22 @@ export default function ShopPage() {
     <div className="min-h-screen bg-[#141815] text-stone-100 pb-20">
       {/* Toast Notification */}
       {addedToast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#c59b27] text-black font-semibold px-4 py-3 rounded shadow-2xl flex items-center space-x-2 animate-in slide-in-from-bottom duration-300">
+        <div className="fixed bottom-6 right-6 z-50 bg-[#c59b27] text-[#0d110e] font-semibold px-4 py-3 rounded shadow-2xl flex items-center space-x-2 animate-in slide-in-from-bottom duration-300">
           <Check size={18} />
           <span className="text-xs font-mono">Added "{addedToast}" to cart!</span>
         </div>
       )}
 
       {/* Top Banner & Hero Header */}
-      <div className="relative bg-[#0d110e] border-b border-emerald-900/30 py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <div className="relative bg-[#0d110e] border-b border-emerald-900/30 py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#c59b27_1px,transparent_1px)] [background-size:16px_16px]" />
-        <div className="max-w-7xl mx-auto relative z-10 text-center space-y-4">
-          <div className="inline-flex items-center space-x-2 bg-[#c59b27]/10 border border-[#c59b27]/30 text-[#c59b27] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest">
-            <Sparkles size={13} />
-            <span>WooCommerce Luxury Store</span>
-          </div>
-          <h1 className="font-serif-luxury text-4xl sm:text-5xl font-light tracking-wide text-white">
-            Fine Food & Gourmet Collection
+        <div className="max-w-7xl mx-auto relative z-10 text-center space-y-3">
+          <h1 className="font-serif-luxury text-3xl sm:text-4xl font-light tracking-wide text-white">
+            송영민푸드 K-Food 프리미엄 카탈로그
           </h1>
-          <p className="text-sm text-stone-400 max-w-2xl mx-auto font-light leading-relaxed">
-            Directly sourced from heritage artisans in Italy, France, and Spain. Exceptional olive oils, aged DOP cheeses, and wild truffles.
-          </p>
 
           {/* Breadcrumb */}
-          <div className="flex justify-center items-center space-x-2 text-xs text-stone-500 pt-2 font-mono">
+          <div className="flex justify-center items-center space-x-2 text-xs text-stone-500 pt-1 font-mono">
             <Link href="/" className="hover:text-stone-300">Home</Link>
             <ChevronRight size={12} />
             <span className="text-[#c59b27]">Shop Catalog</span>
@@ -129,7 +113,6 @@ export default function ShopPage() {
               <button
                 onClick={() => {
                   setSearchQuery('');
-                  setSelectedCategory('All');
                   setSelectedCollection('All');
                   setMaxPrice(400);
                 }}
@@ -151,31 +134,6 @@ export default function ShopPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-stone-900 border border-emerald-900/40 rounded pl-8 pr-3 py-2 text-xs text-stone-200 placeholder-stone-600 focus:outline-none focus:border-[#c59b27]"
                 />
-              </div>
-            </div>
-
-            {/* Category Filter */}
-            <div className="space-y-2">
-              <label className="text-xs uppercase font-medium text-stone-400 tracking-wider">Category</label>
-              <div className="space-y-1">
-                {categories.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat as string)}
-                    className={`w-full text-left px-3 py-1.5 rounded text-xs transition-all flex justify-between items-center ${
-                      selectedCategory === cat
-                        ? 'bg-[#c59b27]/15 text-[#c59b27] font-semibold border border-[#c59b27]/30'
-                        : 'text-stone-400 hover:text-stone-200 hover:bg-stone-900'
-                    }`}
-                  >
-                    <span>{cat}</span>
-                    <span className="text-[10px] text-stone-500 font-mono">
-                      {cat === 'All'
-                        ? products.length
-                        : products.filter((p) => p.category === cat).length}
-                    </span>
-                  </button>
-                ))}
               </div>
             </div>
 
