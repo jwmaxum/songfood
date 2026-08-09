@@ -12,7 +12,9 @@ interface CartContextType {
     quantity?: number,
     selectedFormat?: string,
     selectedFinish?: string,
-    purchaseType?: 'retail' | 'wholesale'
+    purchaseType?: 'ea' | 'box' | 'carton' | 'retail' | 'wholesale',
+    customUnitPrice?: number,
+    packageLabel?: string
   ) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
@@ -79,27 +81,46 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     quantity = 1,
     selectedFormat?: string,
     selectedFinish?: string,
-    purchaseType: 'retail' | 'wholesale' = 'retail'
+    purchaseType: 'ea' | 'box' | 'carton' | 'retail' | 'wholesale' = 'ea',
+    customUnitPrice?: number,
+    packageLabel?: string
   ) => {
     setCartItems((prev) => {
       const existingIndex = prev.findIndex(
-        (item) => item.product.id === product.id && (item.purchaseType || 'retail') === purchaseType
+        (item) => item.product.id === product.id && (item.purchaseType || 'ea') === purchaseType
       );
       
-      const retailPrice = product.price || 18000;
-      const cartonQty = product.carton_qty || 10;
-      const discountRate = product.wholesale_discount_rate || 0.15;
+      const retailPrice = product.price || 10000;
+      let calculatedUnitPrice = customUnitPrice;
       
-      const unitPrice =
-        purchaseType === 'wholesale'
-          ? Math.round(retailPrice * cartonQty * (1 - discountRate))
-          : retailPrice;
+      if (!calculatedUnitPrice) {
+        if (purchaseType === 'box') {
+          calculatedUnitPrice = product.box_price || Math.round(retailPrice * (product.box_qty || 20) * 0.9);
+        } else if (purchaseType === 'carton') {
+          calculatedUnitPrice = product.carton_price || Math.round(retailPrice * (product.carton_box_qty || 5) * (product.box_qty || 20) * 0.8);
+        } else if (purchaseType === 'wholesale') {
+          const cartonQty = product.carton_qty || 10;
+          const discountRate = product.wholesale_discount_rate || 0.15;
+          calculatedUnitPrice = Math.round(retailPrice * cartonQty * (1 - discountRate));
+        } else {
+          calculatedUnitPrice = retailPrice;
+        }
+      }
+
+      let label = packageLabel;
+      if (!label) {
+        if (purchaseType === 'box') {
+          label = `1박스 (${product.box_qty || 20}개입)`;
+        } else if (purchaseType === 'carton') {
+          label = `1카톤 (${(product.carton_box_qty || 5) * (product.box_qty || 20)}개입 / ${product.carton_box_qty || 5}박스)`;
+        } else {
+          label = `1개 (EA)`;
+        }
+      }
 
       if (existingIndex > -1) {
         const updated = [...prev];
         updated[existingIndex].quantity += quantity;
-        if (selectedFormat) updated[existingIndex].selectedFormat = selectedFormat;
-        if (selectedFinish) updated[existingIndex].selectedFinish = selectedFinish;
         return updated;
       }
 
@@ -108,13 +129,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         {
           product,
           quantity,
-          selectedFormat: selectedFormat || (purchaseType === 'wholesale' ? `[도매 15%할인] ${cartonQty}개입 Box` : product.format),
+          selectedFormat: selectedFormat || product.format,
           selectedFinish: selectedFinish || product.finish,
           purchaseType,
-          unitPrice,
+          packageLabel: label,
+          unitPrice: calculatedUnitPrice,
         },
       ];
     });
+
     setIsCartOpen(true);
   };
 

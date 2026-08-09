@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ProductItem } from '@/lib/types';
@@ -30,35 +30,68 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
 
+  // Gallery image setup up to 6 images
+  const galleryImages = useMemo(() => {
+    if (product.images && product.images.length > 0) {
+      return product.images.filter((img) => img && img.trim().length > 0).slice(0, 6);
+    }
+    return [product.image_url];
+  }, [product]);
+
+  const [selectedImage, setSelectedImage] = useState<string>(galleryImages[0] || product.image_url);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'desc' | 'specs' | 'reviews'>('desc');
   const [addedToast, setAddedToast] = useState(false);
 
   const inWish = isInWishlist(product.id);
 
-  const [purchaseType, setPurchaseType] = useState<'retail' | 'wholesale'>('retail');
+  // 3-Tier Purchase selection state: 'ea' | 'box' | 'carton'
+  const [selectedTier, setSelectedTier] = useState<'ea' | 'box' | 'carton'>('ea');
 
-  const retailUnitPrice = product.price || 18000;
-  const cartonQty = product.carton_qty || 10;
-  const discountRate = product.wholesale_discount_rate || 0.15;
-  
-  const retailBoxPrice = retailUnitPrice * cartonQty;
-  const wholesaleBoxPrice = Math.round(retailBoxPrice * (1 - discountRate));
+  // Prices calculation
+  const eaPrice = product.price || 18000;
+  const boxQty = product.box_qty || 20;
+  const boxPrice = product.box_price || Math.round(eaPrice * boxQty * 0.9);
+  const cartonBoxQty = product.carton_box_qty || 5;
+  const cartonTotalQty = cartonBoxQty * boxQty;
+  const cartonPrice = product.carton_price || Math.round(eaPrice * cartonTotalQty * 0.8);
+
+  const getSelectedPrice = () => {
+    if (selectedTier === 'box') return boxPrice;
+    if (selectedTier === 'carton') return cartonPrice;
+    return eaPrice;
+  };
+
+  const getSelectedLabel = () => {
+    if (selectedTier === 'box') return `1박스 (${boxQty}개입)`;
+    if (selectedTier === 'carton') return `1카톤 (${cartonTotalQty}개입 / ${cartonBoxQty}박스)`;
+    return `1개 (EA)`;
+  };
 
   const handleAddToCart = () => {
     addToCart(
       product,
       quantity,
-      purchaseType === 'wholesale' ? `[도매 15%할인] ${cartonQty}개입 Master Box` : product.format,
+      getSelectedLabel(),
       product.finish,
-      purchaseType
+      selectedTier,
+      getSelectedPrice(),
+      getSelectedLabel()
     );
     setAddedToast(true);
     setTimeout(() => setAddedToast(false), 3000);
   };
 
   const handleBuyNow = () => {
-    addToCart(product, quantity);
+    addToCart(
+      product,
+      quantity,
+      getSelectedLabel(),
+      product.finish,
+      selectedTier,
+      getSelectedPrice(),
+      getSelectedLabel()
+    );
     router.push('/checkout');
   };
 
@@ -66,9 +99,11 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
     <div className="min-h-screen bg-[#141815] text-stone-100 pb-20">
       {/* Toast Alert */}
       {addedToast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#c59b27] text-black font-semibold px-4 py-3 rounded shadow-2xl flex items-center space-x-2 animate-in slide-in-from-bottom duration-300">
+        <div className="fixed bottom-6 right-6 z-50 bg-[#c59b27] text-[#0d110e] font-semibold px-4 py-3 rounded shadow-2xl flex items-center space-x-2 animate-in slide-in-from-bottom duration-300">
           <Check size={18} />
-          <span className="text-xs font-mono">Added {quantity} x "{product.name}" to cart!</span>
+          <span className="text-xs font-mono">
+            장바구니 추가 완료: {quantity} × [{getSelectedLabel()}] "{product.name}"
+          </span>
         </div>
       )}
 
@@ -88,18 +123,18 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
         {/* Main Product Showcase Area */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           
-          {/* Left Image Gallery */}
+          {/* Left 6-Image Gallery */}
           <div className="lg:col-span-6 space-y-4">
-            <div className="relative aspect-4/3 rounded-lg overflow-hidden border border-emerald-900/40 bg-stone-950 shadow-2xl">
+            <div className="relative aspect-4/3 rounded-lg overflow-hidden border border-emerald-900/40 bg-stone-950 shadow-2xl group">
               <img
-                src={product.image_url}
+                src={selectedImage || product.image_url}
                 alt={product.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
               <div className="absolute top-4 left-4 flex flex-col gap-1.5">
                 {product.is_featured && (
                   <span className="bg-[#c59b27] text-black font-semibold text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded shadow">
-                    Master Reserve
+                    Featured
                   </span>
                 )}
                 {product.origin && (
@@ -110,16 +145,19 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
               </div>
             </div>
 
-            {/* Thumbnail Mock list */}
-            <div className="grid grid-cols-4 gap-3">
-              {[product.image_url, product.image_url, product.image_url, product.image_url].map((img, idx) => (
+            {/* Thumbnail grid up to 6 images */}
+            <div className="grid grid-cols-6 gap-2">
+              {galleryImages.map((img, idx) => (
                 <div
                   key={idx}
-                  className={`aspect-square rounded overflow-hidden border cursor-pointer ${
-                    idx === 0 ? 'border-[#c59b27]' : 'border-emerald-900/30 opacity-60 hover:opacity-100'
+                  onClick={() => setSelectedImage(img)}
+                  className={`aspect-square rounded overflow-hidden border cursor-pointer transition-all ${
+                    selectedImage === img
+                      ? 'border-[#c59b27] ring-2 ring-[#c59b27]/50 scale-105'
+                      : 'border-emerald-900/40 opacity-60 hover:opacity-100'
                   }`}
                 >
-                  <img src={img} alt="Thumbnail" className="w-full h-full object-cover" />
+                  <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
                 </div>
               ))}
             </div>
@@ -128,102 +166,142 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
           {/* Right Specifications & Order Box */}
           <div className="lg:col-span-6 space-y-6">
             <div className="space-y-2">
-              <div className="text-xs uppercase font-mono tracking-widest text-[#c59b27]">
-                {product.collection}
+              <div className="text-xs uppercase font-mono tracking-widest text-[#c59b27] flex items-center space-x-2">
+                <span>{product.collection}</span>
+                {product.category && <span className="text-stone-500">• {product.category}</span>}
               </div>
               <h1 className="font-serif-luxury text-3xl sm:text-4xl font-light text-white leading-tight">
                 {product.name}
               </h1>
+
+              {/* Certifications Badges */}
+              {product.certifications && product.certifications.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {product.certifications.map((cert) => (
+                    <span
+                      key={cert}
+                      className="bg-emerald-950 text-emerald-300 border border-emerald-700/50 text-[10px] font-mono font-bold px-2 py-0.5 rounded"
+                    >
+                      ✓ {cert}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               {/* Rating & Stock Status */}
               <div className="flex items-center space-x-4 pt-1 text-xs">
                 <div className="flex items-center space-x-1 text-amber-400">
                   <Star size={14} fill="currentColor" />
                   <span className="font-mono font-semibold">{product.rating || 4.9}</span>
-                  <span className="text-stone-400">({product.reviews_count || 24} customer reviews)</span>
+                  <span className="text-stone-400">({product.reviews_count || 24} reviews)</span>
                 </div>
                 <span className="text-stone-600">•</span>
                 <span className="text-emerald-400 font-mono flex items-center space-x-1">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>In Stock ({product.stock || 42} units available)</span>
+                  <span>재고 있음 ({product.stock || 150}개 잔여)</span>
                 </span>
               </div>
             </div>
 
-            {/* Individual vs Bulk Box Purchase Option Selector */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 font-mono text-xs">
-              {/* Option A: Individual Item */}
-              <div
-                onClick={() => setPurchaseType('retail')}
-                className={`cursor-pointer rounded-xl border p-4 transition-all ${
-                  purchaseType === 'retail'
-                    ? 'bg-[#14532D]/30 border-emerald-500 shadow-lg ring-1 ring-emerald-500/50'
-                    : 'bg-[#101411] border-emerald-900/30 hover:border-emerald-700'
-                }`}
-              >
-                <div className="flex justify-between items-center mb-1">
-                  <span className="font-bold text-white text-xs">🛒 개별상품 구매 (소량)</span>
-                  <span className="text-[10px] bg-stone-800 text-stone-300 px-2 py-0.5 rounded font-bold">1개 단위</span>
-                </div>
-                <div className="font-mono text-lg font-bold text-[#c59b27]">
-                  ₩{retailUnitPrice.toLocaleString()}원 <span className="text-xs text-stone-400 font-normal">/ 개</span>
-                </div>
-                <div className="text-[10px] text-stone-400 mt-1">
-                  ℹ 5만원 미만 결제 시 배송비 3,000원 (5만원 이상 무료배송)
-                </div>
+            <p className="text-xs text-stone-300 leading-relaxed font-light">
+              {product.description}
+            </p>
+
+            {/* 3-Tier Price & Quantity Selection Table */}
+            <div className="p-4 bg-[#101411] border border-emerald-900/40 rounded-xl space-y-3 shadow-lg">
+              <div className="text-xs font-mono font-bold text-[#c59b27] flex items-center justify-between">
+                <span>📦 구매포장 단위별 가격 선택</span>
+                <span className="text-[10px] text-stone-400">클릭하여 선택 후 장바구니/결제</span>
               </div>
 
-              {/* Option B: Bulk Master Box */}
-              <div
-                onClick={() => setPurchaseType('wholesale')}
-                className={`cursor-pointer rounded-xl border p-4 transition-all ${
-                  purchaseType === 'wholesale'
-                    ? 'bg-amber-950/40 border-amber-500 shadow-lg ring-1 ring-amber-500/50'
-                    : 'bg-[#101411] border-emerald-900/30 hover:border-emerald-700'
-                }`}
-              >
-                <div className="flex justify-between items-center mb-1">
-                  <span className="font-bold text-amber-300 text-xs">📦 대용량 박스 구매 (대량할인)</span>
-                  <span className="text-[10px] bg-amber-900 text-amber-200 px-2 py-0.5 rounded font-bold">
-                    10개입 Box 대량할인
-                  </span>
-                </div>
-                <div className="font-mono text-lg font-bold text-amber-400">
-                  ₩{wholesaleBoxPrice.toLocaleString()}원 <span className="text-xs text-stone-400 font-normal">/ Box ({cartonQty}개입)</span>
-                </div>
-                <div className="text-[10px] text-stone-400 mt-1">
-                  정가 ₩{retailBoxPrice.toLocaleString()}원 ➔ <strong className="text-emerald-400">₩{wholesaleBoxPrice.toLocaleString()}원</strong> (대량 특가)
-                </div>
+              {/* 3-Tier Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse font-mono">
+                  <thead>
+                    <tr className="border-b border-emerald-900/40 text-stone-400 bg-stone-900/50">
+                      <th className="py-2 px-3 font-semibold">구분</th>
+                      <th
+                        onClick={() => setSelectedTier('ea')}
+                        className={`py-2 px-3 cursor-pointer text-center transition-colors ${
+                          selectedTier === 'ea' ? 'bg-[#c59b27]/20 text-[#c59b27] font-bold border-t-2 border-[#c59b27]' : 'hover:bg-stone-800'
+                        }`}
+                      >
+                        낱개 (EA) 구매
+                      </th>
+                      <th
+                        onClick={() => setSelectedTier('box')}
+                        className={`py-2 px-3 cursor-pointer text-center transition-colors ${
+                          selectedTier === 'box' ? 'bg-[#c59b27]/20 text-[#c59b27] font-bold border-t-2 border-[#c59b27]' : 'hover:bg-stone-800'
+                        }`}
+                      >
+                        박스 (Box) 구매
+                      </th>
+                      <th
+                        onClick={() => setSelectedTier('carton')}
+                        className={`py-2 px-3 cursor-pointer text-center transition-colors ${
+                          selectedTier === 'carton' ? 'bg-[#c59b27]/20 text-[#c59b27] font-bold border-t-2 border-[#c59b27]' : 'hover:bg-stone-800'
+                        }`}
+                      >
+                        카톤 (Carton) 구매
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-emerald-900/20 text-stone-200">
+                    <tr>
+                      <td className="py-2.5 px-3 text-stone-400 font-semibold bg-stone-900/30">구매포장 단위</td>
+                      <td
+                        onClick={() => setSelectedTier('ea')}
+                        className={`py-2.5 px-3 text-center cursor-pointer ${selectedTier === 'ea' ? 'text-[#c59b27] font-bold bg-[#c59b27]/10' : ''}`}
+                      >
+                        1개 (EA)
+                      </td>
+                      <td
+                        onClick={() => setSelectedTier('box')}
+                        className={`py-2.5 px-3 text-center cursor-pointer ${selectedTier === 'box' ? 'text-[#c59b27] font-bold bg-[#c59b27]/10' : ''}`}
+                      >
+                        1박스 ({boxQty}개입)
+                      </td>
+                      <td
+                        onClick={() => setSelectedTier('carton')}
+                        className={`py-2.5 px-3 text-center cursor-pointer ${selectedTier === 'carton' ? 'text-[#c59b27] font-bold bg-[#c59b27]/10' : ''}`}
+                      >
+                        1카톤 ({cartonTotalQty}개입 / {cartonBoxQty}박스)
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-2.5 px-3 text-stone-400 font-semibold bg-stone-900/30">판매 가격</td>
+                      <td
+                        onClick={() => setSelectedTier('ea')}
+                        className={`py-2.5 px-3 text-center cursor-pointer font-bold ${selectedTier === 'ea' ? 'text-[#c59b27] text-sm bg-[#c59b27]/10' : 'text-stone-300'}`}
+                      >
+                        ₩{eaPrice.toLocaleString()}원
+                      </td>
+                      <td
+                        onClick={() => setSelectedTier('box')}
+                        className={`py-2.5 px-3 text-center cursor-pointer font-bold ${selectedTier === 'box' ? 'text-[#c59b27] text-sm bg-[#c59b27]/10' : 'text-amber-400'}`}
+                      >
+                        ₩{boxPrice.toLocaleString()}원
+                      </td>
+                      <td
+                        onClick={() => setSelectedTier('carton')}
+                        className={`py-2.5 px-3 text-center cursor-pointer font-bold ${selectedTier === 'carton' ? 'text-[#c59b27] text-sm bg-[#c59b27]/10' : 'text-emerald-400'}`}
+                      >
+                        ₩{cartonPrice.toLocaleString()}원
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-            </div>
 
-            {/* Price Box - Dual Price Simultaneous Display */}
-            <div className="bg-[#101411] border border-emerald-900/40 p-4 rounded-xl space-y-2">
-              <div className="text-[11px] text-stone-400 font-mono font-bold flex items-center justify-between border-b border-emerald-900/30 pb-2">
-                <span>개별가 &amp; 대용량 박스가 동시 표기</span>
-                <span className="text-emerald-400 font-bold">모든 회원 구매 가능</span>
-              </div>
-
-              <div className="flex flex-wrap items-baseline gap-4">
-                <div>
-                  <span className="text-[10px] text-stone-400 block font-mono">소량 개별가</span>
-                  <span className="font-mono text-2xl font-bold text-[#c59b27]">
-                    ₩{retailUnitPrice.toLocaleString()}원
-                  </span>
-                </div>
-
-                <div className="border-l border-emerald-900/40 pl-4">
-                  <span className="text-[10px] text-amber-400 block font-mono font-bold">📦 대용량 박스가 ({cartonQty}개입)</span>
-                  <span className="font-mono text-2xl font-bold text-amber-400">
-                    ₩{wholesaleBoxPrice.toLocaleString()}원
-                  </span>
-                </div>
-
-                <span className="text-xs text-stone-400 font-mono ml-auto">
-                  SKU: {product.sku || 'KFD-PROD-001'}
+              <div className="pt-2 text-right font-mono text-xs text-stone-300">
+                선택 단위: <strong className="text-[#c59b27]">{getSelectedLabel()}</strong> × {quantity}개 ={' '}
+                <span className="text-lg font-bold text-white font-mono">
+                  ₩{(getSelectedPrice() * quantity).toLocaleString()}원
                 </span>
               </div>
             </div>
+
+
 
             <p className="text-sm text-stone-300 font-light leading-relaxed">
               {product.description}

@@ -401,107 +401,134 @@ export default function CollectionShowcaseClient({
 
       {/* Quick View Detail Modal */}
       {activeModalProduct && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#121218] border border-stone-800 rounded-lg max-w-3xl w-full overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 grid grid-cols-1 md:grid-cols-12">
-            
-            {/* Modal Image Left */}
-            <div className="md:col-span-6 relative h-64 md:h-auto bg-black">
-              <img
-                src={activeModalProduct.image_url}
-                alt={activeModalProduct.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-[#121218] border border-stone-800 rounded-xl max-w-3xl w-full p-6 space-y-5 shadow-2xl relative my-8 max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setActiveModalProduct(null)}
+              className="absolute top-4 right-4 text-stone-400 hover:text-white"
+            >
+              <X size={20} />
+            </button>
 
-            {/* Modal Content Right */}
-            <div className="md:col-span-6 p-6 md:p-8 flex flex-col justify-between space-y-6">
-              <div>
-                <div className="flex justify-between items-start">
-                  <span className="text-[10px] uppercase font-mono tracking-widest text-[#c5a880]">
-                    {activeModalProduct.collection}
-                  </span>
-                  <button
-                    onClick={() => setActiveModalProduct(null)}
-                    className="p-1 text-stone-400 hover:text-white"
-                  >
-                    <X size={20} />
-                  </button>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+              {/* Left Images */}
+              <div className="md:col-span-5 space-y-3">
+                <div className="h-64 rounded-lg overflow-hidden bg-stone-900 border border-stone-800 relative">
+                  <img
+                    src={activeModalProduct.image_url}
+                    alt={activeModalProduct.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
 
-                <h2 className="font-serif-luxury text-2xl text-white font-medium mt-1">
-                  {activeModalProduct.name}
-                </h2>
+                {/* 6 Thumbnails */}
+                {activeModalProduct.images && activeModalProduct.images.length > 0 && (
+                  <div className="grid grid-cols-6 gap-1.5">
+                    {activeModalProduct.images.slice(0, 6).map((img, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => {
+                          if (activeModalProduct) {
+                            setActiveModalProduct({
+                              ...activeModalProduct,
+                              image_url: img,
+                            });
+                          }
+                        }}
+                        className={`h-10 rounded overflow-hidden border cursor-pointer ${
+                          activeModalProduct.image_url === img ? 'border-[#c5a880] ring-1 ring-[#c5a880]' : 'border-stone-800 opacity-60 hover:opacity-100'
+                        }`}
+                      >
+                        <img src={img} alt="Thumb" className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-                <p className="text-xs text-stone-300 font-light mt-3 leading-relaxed">
+              {/* Right Specifications & 3-Tier */}
+              <div className="md:col-span-7 space-y-4">
+                <div>
+                  <div className="text-[10px] text-[#c5a880] font-mono uppercase tracking-widest">
+                    {activeModalProduct.collection}
+                  </div>
+                  <h3 className="font-serif-luxury text-xl font-bold text-white mt-1">
+                    {activeModalProduct.name}
+                  </h3>
+
+                  {/* Certifications Badges */}
+                  {activeModalProduct.certifications && activeModalProduct.certifications.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {activeModalProduct.certifications.map((cert) => (
+                        <span key={cert} className="bg-emerald-950 text-emerald-300 border border-emerald-700/50 text-[9px] font-mono px-1.5 py-0.5 rounded font-bold">
+                          ✓ {cert}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <p className="text-xs text-stone-300 leading-relaxed font-light line-clamp-3">
                   {activeModalProduct.description}
                 </p>
 
-                {/* Attribute Specifications Table */}
-                <div className="mt-6 border-t border-b border-stone-800/80 py-4 space-y-2 text-xs font-mono">
-                  <div className="flex justify-between">
-                    <span className="text-stone-500">Format / Size:</span>
-                    <span className="text-white">{activeModalProduct.format}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-stone-500">Surface Finish:</span>
-                    <span className="text-white">{activeModalProduct.finish}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-stone-500">Color Tone:</span>
-                    <span className="text-white">{activeModalProduct.color}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-stone-500">Aesthetic Look:</span>
-                    <span className="text-white">{activeModalProduct.look}</span>
-                  </div>
-                  {activeModalProduct.thickness && (
-                    <div className="flex justify-between">
-                      <span className="text-stone-500">Thickness:</span>
-                      <span className="text-white">{activeModalProduct.thickness}</span>
-                    </div>
-                  )}
-                  {activeModalProduct.origin && (
-                    <div className="flex justify-between">
-                      <span className="text-stone-500">Craft Origin:</span>
-                      <span className="text-white">{activeModalProduct.origin}</span>
-                    </div>
-                  )}
+                {/* Specs Box */}
+                <div className="bg-[#0a0a0c] p-3 rounded border border-stone-800 text-[11px] font-mono space-y-1 text-stone-400">
+                  <div>용량/무게: <span className="text-stone-200">{activeModalProduct.net_weight || activeModalProduct.format}</span></div>
+                  <div>보관방법: <span className="text-stone-200">{activeModalProduct.storage || '영하 18℃ 이하 냉동 보관'}</span></div>
+                  <div>유통기한: <span className="text-stone-200">{activeModalProduct.shelf_life || '제조일로부터 12개월'}</span></div>
                 </div>
-              </div>
 
-              {/* Dual Price Display in Modal */}
-              <div className="bg-[#101411] border border-emerald-900/40 p-4 rounded-xl space-y-1.5 font-mono text-xs">
-                <div className="flex justify-between items-center text-[#c59b27] font-bold">
-                  <span>소량 개별가:</span>
-                  <span>₩{(activeModalProduct.price || 10000).toLocaleString()}원 / 개</span>
+                {/* 3-Tier Price Table */}
+                <div className="border border-emerald-900/40 rounded-lg overflow-hidden text-[11px] font-mono bg-[#101411]">
+                  <table className="w-full text-center divide-y divide-emerald-900/30">
+                    <thead className="bg-stone-900 text-stone-400 text-[10px]">
+                      <tr>
+                        <th className="py-1.5 px-2 text-left">구분</th>
+                        <th className="py-1.5 px-2">낱개(EA)</th>
+                        <th className="py-1.5 px-2">박스(Box)</th>
+                        <th className="py-1.5 px-2">카톤(Carton)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-emerald-900/20 text-stone-200">
+                      <tr>
+                        <td className="py-1.5 px-2 text-left text-stone-400">단위</td>
+                        <td className="py-1.5 px-2">1개</td>
+                        <td className="py-1.5 px-2">1박스 ({activeModalProduct.box_qty || 20}개입)</td>
+                        <td className="py-1.5 px-2">1카톤 ({(activeModalProduct.carton_box_qty || 5) * (activeModalProduct.box_qty || 20)}개입)</td>
+                      </tr>
+                      <tr className="font-bold">
+                        <td className="py-1.5 px-2 text-left text-stone-400">가격</td>
+                        <td className="py-1.5 px-2 text-[#c5a880]">₩{(activeModalProduct.price || 10000).toLocaleString()}원</td>
+                        <td className="py-1.5 px-2 text-amber-400">₩{(activeModalProduct.box_price || Math.round((activeModalProduct.price || 10000) * (activeModalProduct.box_qty || 20) * 0.9)).toLocaleString()}원</td>
+                        <td className="py-1.5 px-2 text-emerald-400">₩{(activeModalProduct.carton_price || Math.round((activeModalProduct.price || 10000) * (activeModalProduct.carton_box_qty || 5) * (activeModalProduct.box_qty || 20) * 0.8)).toLocaleString()}원</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
-                <div className="flex justify-between items-center text-amber-400 font-bold">
-                  <span>📦 대용량({activeModalProduct.carton_qty || 10}개입):</span>
-                  <span>₩{Math.round((activeModalProduct.price || 10000) * (activeModalProduct.carton_qty || 10) * (1 - (activeModalProduct.wholesale_discount_rate || 0.15))).toLocaleString()}원</span>
+
+                <div className="pt-2 flex gap-3">
+                  <button
+                    onClick={() => {
+                      addToCart(activeModalProduct, 1);
+                      setActiveModalProduct(null);
+                    }}
+                    className="flex-1 py-2.5 bg-stone-800 hover:bg-stone-700 text-white font-bold text-xs rounded-lg flex items-center justify-center space-x-1.5 transition-colors border border-stone-700"
+                  >
+                    <ShoppingBag size={14} />
+                    <span>장바구니 담기</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      addToCart(activeModalProduct, 1);
+                      window.location.href = '/checkout';
+                    }}
+                    className="flex-1 py-2.5 bg-[#14532D] hover:bg-emerald-700 text-white font-extrabold text-xs rounded-lg flex items-center justify-center space-x-1.5 transition-all shadow-lg"
+                  >
+                    <span>⚡ 바로 결제 (Checkout)</span>
+                  </button>
                 </div>
-              </div>
-
-              <div className="pt-2 flex gap-3">
-                <button
-                  onClick={() => {
-                    addToCart(activeModalProduct, 1);
-                    setActiveModalProduct(null);
-                  }}
-                  className="flex-1 py-3 bg-stone-800 hover:bg-stone-700 text-white font-bold text-xs rounded-xl flex items-center justify-center space-x-1.5 transition-colors border border-stone-700"
-                >
-                  <ShoppingBag size={14} />
-                  <span>장바구니 담기</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    addToCart(activeModalProduct, 1);
-                    window.location.href = '/checkout';
-                  }}
-                  className="flex-1 py-3 bg-[#14532D] hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl flex items-center justify-center space-x-1.5 transition-all shadow-lg"
-                >
-                  <span>⚡ 바로 결제 (Checkout)</span>
-                </button>
               </div>
             </div>
           </div>

@@ -71,6 +71,10 @@ export interface ProductItem {
   collection: string;
   category?: string;
   price?: number;
+  box_price?: number; // 박스(Box) 구매 판매 가격 (예: 36,000원)
+  box_qty?: number; // 박스당 낱개 수 (예: 20개입)
+  carton_price?: number; // 카톤(Carton) 구매 판매 가격 (예: 160,000원)
+  carton_box_qty?: number; // 카톤당 박스 수 (예: 5박스 / 총 100개입)
   original_price?: number | null;
   stock?: number;
   rating?: number;
@@ -81,6 +85,7 @@ export interface ProductItem {
   color: string;
   look: string;
   image_url: string;
+  images?: string[]; // 최대 6개 상품 이미지 갤러리 URL 배열
   description: string;
   thickness?: string;
   origin?: string;
@@ -122,7 +127,8 @@ export interface CartItem {
   quantity: number;
   selectedFormat?: string;
   selectedFinish?: string;
-  purchaseType?: 'retail' | 'wholesale'; // 'retail' 낱개 vs 'wholesale' 박스
+  purchaseType?: 'ea' | 'box' | 'carton' | 'retail' | 'wholesale'; // 'ea' 낱개 vs 'box' 박스 vs 'carton' 카톤
+  packageLabel?: string; // e.g. "1개 (EA)", "1박스 (20개입)", "1카톤 (100개입 / 5박스)"
   unitPrice?: number;
 }
 

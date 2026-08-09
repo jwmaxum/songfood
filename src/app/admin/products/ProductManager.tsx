@@ -139,19 +139,41 @@ export default function ProductManager() {
   const [collection, setCollection] = useState('K-냉동식품');
   const [category, setCategory] = useState('만두 & 교자');
   const [price, setPrice] = useState('18000');
+  const [boxPrice, setBoxPrice] = useState('324000');
+  const [boxQty, setBoxQty] = useState('20');
+  const [cartonPrice, setCartonPrice] = useState('1440000');
+  const [cartonBoxQty, setCartonBoxQty] = useState('5');
   const [originalPrice, setOriginalPrice] = useState('22000');
   const [format, setFormat] = useState('1.05kg 패밀리팩');
   const [finish, setFinish] = useState('-40°C IQF 급속냉동');
   const [color, setColor] = useState('노릇노릇 바삭함');
   const [look, setLook] = useState('수제 손주름 교자');
   const [imageUrl, setImageUrl] = useState('');
+  const [images, setImages] = useState<string[]>(['', '', '', '', '', '']);
   const [description, setDescription] = useState('');
   const [origin, setOrigin] = useState('대한민국');
+  const [shelfLife, setShelfLife] = useState('제조일로부터 12개월 (냉동 보관)');
+  const [storage, setStorage] = useState('영하 18℃ 이하 냉동 보관');
+  const [netWeight, setNetWeight] = useState('1,050g');
+  const [certifications, setCertifications] = useState<string[]>(['HACCP', 'ISO']);
   const [isFeatured, setIsFeatured] = useState(true);
   const [isTodaysDeal, setIsTodaysDeal] = useState(false);
   const [isBestSeller, setIsBestSeller] = useState(true);
   const [cartonQty, setCartonQty] = useState('10');
   const [wholesaleDiscountRate, setWholesaleDiscountRate] = useState('15');
+
+  const ALL_CERTIFICATIONS = ['HACCP', 'Halal', 'FSSC 22000', 'ISO', 'Vegan', 'Gluten Free'];
+  const CATEGORY_OPTIONS = [
+    '만두 & 교자',
+    '김치 & 발효식품',
+    '떡볶이 & 밀키트',
+    '치킨 & 안주',
+    '소스 & 양념',
+    '증류식 소주',
+    '막걸리 & 탁주',
+    '과자 & 스낵',
+    '기타',
+  ];
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -224,6 +246,10 @@ export default function ProductManager() {
     setCollection('K-냉동식품');
     setCategory('만두 & 교자');
     setPrice('18000');
+    setBoxPrice('324000');
+    setBoxQty('20');
+    setCartonPrice('1440000');
+    setCartonBoxQty('5');
     setOriginalPrice('22000');
     setCartonQty('10');
     setWholesaleDiscountRate('15');
@@ -232,8 +258,13 @@ export default function ProductManager() {
     setColor('노릇노릇 바삭함');
     setLook('수제 손주름 교자');
     setImageUrl('');
+    setImages(['', '', '', '', '', '']);
     setDescription('');
     setOrigin('대한민국');
+    setShelfLife('제조일로부터 12개월 (냉동 보관)');
+    setStorage('영하 18℃ 이하 냉동 보관');
+    setNetWeight('1,050g');
+    setCertifications(['HACCP', 'FSSC 22000', 'ISO']);
     setIsFeatured(true);
     setIsTodaysDeal(false);
     setIsBestSeller(true);
@@ -244,8 +275,12 @@ export default function ProductManager() {
     setEditingProduct(p);
     setName(p.name);
     setCollection(p.collection);
-    setCategory(p.category || '기타');
+    setCategory(p.category || '만두 & 교자');
     setPrice(String(p.price || 18000));
+    setBoxPrice(String(p.box_price || Math.round((p.price || 18000) * (p.box_qty || 20) * 0.9)));
+    setBoxQty(String(p.box_qty || 20));
+    setCartonPrice(String(p.carton_price || Math.round((p.price || 18000) * (p.carton_box_qty || 5) * (p.box_qty || 20) * 0.8)));
+    setCartonBoxQty(String(p.carton_box_qty || 5));
     setOriginalPrice(p.original_price ? String(p.original_price) : '');
     setCartonQty(String(p.carton_qty || 10));
     setWholesaleDiscountRate(String(Math.round((p.wholesale_discount_rate ?? 0.15) * 100)));
@@ -254,15 +289,27 @@ export default function ProductManager() {
     setColor(p.color);
     setLook(p.look);
     setImageUrl(p.image_url || '');
+    
+    // Fill up to 6 images
+    const currentImgs = p.images && p.images.length > 0 ? [...p.images] : [p.image_url || ''];
+    while (currentImgs.length < 6) {
+      currentImgs.push('');
+    }
+    setImages(currentImgs.slice(0, 6));
+
     setDescription(p.description || '');
     setOrigin(p.origin || '대한민국');
+    setShelfLife(p.shelf_life || '제조일로부터 12개월 (냉동 보관)');
+    setStorage(p.storage || '영하 18℃ 이하 냉동 보관');
+    setNetWeight(p.net_weight || '1,050g');
+    setCertifications(p.certifications || ['HACCP', 'ISO']);
     setIsFeatured(p.is_featured ?? true);
     setIsTodaysDeal(p.is_todays_deal ?? false);
     setIsBestSeller(p.is_best_seller ?? false);
     setIsModalOpen(true);
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, index?: number) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -274,17 +321,40 @@ export default function ProductManager() {
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
       const data = await res.json();
       if (data.success) {
-        setImageUrl(data.url);
+        const uploadedUrl = data.url;
+        if (typeof index === 'number') {
+          const newImgs = [...images];
+          newImgs[index] = uploadedUrl;
+          setImages(newImgs);
+          if (index === 0) setImageUrl(uploadedUrl);
+        } else {
+          setImageUrl(uploadedUrl);
+        }
         showToast('이미지가 성공적으로 업로드되었습니다!');
       } else {
         alert(data.error || '업로드에 실패했습니다.');
       }
     } catch {
       const localUrl = URL.createObjectURL(file);
-      setImageUrl(localUrl);
+      if (typeof index === 'number') {
+        const newImgs = [...images];
+        newImgs[index] = localUrl;
+        setImages(newImgs);
+        if (index === 0) setImageUrl(localUrl);
+      } else {
+        setImageUrl(localUrl);
+      }
       showToast('이미지가 로컬 첨부되었습니다!');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const toggleCert = (cert: string) => {
+    if (certifications.includes(cert)) {
+      setCertifications(certifications.filter((c) => c !== cert));
+    } else {
+      setCertifications([...certifications, cert]);
     }
   };
 
@@ -293,13 +363,19 @@ export default function ProductManager() {
     if (!name.trim()) return alert('상품명을 입력해주세요.');
 
     const numericPrice = Number(price) || 0;
+    const numericBoxPrice = Number(boxPrice) || Math.round(numericPrice * Number(boxQty || 20) * 0.9);
+    const numericBoxQty = Number(boxQty) || 20;
+    const numericCartonPrice = Number(cartonPrice) || Math.round(numericPrice * Number(cartonBoxQty || 5) * numericBoxQty * 0.8);
+    const numericCartonBoxQty = Number(cartonBoxQty) || 5;
+
     const numericOriginalPrice = originalPrice ? Number(originalPrice) : null;
     const numericCartonQty = Number(cartonQty) || 10;
     const numericDiscountPercent = Number(wholesaleDiscountRate) || 15;
     const discountRateDecimal = numericDiscountPercent / 100;
     
-    // Wholesale Box Price = Price * CartonQty * (1 - DiscountRate)
-    const calculatedWholesaleBoxPrice = Math.round(numericPrice * numericCartonQty * (1 - discountRateDecimal));
+    // Filter non-empty gallery images
+    const validImages = images.filter((img) => img && img.trim().length > 0);
+    const mainImg = validImages[0] || imageUrl || 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=800&q=80';
 
     const newOrUpdated: ProductItem = {
       id: editingProduct ? editingProduct.id : `prod-${Date.now()}`,
@@ -307,17 +383,26 @@ export default function ProductManager() {
       collection,
       category,
       price: numericPrice,
+      box_price: numericBoxPrice,
+      box_qty: numericBoxQty,
+      carton_price: numericCartonPrice,
+      carton_box_qty: numericCartonBoxQty,
       original_price: numericOriginalPrice,
       carton_qty: numericCartonQty,
       wholesale_discount_rate: discountRateDecimal,
-      wholesale_price_krw: calculatedWholesaleBoxPrice,
+      wholesale_price_krw: numericBoxPrice,
       format,
       finish,
       color,
       look,
-      image_url: imageUrl || 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=800&q=80',
+      image_url: mainImg,
+      images: validImages.length > 0 ? validImages : [mainImg],
       description,
       origin,
+      shelf_life: shelfLife,
+      storage: storage,
+      net_weight: netWeight,
+      certifications: certifications,
       is_featured: isFeatured,
       is_todays_deal: isTodaysDeal,
       is_best_seller: isBestSeller,
@@ -504,32 +589,40 @@ export default function ProductManager() {
       {/* Modal Form */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#111118] border border-stone-800 rounded-xl max-w-2xl w-full p-6 space-y-5 shadow-2xl relative my-8">
-            <h2 className="font-serif-luxury text-xl font-bold text-white flex items-center space-x-2">
+          <div className="bg-[#111118] border border-stone-800 rounded-xl max-w-3xl w-full p-6 space-y-5 shadow-2xl relative my-8 max-h-[90vh] overflow-y-auto">
+            <h2 className="font-serif-luxury text-xl font-bold text-white flex items-center space-x-2 border-b border-stone-800 pb-3">
               <Shield className="text-[#c5a880]" size={20} />
               <span>{editingProduct ? '상품 정보 수정' : '신규 상품 등록'}</span>
             </h2>
 
-            <form onSubmit={handleSaveProduct} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">상품명</label>
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="예: CJ 비비고 수제 프리미엄 왕교자 만두 1.05kg"
-                    className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
-                  />
+            <form onSubmit={handleSaveProduct} className="space-y-4 text-xs">
+              {/* Category & Collection */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-1">
+                  <label className="block uppercase tracking-wider text-stone-400 mb-1 font-mono font-semibold">
+                    카테고리 선정 (Category)
+                  </label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-white focus:outline-none"
+                  >
+                    {CATEGORY_OPTIONS.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">컬렉션 분류</label>
+                <div className="md:col-span-1">
+                  <label className="block uppercase tracking-wider text-stone-400 mb-1 font-mono font-semibold">
+                    컬렉션 분류 (Collection)
+                  </label>
                   <select
                     value={collection}
                     onChange={(e) => setCollection(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
+                    className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-white focus:outline-none"
                   >
                     <option value="K-냉동식품">K-냉동식품</option>
                     <option value="K-간편식/HMR">K-간편식/HMR</option>
@@ -539,180 +632,256 @@ export default function ProductManager() {
                     <option value="K-스낵/음료">K-스낵/음료</option>
                   </select>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">소매 낱개 판매가 (₩)</label>
+                <div className="md:col-span-1">
+                  <label className="block uppercase tracking-wider text-stone-400 mb-1 font-mono font-semibold">
+                    상품명
+                  </label>
                   <input
-                    type="number"
+                    type="text"
                     required
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    placeholder="18000"
-                    className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">박스당 개수 (입수량)</label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    value={cartonQty}
-                    onChange={(e) => setCartonQty(e.target.value)}
-                    placeholder="10"
-                    className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none font-bold text-amber-400"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">도매 할인율 (%)</label>
-                  <input
-                    type="number"
-                    required
-                    min="0"
-                    max="90"
-                    value={wholesaleDiscountRate}
-                    onChange={(e) => setWholesaleDiscountRate(e.target.value)}
-                    placeholder="15"
-                    className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none font-bold text-emerald-400"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="예: CJ 비비고 수제 왕교자 만두 1.05kg"
+                    className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-white focus:outline-none"
                   />
                 </div>
               </div>
 
-              {/* Wholesale Live Calculation Box */}
-              <div className="p-3 bg-[#131720] border border-emerald-500/40 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs gap-2 font-mono">
-                <div className="text-stone-300">
-                  <span className="text-emerald-400 font-bold">📦 도매 박스 결제액 자동 산출:</span>{' '}
-                  (소매가 ₩{Number(price || 0).toLocaleString()}원 × {cartonQty || 10}개입) × {100 - (Number(wholesaleDiscountRate) || 15)}%
+              {/* 3-Tier Prices Input Box */}
+              <div className="p-4 bg-[#141816] border border-emerald-800/40 rounded-xl space-y-3">
+                <div className="text-emerald-400 font-bold font-mono text-xs flex items-center space-x-1.5">
+                  <Package size={14} />
+                  <span>3-Tier 구매포장 단위별 판매가격 설정 (개당 / 박스 / 카톤)</span>
                 </div>
-                <div className="text-[#EAB308] font-bold text-sm">
-                  = ₩{Math.round((Number(price || 0) * (Number(cartonQty) || 10) * (100 - (Number(wholesaleDiscountRate) || 15))) / 100).toLocaleString()}원 / Box
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {/* Tier 1: EA */}
+                  <div className="p-3 bg-[#0a0a0c] border border-stone-800 rounded-lg space-y-1.5">
+                    <span className="text-[#c5a880] font-bold block">1. 낱개(EA) 구매가격</span>
+                    <div className="flex items-center space-x-1">
+                      <span className="text-stone-400 text-xs">₩</span>
+                      <input
+                        type="number"
+                        required
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                        placeholder="18000"
+                        className="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 text-white text-xs font-mono font-bold"
+                      />
+                      <span className="text-stone-400 text-xs">원</span>
+                    </div>
+                    <span className="text-[10px] text-stone-500 block font-mono">단위: 1개 (EA)</span>
+                  </div>
+
+                  {/* Tier 2: Box */}
+                  <div className="p-3 bg-[#0a0a0c] border border-amber-900/40 rounded-lg space-y-1.5">
+                    <span className="text-amber-400 font-bold block">2. 박스(Box) 구매가격</span>
+                    <div className="flex items-center space-x-1">
+                      <span className="text-stone-400 text-xs">₩</span>
+                      <input
+                        type="number"
+                        value={boxPrice}
+                        onChange={(e) => setBoxPrice(e.target.value)}
+                        placeholder="324000"
+                        className="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 text-amber-300 text-xs font-mono font-bold"
+                      />
+                      <span className="text-stone-400 text-xs">원</span>
+                    </div>
+                    <div className="flex items-center space-x-1 text-[10px] text-stone-400 font-mono">
+                      <span>박스당 입수:</span>
+                      <input
+                        type="number"
+                        value={boxQty}
+                        onChange={(e) => setBoxQty(e.target.value)}
+                        className="w-12 bg-stone-900 border border-stone-800 rounded px-1 text-white text-center"
+                      />
+                      <span>개입</span>
+                    </div>
+                  </div>
+
+                  {/* Tier 3: Carton */}
+                  <div className="p-3 bg-[#0a0a0c] border border-emerald-900/40 rounded-lg space-y-1.5">
+                    <span className="text-emerald-400 font-bold block">3. 카톤(Carton) 구매가격</span>
+                    <div className="flex items-center space-x-1">
+                      <span className="text-stone-400 text-xs">₩</span>
+                      <input
+                        type="number"
+                        value={cartonPrice}
+                        onChange={(e) => setCartonPrice(e.target.value)}
+                        placeholder="1440000"
+                        className="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 text-emerald-300 text-xs font-mono font-bold"
+                      />
+                      <span className="text-stone-400 text-xs">원</span>
+                    </div>
+                    <div className="flex items-center space-x-1 text-[10px] text-stone-400 font-mono">
+                      <span>카톤당 박스:</span>
+                      <input
+                        type="number"
+                        value={cartonBoxQty}
+                        onChange={(e) => setCartonBoxQty(e.target.value)}
+                        className="w-12 bg-stone-900 border border-stone-800 rounded px-1 text-white text-center"
+                      />
+                      <span>박스 ({Number(cartonBoxQty || 5) * Number(boxQty || 20)}개입)</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Main Homepage Display Toggles */}
-              <div className="p-3 bg-[#0d0d14] border border-[#c5a880]/30 rounded-lg space-y-2">
-                <label className="block text-xs uppercase font-semibold text-[#c5a880] font-mono">
-                  메인 페이지 노출 섹션 지정 (Best Sellers & Todays Deals)
+              {/* 6 Gallery Images Upload UI */}
+              <div className="p-4 bg-[#0d0d12] border border-stone-800 rounded-xl space-y-3">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-[#c5a880] font-bold font-mono">
+                    📷 상품 갤러리 이미지 등록 (최대 6개 / 첫번째가 대표 썸네일)
+                  </span>
+                  <span className="text-stone-500 text-[10px]">클릭 시 큰 썸네일 미리보기 지원</span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+                  {images.map((imgUrl, idx) => (
+                    <div key={idx} className="space-y-1 bg-[#121218] p-2 rounded border border-stone-800 text-center">
+                      <div className="h-16 w-full bg-stone-950 rounded overflow-hidden relative border border-stone-800">
+                        {imgUrl ? (
+                          <img src={imgUrl} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[10px] text-stone-600 font-mono">
+                            {idx === 0 ? '대표 썸네일' : `이미지 ${idx + 1}`}
+                          </div>
+                        )}
+                      </div>
+                      <input
+                        type="text"
+                        placeholder={`URL ${idx + 1}`}
+                        value={imgUrl}
+                        onChange={(e) => {
+                          const newImgs = [...images];
+                          newImgs[idx] = e.target.value;
+                          setImages(newImgs);
+                          if (idx === 0) setImageUrl(e.target.value);
+                        }}
+                        className="w-full bg-black border border-stone-800 rounded text-[10px] px-1 py-0.5 text-stone-300 font-mono truncate"
+                      />
+                      <label className="block text-[9px] text-[#c5a880] bg-stone-900 hover:bg-stone-800 rounded py-0.5 cursor-pointer">
+                        <span>파일 업로드</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, idx)}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Specs & Certifications */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="block uppercase tracking-wider text-stone-400 mb-1 font-mono">용량 / 무게</label>
+                  <input
+                    type="text"
+                    value={netWeight}
+                    onChange={(e) => setNetWeight(e.target.value)}
+                    placeholder="1,050g"
+                    className="w-full px-3 py-1.5 bg-[#0a0a0c] border border-stone-800 rounded text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block uppercase tracking-wider text-stone-400 mb-1 font-mono">보관 방법</label>
+                  <input
+                    type="text"
+                    value={storage}
+                    onChange={(e) => setStorage(e.target.value)}
+                    placeholder="영하 18℃ 이하 냉동 보관"
+                    className="w-full px-3 py-1.5 bg-[#0a0a0c] border border-stone-800 rounded text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block uppercase tracking-wider text-stone-400 mb-1 font-mono">유통 기한</label>
+                  <input
+                    type="text"
+                    value={shelfLife}
+                    onChange={(e) => setShelfLife(e.target.value)}
+                    placeholder="제조일로부터 12개월"
+                    className="w-full px-3 py-1.5 bg-[#0a0a0c] border border-stone-800 rounded text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Certifications Checkboxes */}
+              <div className="p-3 bg-[#0a0a0c] border border-stone-800 rounded-lg space-y-2">
+                <span className="text-[#c5a880] font-bold font-mono block">
+                  🏅 Certifications 인증 선택 (HACCP, Halal, FSSC 22000, ISO, Vegan, Gluten Free)
+                </span>
+                <div className="flex flex-wrap gap-3 pt-1">
+                  {ALL_CERTIFICATIONS.map((cert) => (
+                    <label key={cert} className="inline-flex items-center space-x-1.5 text-xs text-stone-300 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={certifications.includes(cert)}
+                        onChange={() => toggleCert(cert)}
+                        className="accent-[#c5a880]"
+                      />
+                      <span>{cert}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Product Description */}
+              <div>
+                <label className="block uppercase tracking-wider text-stone-400 mb-1 font-mono font-semibold">
+                  상세 상품 설명
                 </label>
-                <div className="flex flex-wrap gap-6 text-xs text-stone-200 pt-1">
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={isTodaysDeal}
-                      onChange={(e) => setIsTodaysDeal(e.target.checked)}
-                      className="w-4 h-4 rounded text-red-600 focus:ring-red-500 bg-stone-900 border-stone-700"
-                    />
-                    <span className="font-semibold text-red-400">🔥 오늘의 특가 노출</span>
-                  </label>
-
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={isBestSeller}
-                      onChange={(e) => setIsBestSeller(e.target.checked)}
-                      className="w-4 h-4 rounded text-amber-500 focus:ring-amber-400 bg-stone-900 border-stone-700"
-                    />
-                    <span className="font-semibold text-amber-400">⭐ 베스트셀러 노출</span>
-                  </label>
-
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={isFeatured}
-                      onChange={(e) => setIsFeatured(e.target.checked)}
-                      className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-400 bg-stone-900 border-stone-700"
-                    />
-                    <span className="font-semibold text-emerald-400">✨ 메인 추천상품 노출</span>
-                  </label>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">상품 이미지 Upload / URL</label>
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
-                    className="flex-grow px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
-                  />
-                  <label className="px-4 py-2 bg-stone-900 border border-stone-800 text-stone-300 text-xs rounded cursor-pointer flex items-center space-x-1 shrink-0 hover:text-white">
-                    <Upload size={14} />
-                    <span>{uploading ? '업로드중...' : '이미지 업로드'}</span>
-                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                  </label>
-                </div>
-              </div>
-
-              {/* 4 Attributes */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#0d0d12] p-3 rounded border border-stone-800">
-                <div>
-                  <label className="block text-[10px] uppercase font-mono text-stone-400 mb-1">포장 용량</label>
-                  <input
-                    type="text"
-                    value={format}
-                    onChange={(e) => setFormat(e.target.value)}
-                    className="w-full px-2.5 py-1.5 bg-[#0a0a0c] border border-stone-800 rounded text-xs text-white focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] uppercase font-mono text-stone-400 mb-1">제조 공법</label>
-                  <input
-                    type="text"
-                    value={finish}
-                    onChange={(e) => setFinish(e.target.value)}
-                    className="w-full px-2.5 py-1.5 bg-[#0a0a0c] border border-stone-800 rounded text-xs text-white focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] uppercase font-mono text-stone-400 mb-1">맛/원재료 특성</label>
-                  <input
-                    type="text"
-                    value={color}
-                    onChange={(e) => setColor(e.target.value)}
-                    className="w-full px-2.5 py-1.5 bg-[#0a0a0c] border border-stone-800 rounded text-xs text-white focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] uppercase font-mono text-stone-400 mb-1">인증 / 사양</label>
-                  <input
-                    type="text"
-                    value={look}
-                    onChange={(e) => setLook(e.target.value)}
-                    className="w-full px-2.5 py-1.5 bg-[#0a0a0c] border border-stone-800 rounded text-xs text-white focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">상품 설명</label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="상품의 특징, 원재료 및 조리법 안내..."
-                  className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none resize-none"
+                  placeholder="상품 특징, 조리방법 및 맛 설명..."
+                  className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-white focus:outline-none"
                 />
               </div>
 
-              <div className="flex space-x-3 pt-4 border-t border-stone-800">
+              {/* Feature Badges Toggles */}
+              <div className="flex flex-wrap gap-4 pt-2 border-t border-stone-800">
+                <label className="inline-flex items-center space-x-2 text-xs text-white cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isTodaysDeal}
+                    onChange={(e) => setIsTodaysDeal(e.target.checked)}
+                    className="accent-red-500"
+                  />
+                  <span className="text-red-400 font-bold">🔥 오늘의 특가 지정</span>
+                </label>
+
+                <label className="inline-flex items-center space-x-2 text-xs text-white cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isBestSeller}
+                    onChange={(e) => setIsBestSeller(e.target.checked)}
+                    className="accent-amber-500"
+                  />
+                  <span className="text-amber-400 font-bold">⭐ 베스트셀러 지정</span>
+                </label>
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end space-x-3 pt-4 border-t border-stone-800">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="w-1/2 py-2.5 bg-stone-800 text-stone-300 rounded text-xs hover:bg-stone-700"
+                  className="px-4 py-2 bg-stone-900 text-stone-400 hover:text-white rounded"
                 >
                   취소
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 py-2.5 bg-[#c5a880] text-black font-semibold rounded text-xs shadow-lg hover:bg-[#d6b991]"
+                  className="px-6 py-2 bg-[#c5a880] hover:bg-[#b59870] text-black font-bold rounded shadow-lg"
                 >
-                  저장하기
+                  {editingProduct ? '수정사항 저장' : '신규 상품 등록'}
                 </button>
               </div>
             </form>
