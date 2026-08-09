@@ -84,19 +84,39 @@ export default function ShopPage() {
         </div>
       )}
 
-      {/* Top Banner & Hero Header */}
-      <div className="relative bg-[#0d110e] border-b border-emerald-900/30 py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#c59b27_1px,transparent_1px)] [background-size:16px_16px]" />
-        <div className="max-w-7xl mx-auto relative z-10 text-center space-y-3">
-          <h1 className="font-serif-luxury text-3xl sm:text-4xl font-light tracking-wide text-white">
-            송영민푸드 K-Food 프리미엄 카탈로그
+      {/* 2번 이미지 스타일 럭셔리 프리미엄 컬렉션 카테고리 Display 섹션 */}
+      <div className="relative py-16 bg-[#0a0a0c] border-b border-stone-800/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-5">
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight font-jakarta">
+            송영민푸드 K-Food 프리미엄 컬렉션
           </h1>
 
-          {/* Breadcrumb */}
-          <div className="flex justify-center items-center space-x-2 text-xs text-stone-500 pt-1 font-mono">
-            <Link href="/" className="hover:text-stone-300">Home</Link>
-            <ChevronRight size={12} />
-            <span className="text-[#c59b27]">Shop Catalog</span>
+          {/* Quick Collection Tabs (2번 이미지 100% 디자인 1:1 적용) */}
+          <div className="pt-4 flex flex-wrap justify-center items-center gap-2.5">
+            {[
+              'All',
+              'K-냉동식품',
+              'K-전통식품',
+              'K-간편식/HMR',
+              'K-소스/조미료',
+              'K-주류 & 전통주',
+              'K-스낵/음료',
+            ].map((coll) => {
+              const isActive = selectedCollection === coll || (coll === 'All' && selectedCollection === 'All');
+              return (
+                <button
+                  key={coll}
+                  onClick={() => setSelectedCollection(coll)}
+                  className={`px-5 py-2 rounded-full text-xs tracking-wider uppercase transition-all duration-200 font-jakarta ${
+                    isActive
+                      ? 'bg-[#c5a880] text-[#0a0a0c] font-extrabold shadow-lg scale-105 ring-2 ring-[#c5a880]/50'
+                      : 'bg-[#181822] text-stone-300 border border-stone-800/80 hover:border-emerald-500 hover:bg-[#14532D] hover:text-white font-semibold'
+                  }`}
+                >
+                  {coll}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
