@@ -18,6 +18,7 @@ import {
   KeyRound,
   Check,
   X,
+  Bell,
 } from 'lucide-react';
 
 const DEFAULT_ADMIN_ID = 'siteadmin';
@@ -48,6 +49,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return INITIAL_ADMIN_PW;
   };
 
+  // 실시간 문의 알림 상태
+  const [unreadInquiries, setUnreadInquiries] = useState<number>(1);
+  const [latestInquiryToast, setLatestInquiryToast] = useState<string | null>(null);
+
   useEffect(() => {
     const authStatus = sessionStorage.getItem('anatolia_admin_authenticated');
     if (authStatus === 'true') {
@@ -55,6 +60,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     } else {
       setIsAuthenticated(false);
     }
+
+    // 실시간 문의 알림 주기적 감지 (5초 마다)
+    const fetchInquiriesAlert = async () => {
+      try {
+        const res = await fetch('/api/contact');
+        const data = await res.json();
+        if (data.success) {
+          if (data.unread_count > unreadInquiries && unreadInquiries > 0) {
+            const latest = data.inquiries[0];
+            setLatestInquiryToast(`⚡ [신규 문의] ${latest.name}님: ${latest.subject}`);
+            setTimeout(() => setLatestInquiryToast(null), 6000);
+          }
+          setUnreadInquiries(data.unread_count || 0);
+        }
+      } catch (err) {}
+    };
+
+    fetchInquiriesAlert();
+    const interval = setInterval(fetchInquiriesAlert, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleLogin = (e: React.FormEvent) => {
@@ -217,6 +242,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </span>
               </div>
             </Link>
+
+            <Link
+              href="/contact"
+              className="relative p-2 text-stone-400 hover:text-white bg-stone-900 rounded border border-stone-800 flex items-center justify-center"
+              title="실시간 1:1 고객 문의 확인"
+            >
+              <Bell size={16} />
+              {unreadInquiries > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white font-bold font-mono text-[9px] w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
+                  {unreadInquiries}
+                </span>
+              )}
+            </Link>
           </div>
 
           {/* Nav Links */}
@@ -272,7 +310,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Main Admin View Content */}
-      <main className="flex-grow min-w-0 overflow-y-auto">{children}</main>
+      <main className="flex-grow min-w-0 overflow-y-auto relative">
+        {latestInquiryToast && (
+          <div className="sticky top-4 right-4 z-50 max-w-md ml-auto mr-4 p-4 bg-emerald-950/90 border border-emerald-500 text-white rounded-lg shadow-2xl flex items-center justify-between animate-in fade-in slide-in-from-top-4 duration-300">
+            <span className="text-xs font-bold font-mono">{latestInquiryToast}</span>
+            <button onClick={() => setLatestInquiryToast(null)} className="text-stone-400 hover:text-white ml-3">
+              <X size={14} />
+            </button>
+          </div>
+        )}
+        {children}
+      </main>
 
       {/* Password Change Modal */}
       {isChangePwOpen && (

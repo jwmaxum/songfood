@@ -11,28 +11,26 @@
   },
   {
     "id": "menu-hdr-2",
-    "title": "K-주류 & 전통주",
-    "url": "/collections?cat=dairy",
+    "title": "K-전통식품",
+    "url": "/collections?cat=traditional",
     "parent_id": null,
     "sort_order": 2,
     "is_active": true,
-    "position": "header",
-    "badge": "PREMIUM"
+    "position": "header"
   },
   {
     "id": "menu-hdr-3",
-    "title": "오늘의 특가",
-    "url": "/collections?cat=deals",
+    "title": "K-간편식/HMR",
+    "url": "/collections?cat=pantry",
     "parent_id": null,
     "sort_order": 3,
     "is_active": true,
-    "position": "header",
-    "badge": "SALE"
+    "position": "header"
   },
   {
     "id": "menu-hdr-4",
-    "title": "베스트셀러",
-    "url": "/shop",
+    "title": "K-소스/조미료",
+    "url": "/collections?cat=sauce",
     "parent_id": null,
     "sort_order": 4,
     "is_active": true,
@@ -40,137 +38,112 @@
   },
   {
     "id": "menu-hdr-5",
-    "title": "K-간식 & 디저트",
-    "url": "/collections?cat=pantry",
+    "title": "K-주류 & 전통주",
+    "url": "/collections?cat=dairy",
     "parent_id": null,
     "sort_order": 5,
     "is_active": true,
-    "position": "header"
+    "position": "header",
+    "badge": "PREMIUM"
   },
   {
     "id": "menu-hdr-6",
-    "title": "K-레시피 & 저널",
-    "url": "/journal",
+    "title": "K-스낵/음료",
+    "url": "/collections?cat=snack",
     "parent_id": null,
     "sort_order": 6,
     "is_active": true,
     "position": "header"
   },
   {
-    "id": "menu-sub-1",
-    "title": "CJ 비비고 왕교자 만두",
-    "url": "/collections?cat=fresh#mandu",
-    "parent_id": "menu-hdr-1",
-    "sort_order": 1,
+    "id": "menu-hdr-7",
+    "title": "오늘의 특가",
+    "url": "/collections?cat=deals",
+    "parent_id": null,
+    "sort_order": 7,
+    "is_active": true,
+    "position": "header",
+    "badge": "SALE"
+  },
+  {
+    "id": "menu-hdr-8",
+    "title": "베스트셀러",
+    "url": "/shop",
+    "parent_id": null,
+    "sort_order": 8,
     "is_active": true,
     "position": "header"
   },
   {
-    "id": "menu-sub-2",
-    "title": "K-수제 떡볶이 & 밀키트",
-    "url": "/collections?cat=fresh#tteok",
-    "parent_id": "menu-hdr-1",
-    "sort_order": 2,
-    "is_active": true,
-    "position": "header"
-  },
-  {
-    "id": "menu-sub-3",
-    "title": "크리스피 양념 & 간장치킨",
-    "url": "/collections?cat=fresh#chicken",
-    "parent_id": "menu-hdr-1",
-    "sort_order": 3,
-    "is_active": true,
-    "position": "header"
-  },
-  {
-    "id": "menu-sub-4",
-    "title": "원소주 & 증류식 소주",
-    "url": "/collections?cat=dairy#soju",
-    "parent_id": "menu-hdr-2",
-    "sort_order": 1,
-    "is_active": true,
-    "position": "header"
-  },
-  {
-    "id": "menu-sub-5",
-    "title": "느린마을 생막걸리 & 탁주",
-    "url": "/collections?cat=dairy#makgeolli",
-    "parent_id": "menu-hdr-2",
-    "sort_order": 2,
-    "is_active": true,
-    "position": "header"
-  },
-  {
-    "id": "menu-sub-6",
-    "title": "참이슬 후레쉬 & 하이트 맥주",
-    "url": "/collections?cat=dairy#beer",
-    "parent_id": "menu-hdr-2",
-    "sort_order": 3,
+    "id": "menu-hdr-9",
+    "title": "K-레시피 & 저널",
+    "url": "/journal",
+    "parent_id": null,
+    "sort_order": 9,
     "is_active": true,
     "position": "header"
   },
   {
     "id": "menu-ftr-1",
-    "title": "K-FOOD & LIQUOR 소개",
-    "url": "/about",
+    "title": "브랜드 소개 (Why Us)",
+    "url": "/why-kfood",
     "parent_id": null,
     "sort_order": 1,
     "is_active": true,
-    "position": "footer"
+    "position": "footer_company"
   },
   {
     "id": "menu-ftr-2",
-    "title": "K-냉동식품 컬렉션",
-    "url": "/collections",
+    "title": "해외 수출 카탈로그 (Export)",
+    "url": "/global",
     "parent_id": null,
     "sort_order": 2,
     "is_active": true,
-    "position": "footer"
+    "position": "footer_company"
   },
   {
     "id": "menu-ftr-3",
-    "title": "K-주류 & 전통주 컬렉션",
-    "url": "/collections?cat=dairy",
+    "title": "B2B 도매 & 식자재 문의",
+    "url": "/wholesale",
     "parent_id": null,
     "sort_order": 3,
     "is_active": true,
-    "position": "footer"
+    "position": "footer_company"
   },
   {
     "id": "menu-ftr-4",
     "title": "고객 센터 & 문의",
     "url": "/contact",
     "parent_id": null,
-    "sort_order": 4,
+    "sort_order": 1,
     "is_active": true,
-    "position": "footer"
+    "position": "footer_support"
   },
   {
     "id": "menu-ftr-5",
-    "title": "24시간 에어 냉장배송 안내",
-    "url": "/checkout",
+    "title": "해외 바이어 RFQ 견적",
+    "url": "/rfq",
     "parent_id": null,
-    "sort_order": 5,
+    "sort_order": 2,
     "is_active": true,
-    "position": "footer"
+    "position": "footer_support"
   },
   {
     "id": "menu-ftr-6",
     "title": "개인정보 처리방침",
     "url": "/privacy",
     "parent_id": null,
-    "sort_order": 6,
+    "sort_order": 3,
     "is_active": true,
-    "position": "footer"
+    "position": "footer_support"
   },
   {
     "id": "menu-ftr-7",
     "title": "이용약관",
     "url": "/terms",
     "parent_id": null,
-    "sort_order": 7,
+    "sort_order": 4,
     "is_active": true,
-    "position": "footer"
+    "position": "footer_support"
   }
 ]
