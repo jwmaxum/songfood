@@ -455,92 +455,149 @@ export default function ProductManager() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProducts.map((p) => (
-            <div
-              key={p.id}
-              className="bg-[#111118] border border-stone-800 rounded-xl overflow-hidden shadow-xl flex flex-col justify-between group hover:border-[#c5a880]/50 transition-all duration-300"
-            >
-              <div>
-                {/* Product Image Header */}
-                <div className="h-44 relative bg-stone-900 overflow-hidden">
-                  <img
-                    src={p.image_url || 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=800&q=80'}
-                    alt={p.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute top-3 left-3 flex flex-col gap-1">
-                    <span className="bg-[#0a0a0c]/80 backdrop-blur border border-stone-700 text-[#c5a880] text-[10px] uppercase font-mono px-2.5 py-0.5 rounded">
-                      {p.collection}
-                    </span>
-                    {p.is_todays_deal && (
-                      <span className="bg-red-900/90 text-red-200 border border-red-700 text-[10px] font-bold px-2 py-0.5 rounded">
-                        🔥 오늘의 특가
-                      </span>
-                    )}
-                    {p.is_best_seller && (
-                      <span className="bg-amber-900/90 text-amber-200 border border-amber-700 text-[10px] font-bold px-2 py-0.5 rounded">
-                        ⭐ 베스트셀러
-                      </span>
-                    )}
-                  </div>
+          {filteredProducts.map((p, idx) => {
+            const eaPrice = p.price || 10000;
+            const boxQty = p.carton_qty || 10;
+            const boxOriginalPrice = p.original_price ? p.original_price * boxQty : eaPrice * boxQty;
+            const boxDiscountedPrice = p.wholesale_price_krw || Math.round(eaPrice * boxQty * 0.85);
 
-                  <div className="absolute top-3 right-3 bg-black/80 backdrop-blur px-2.5 py-1 rounded text-xs font-bold text-[#c5a880]">
-                    ₩{(p.price || 0).toLocaleString()}원
-                  </div>
-                </div>
-
-                {/* Info Content */}
-                <div className="p-5 space-y-2.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center space-x-1 text-[#c5a880]">
-                      <Star size={13} className="fill-[#c5a880]" />
-                      <span className="font-semibold">{p.rating || 4.9}</span>
-                      <span className="text-stone-500 font-mono text-[10px]">({p.reviews_count || 12})</span>
+            return (
+              <div
+                key={p.id}
+                className="bg-[#111118] border border-stone-800 rounded-xl overflow-hidden shadow-xl flex flex-col justify-between group hover:border-[#c5a880]/60 transition-all duration-300"
+              >
+                <div>
+                  {/* Product Image Header */}
+                  <div className="h-48 relative bg-stone-900 overflow-hidden">
+                    <img
+                      src={p.image_url || 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=800&q=80'}
+                      alt={p.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    
+                    {/* Top Badges matching user screenshot */}
+                    <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 max-w-[80%]">
+                      {p.is_best_seller && (
+                        <span className="bg-[#14532D] text-[#e6f4ea] border border-emerald-500/50 text-[11px] font-extrabold px-2.5 py-0.5 rounded shadow">
+                          #{idx + 1} Best
+                        </span>
+                      )}
+                      <span className="bg-[#0a0a0c]/90 backdrop-blur border border-stone-700 text-[#c5a880] text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded">
+                        {p.collection}
+                      </span>
+                      {p.is_todays_deal && (
+                        <span className="bg-red-900/90 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow">
+                          🔥 핫딜
+                        </span>
+                      )}
                     </div>
-                    <span className="text-emerald-400 text-[10px] font-mono font-bold">
-                      📦 도매 Box: ₩{(p.wholesale_price_krw || Math.round((p.price || 18000) * (p.carton_qty || 10) * (1 - (p.wholesale_discount_rate || 0.15)))).toLocaleString()}원 ({p.carton_qty || 10}개입)
-                    </span>
+
+                    <div className="absolute top-3 right-3 bg-black/80 backdrop-blur px-2.5 py-1 rounded text-xs font-bold text-[#c5a880] font-mono border border-stone-800">
+                      ₩{eaPrice.toLocaleString()}원
+                    </div>
                   </div>
 
-                  <h3 className="font-serif-luxury text-base font-semibold text-white line-clamp-1 group-hover:text-[#c5a880] transition-colors">
-                    {p.name}
-                  </h3>
+                  {/* Info Content */}
+                  <div className="p-5 space-y-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-stone-400 font-mono text-[11px]">
+                        📍 {p.origin || '대한민국 (Korea)'}
+                      </span>
+                      <div className="flex items-center space-x-1 text-amber-400">
+                        <Star size={13} className="fill-amber-400" />
+                        <span className="font-bold text-xs">{p.rating || 4.9}</span>
+                        <span className="text-stone-500 font-mono text-[10px]">({p.reviews_count || 12}개 후기)</span>
+                      </div>
+                    </div>
 
-                  {/* Attributes Badges */}
-                  <div className="grid grid-cols-2 gap-1.5 pt-1 text-[10px] font-mono text-stone-400">
-                    <div className="truncate">용량: <span className="text-stone-200">{p.format}</span></div>
-                    <div className="truncate">공법: <span className="text-stone-200">{p.finish}</span></div>
-                    <div className="truncate">특성: <span className="text-stone-200">{p.color}</span></div>
-                    <div className="truncate">원산지: <span className="text-stone-200">{p.origin || '대한민국'}</span></div>
+                    <h3 className="font-bold text-sm text-white line-clamp-2 leading-snug group-hover:text-[#c5a880] transition-colors">
+                      {p.name}
+                    </h3>
+
+                    {/* Dual Pricing Box matching user screenshot */}
+                    <div className="bg-[#080b09] border border-emerald-900/40 p-3 rounded-lg space-y-1.5 font-mono text-xs">
+                      <div className="flex justify-between items-center text-stone-300">
+                        <span>소량 개별가:</span>
+                        <span className="text-[#c5a880] font-bold">₩{eaPrice.toLocaleString()}원</span>
+                      </div>
+                      <div className="flex justify-between items-center text-emerald-400">
+                        <span className="flex items-center space-x-1 text-[11px]">
+                          <span>📦 대용량 ({boxQty}개):</span>
+                          {boxOriginalPrice > boxDiscountedPrice && (
+                            <span className="text-stone-500 line-through text-[10px]">
+                              ₩{boxOriginalPrice.toLocaleString()}원
+                            </span>
+                          )}
+                        </span>
+                        <span className="font-extrabold text-[#EAB308]">
+                          ₩{boxDiscountedPrice.toLocaleString()}원
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center text-[10px] text-stone-400 font-mono pt-1">
+                      <span>HS: {p.hs_code || '1902.20'}</span>
+                      <span className="text-emerald-400">수출 FOB: ${p.export_price_usd || 7.5} USD</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Controls & Quick Toggles */}
+                <div className="p-4 bg-[#0a0a0c] border-t border-stone-800 space-y-3">
+                  <div className="flex items-center justify-between text-[11px] font-mono">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const updated = { ...p, is_best_seller: !p.is_best_seller };
+                        setProducts((prev) => prev.map((item) => (item.id === p.id ? updated : item)));
+                        if (isSupabaseConfigured()) await supabase.from('products').upsert(updated);
+                      }}
+                      className={`px-2.5 py-1 rounded text-[10px] font-bold border transition-colors ${
+                        p.is_best_seller
+                          ? 'bg-amber-950 text-amber-300 border-amber-500/50'
+                          : 'bg-stone-900 text-stone-500 border-stone-800'
+                      }`}
+                    >
+                      {p.is_best_seller ? '★ 베스트셀러 노출중' : '☆ 베스트셀러 지정'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const updated = { ...p, is_todays_deal: !p.is_todays_deal };
+                        setProducts((prev) => prev.map((item) => (item.id === p.id ? updated : item)));
+                        if (isSupabaseConfigured()) await supabase.from('products').upsert(updated);
+                      }}
+                      className={`px-2.5 py-1 rounded text-[10px] font-bold border transition-colors ${
+                        p.is_todays_deal
+                          ? 'bg-red-950 text-red-300 border-red-500/50'
+                          : 'bg-stone-900 text-stone-500 border-stone-800'
+                      }`}
+                    >
+                      {p.is_todays_deal ? '🔥 핫딜 노출중' : '❄️ 일반 상품'}
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-end space-x-2 pt-1">
+                    <button
+                      onClick={() => openEditModal(p)}
+                      className="flex-1 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold rounded transition-colors flex items-center justify-center space-x-1"
+                    >
+                      <Edit2 size={13} />
+                      <span>수정</span>
+                    </button>
+                    <button
+                      onClick={() => handleDelete(p.id)}
+                      className="px-3 py-1.5 bg-red-950/60 hover:bg-red-900 text-red-400 hover:text-white border border-red-800/40 text-xs font-semibold rounded transition-colors flex items-center space-x-1"
+                    >
+                      <Trash2 size={13} />
+                      <span>삭제</span>
+                    </button>
                   </div>
                 </div>
               </div>
-
-              {/* Actions Footer */}
-              <div className="px-5 py-3 bg-[#0a0a0c]/60 border-t border-stone-800/80 flex items-center justify-between">
-                <span className="text-[10px] text-stone-500 font-mono">
-                  SKU: {p.sku}
-                </span>
-
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => openEditModal(p)}
-                    className="p-1.5 text-stone-400 hover:text-white bg-stone-900 hover:bg-stone-800 rounded border border-stone-800 transition-colors flex items-center space-x-1 text-xs"
-                  >
-                    <Edit2 size={13} />
-                    <span>수정</span>
-                  </button>
-                  <button
-                    onClick={() => handleDelete(p.id)}
-                    className="p-1.5 text-red-400 hover:text-red-300 bg-red-950/30 hover:bg-red-900/50 rounded border border-red-900/50 transition-colors flex items-center space-x-1 text-xs"
-                  >
-                    <Trash2 size={13} />
-                    <span>삭제</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
