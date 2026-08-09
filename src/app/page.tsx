@@ -2,7 +2,6 @@ import React from 'react';
 import Link from 'next/link';
 import { getActiveHeroSlides } from '@/lib/cms-db';
 import { getProducts } from '@/lib/products-db';
-import { getJournalArticles } from '@/lib/journal-db';
 
 // Home Section Components
 import HeroSlider from '@/components/home/HeroSlider';
@@ -10,20 +9,14 @@ import DualPortalSection from '@/components/home/DualPortalSection';
 import TodaysDeals from '@/components/home/TodaysDeals';
 import CategoryIcons from '@/components/home/CategoryIcons';
 import BestSellers from '@/components/home/BestSellers';
-import FreshToday from '@/components/home/FreshToday';
-import PartnerBrands from '@/components/home/PartnerBrands';
-import RecipesSection from '@/components/home/RecipesSection';
-import CustomerReviews from '@/components/home/CustomerReviews';
-import NewsletterSection from '@/components/home/NewsletterSection';
 
 import { ShieldCheck, Layers, FileText } from 'lucide-react';
 
 export default async function Home() {
   // RSC: Parallel DB fetches for max performance
-  const [heroSlides, products, articles] = await Promise.all([
+  const [heroSlides, products] = await Promise.all([
     getActiveHeroSlides(),
     getProducts(),
-    getJournalArticles(true),
   ]);
 
   return (
@@ -66,21 +59,6 @@ export default async function Home() {
 
       {/* 4. Best Sellers Collection */}
       <BestSellers products={products} />
-
-      {/* 5. Fresh Today (Daily Harvest Spotlight) */}
-      <FreshToday />
-
-      {/* 6. Partner Brands & Artisan Estates */}
-      <PartnerBrands />
-
-      {/* 7. Recipes & Gourmet Journal */}
-      <RecipesSection articles={articles} />
-
-      {/* 8. Verified Customer Reviews */}
-      <CustomerReviews />
-
-      {/* 9. Newsletter Subscription */}
-      <NewsletterSection />
 
     </div>
   );
