@@ -64,22 +64,14 @@ export default function DualPortalSection() {
               </div>
             </div>
 
-            <div className="pt-8 flex flex-col sm:flex-row gap-3 relative z-10">
+            <div className="pt-8 relative z-10">
               <Link
                 href="/shop"
-                className="flex-1 px-5 py-3 bg-[#14532D] hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center space-x-2 shadow-lg"
+                className="w-full px-5 py-3.5 bg-[#14532D] hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center space-x-2 shadow-lg"
               >
                 <ShoppingBag size={16} />
-                <span>국내 일반 쇼핑몰 입장</span>
+                <span>국내 K-FOOD 쇼핑몰 입장</span>
                 <ArrowRight size={14} />
-              </Link>
-
-              <Link
-                href="/wholesale"
-                className="px-5 py-3 bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-600 font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center space-x-2"
-              >
-                <Building2 size={16} className="text-[#EAB308]" />
-                <span>국내 B2B 도매 문의</span>
               </Link>
             </div>
           </div>

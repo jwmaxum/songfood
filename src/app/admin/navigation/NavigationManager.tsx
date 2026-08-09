@@ -25,6 +25,7 @@ import { GripVertical, Plus, Trash2, ArrowLeft, Eye, EyeOff, RefreshCw, Layers, 
 
 const FALLBACK_RAW_MENUS: MenuItem[] = [
   // Header Menus
+  { id: 'menu-hdr-all', title: 'ALL', url: '/collections', parent_id: null, sort_order: 0, is_active: true, position: 'header' },
   { id: 'menu-hdr-1', title: 'K-냉동식품', url: '/collections?cat=fresh', parent_id: null, sort_order: 1, is_active: true, position: 'header', badge: 'HOT' },
   { id: 'menu-hdr-2', title: 'K-전통식품', url: '/collections?cat=traditional', parent_id: null, sort_order: 2, is_active: true, position: 'header' },
   { id: 'menu-hdr-3', title: 'K-간편식/HMR', url: '/collections?cat=pantry', parent_id: null, sort_order: 3, is_active: true, position: 'header' },

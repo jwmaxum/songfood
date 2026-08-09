@@ -8,6 +8,15 @@ const DATA_PATH = path.join(process.cwd(), 'data', 'menus.json');
 const INITIAL_MENUS: MenuItem[] = [
   // Header Menus (Depth 1)
   {
+    id: 'menu-hdr-all',
+    title: 'ALL',
+    url: '/collections',
+    parent_id: null,
+    sort_order: 0,
+    is_active: true,
+    position: 'header',
+  },
+  {
     id: 'menu-hdr-1',
     title: 'K-냉동식품',
     url: '/collections?cat=fresh',
@@ -171,8 +180,8 @@ const INITIAL_MENUS: MenuItem[] = [
   },
   {
     id: 'menu-ftr-3',
-    title: 'K-주류 & 전통주 컬렉션',
-    url: '/collections?cat=dairy',
+    title: '해외 수출 & B2B 문의',
+    url: '/global',
     parent_id: null,
     sort_order: 3,
     is_active: true,

@@ -142,7 +142,7 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
       {/* 3-Hub Business Navigation Bar */}
       <div className="bg-[#0A0A0C] text-stone-200 border-b border-stone-800/60 py-1.5 px-4 text-xs font-medium">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
-          {/* 3-Hub Switcher Tabs */}
+          {/* 2-Hub Business Navigation Bar */}
           <div className="flex items-center space-x-1 sm:space-x-2">
             <Link
               href="/shop"
@@ -153,19 +153,7 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
               }`}
             >
               <Store size={13} className="text-[#EAB308]" />
-              <span>🇰🇷 국내 쇼핑몰 (B2C)</span>
-            </Link>
-
-            <Link
-              href="/wholesale"
-              className={`flex items-center space-x-1.5 px-3 py-1 rounded-md text-[11px] font-bold transition-all ${
-                isWholesaleHub
-                  ? 'bg-[#14532D] text-white shadow-sm ring-1 ring-emerald-400/30'
-                  : 'text-stone-400 hover:text-white hover:bg-stone-800/70'
-              }`}
-            >
-              <Building2 size={13} className="text-[#EAB308]" />
-              <span>🏢 국내 B2B 도매 (Wholesale)</span>
+              <span>🇰🇷 K-FOOD SHOP</span>
             </Link>
 
             <Link
@@ -298,51 +286,61 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
         </div>
       </div>
 
-      {/* Row 2: Desktop Horizontal GNB Navigation Bar */}
-      <div className="hidden lg:block border-t border-b border-stone-200/80 bg-[#FAFAF8]/95 backdrop-blur">
+      {/* Row 2: Desktop Horizontal GNB Navigation Bar (2번 이미지 스타일 둥근 필 캡슐 선택 메뉴) */}
+      <div className="hidden lg:block border-t border-b border-stone-200/80 bg-[#0a0a0c] backdrop-blur py-2.5 shadow-inner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex items-center space-x-8 h-12" aria-label="Primary Navigation">
+          <nav className="flex items-center space-x-2 overflow-x-auto custom-scrollbar py-0.5" aria-label="Primary Navigation">
             {menus.map((parent) => {
               const hasChildren = parent.children && parent.children.length > 0;
               const isHovered = activeMenuId === parent.id;
+              
+              // Active category matching
+              let isActive = false;
+              if (typeof window !== 'undefined') {
+                const currentFull = pathname + (window.location.search || '');
+                if (parent.title === 'ALL' || parent.id === 'menu-hdr-all') {
+                  isActive = (pathname === '/collections' || pathname === '/shop') && (!window.location.search || window.location.search === '' || window.location.search === '?cat=all');
+                } else {
+                  isActive = currentFull === parent.url || (parent.url !== '/' && currentFull.includes(parent.url));
+                }
+              }
 
               return (
                 <div
                   key={parent.id}
-                  className="relative group h-full flex items-center"
+                  className="relative group flex-shrink-0"
                   onMouseEnter={() => setActiveMenuId(parent.id)}
                   onMouseLeave={() => setActiveMenuId(null)}
                 >
                   <Link
                     href={parent.url}
-                    className="flex items-center text-xs tracking-[0.08em] uppercase font-bold font-jakarta text-stone-800 group-hover:text-[#14532D] transition-colors py-2"
+                    className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full text-xs tracking-wider uppercase transition-all duration-200 font-jakarta ${
+                      isActive
+                        ? 'bg-[#c5a880] text-stone-950 font-extrabold shadow-lg scale-105 ring-2 ring-[#c5a880]/50'
+                        : 'bg-[#181822] text-stone-300 border border-stone-800/80 hover:border-[#14532D] hover:bg-[#14532D] hover:text-white font-semibold'
+                    }`}
                   >
                     <span>{parent.title}</span>
                     {parent.badge && (
-                      <span className="ml-1.5 px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-[#DC2626] text-white">
+                      <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-extrabold ${
+                        isActive ? 'bg-black text-amber-400' : 'bg-[#DC2626] text-white'
+                      }`}>
                         {parent.badge}
                       </span>
                     )}
                     {hasChildren && (
                       <ChevronDown
-                        size={13}
-                        className={`ml-1 transition-transform duration-200 ${
-                          isHovered ? 'rotate-180 text-[#14532D]' : 'text-stone-400'
+                        size={12}
+                        className={`ml-0.5 transition-transform duration-200 ${
+                          isHovered ? 'rotate-180 text-[#14532D]' : 'opacity-60'
                         }`}
                       />
                     )}
                   </Link>
 
-                  {/* Active Indicator Line */}
-                  <span
-                    className={`absolute bottom-0 left-0 h-[2.5px] bg-[#14532D] transition-all duration-300 ${
-                      isHovered ? 'w-full opacity-100' : 'w-0 opacity-0'
-                    }`}
-                  />
-
                   {/* Megamenu Dropdown Container */}
                   {hasChildren && isHovered && (
-                    <div className="absolute top-full left-0 w-[580px] bg-white border border-stone-200 shadow-2xl rounded-lg p-6 grid grid-cols-12 gap-6 animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+                    <div className="absolute top-full left-0 mt-2 w-[580px] bg-white border border-stone-200 shadow-2xl rounded-xl p-6 grid grid-cols-12 gap-6 animate-in fade-in slide-in-from-top-2 duration-200 z-50">
                       {/* Left: Depth 2 Link Items */}
                       <div className="col-span-6 space-y-2.5 border-r border-stone-100 pr-4">
                         <div className="text-[10px] tracking-[0.18em] uppercase font-extrabold text-[#14532D] mb-3 pb-1 border-b border-stone-100 font-jakarta">

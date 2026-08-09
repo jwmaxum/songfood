@@ -96,27 +96,20 @@ export default function HeroSlider({ initialSlides }: HeroSliderProps) {
           <span className="text-[#EAB308] font-bold ml-1">냉동만두, 전통김치, HMR 떡볶이, K-치킨, 소스 &amp; 전통주</span>
         </p>
 
-        {/* 3 Primary Action CTAs */}
-        <div className="pt-6 flex flex-col sm:flex-row justify-center items-center gap-3 max-w-3xl mx-auto">
+        {/* 2 Primary Action CTAs (Wholesale Inquiry removed) */}
+        <div className="pt-6 flex flex-col sm:flex-row justify-center items-center gap-4 max-w-2xl mx-auto">
           <Link
             href="/shop"
-            className="w-full sm:w-auto px-7 py-3.5 bg-[#14532D] hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 shadow-xl rounded-lg border border-emerald-400/30 flex items-center justify-center space-x-2"
+            className="w-full sm:w-1/2 px-8 py-4 bg-[#14532D] hover:bg-emerald-700 text-white font-extrabold text-xs uppercase tracking-wider transition-all duration-300 shadow-xl rounded-xl border border-emerald-400/30 flex items-center justify-center space-x-2.5 group"
           >
-            <span>🇰🇷 Shop Korean Food</span>
-          </Link>
-          
-          <Link
-            href="/wholesale"
-            className="w-full sm:w-auto px-7 py-3.5 bg-stone-900/90 hover:bg-stone-800 text-white border border-stone-600 hover:border-amber-400 font-bold text-xs uppercase tracking-wider transition-all duration-300 shadow-xl rounded-lg flex items-center justify-center space-x-2 backdrop-blur-md"
-          >
-            <span>🏢 Wholesale Inquiry</span>
+            <span>🇰🇷 SHOP KOREAN FOOD</span>
           </Link>
 
           <Link
             href="/global"
-            className="w-full sm:w-auto px-7 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-extrabold text-xs uppercase tracking-wider transition-all duration-300 shadow-2xl rounded-lg flex items-center justify-center space-x-2 ring-2 ring-amber-400/50"
+            className="w-full sm:w-1/2 px-8 py-4 bg-gradient-to-r from-amber-500 via-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-stone-950 font-black text-xs uppercase tracking-wider transition-all duration-300 shadow-2xl rounded-xl flex items-center justify-center space-x-2.5 ring-2 ring-amber-400/60 scale-[1.02] hover:scale-[1.05]"
           >
-            <span>🌎 Global Buyer → Request Quote</span>
+            <span>🌎 GLOBAL BUYER → REQUEST QUOTE</span>
           </Link>
         </div>
       </div>
