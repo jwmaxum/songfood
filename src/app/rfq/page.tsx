@@ -4,96 +4,101 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ProductItem, RFQItem, RFQRequest } from '@/lib/types';
-import { Globe, Calculator, FileText, CheckCircle2, ChevronRight, ArrowLeft, ShieldCheck, Printer, CheckSquare, Square } from 'lucide-react';
+import { getStoredExchangeRate, convertKrwToUsd, DEFAULT_EXCHANGE_RATE } from '@/lib/exchange-rate';
+import { Globe, Calculator, FileText, CheckCircle2, ChevronRight, ArrowLeft, ShieldCheck, Printer, CheckSquare, Square, DollarSign } from 'lucide-react';
 
 const FALLBACK_RFQ_PRODUCTS: ProductItem[] = [
   {
     id: 'prod-1',
-    name: 'CJ 비비고 수제 프리미엄 왕교자 만두 (Bibigo Mandu)',
+    name: 'CJ 비비고 수제 프리미엄 왕교자 만두 (Bibigo Pork & Leek Mandu)',
     name_en: 'Bibigo Premium Pork & Leek Mandu Dumplings',
     collection: 'K-냉동식품',
     category: '만두 & 교자',
-    price: 10000,
+    price: 18000,
+    box_price: 324000,
+    carton_price: 1440000,
+    carton_box_qty: 5,
+    carton_qty: 100,
     format: '1.05kg 패밀리팩',
     finish: '-40°C IQF 급속냉동',
     color: '노릇노릇한 바삭함',
     look: '수제 손주름 왕교자',
     image_url: 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=800&q=80',
     description: '100% 얇은 피 속 국내산 돼지고기와 신선한 부추, 당면이 듬뿍 들어간 대한민국 대표 비비고 왕교자 만두.',
-    carton_qty: 10,
-    wholesale_discount_rate: 0.15,
     gross_weight: 11.2,
     cbm: 0.037,
     moq_cartons: 50,
     hs_code: '1902.20-1000',
-    export_price_usd: 7.50,
-    wholesale_price_krw: 85000,
+    wholesale_price_krw: 1440000,
   },
   {
     id: 'prod-kimchi',
-    name: '송영민푸드 명품 전통 포기김치 5kg (Premium Poggi Kimchi)',
+    name: '송영민푸드 명품 전통 포기김치 5kg (Premium Artisanal Poggi Kimchi)',
     name_en: 'Song Youngmin Food Premium Artisanal Poggi Kimchi 5kg',
     collection: 'K-전통식품',
     category: '김치 & 발효식품',
-    price: 10000,
+    price: 35000,
+    box_price: 160000,
+    carton_price: 600000,
+    carton_box_qty: 4,
+    carton_qty: 20,
     format: '5kg 업소용/가정용',
     finish: '자연 유산균 발효',
     color: '진한 붉은빛 갓담근 김치',
     look: '해남 배추 수제 포기김치',
     image_url: 'https://images.unsplash.com/photo-1583224964978-2257b960c3d3?auto=format&fit=crop&w=800&q=80',
     description: '100% 해남 배추와 고춧가루, 황석어젓, 멸치액젓으로 정성껏 담근 한국 전통 발효 명품 포기김치.',
-    carton_qty: 10,
-    wholesale_discount_rate: 0.15,
     gross_weight: 21.5,
     cbm: 0.052,
     moq_cartons: 40,
     hs_code: '2005.99-1000',
-    export_price_usd: 7.50,
-    wholesale_price_krw: 85000,
+    wholesale_price_krw: 600000,
   },
   {
     id: 'prod-3',
-    name: 'K-수제 눈꽃 떡볶이 & 모둠튀김 3인분 밀키트 (Tteokbokki Kit)',
+    name: 'K-수제 눈꽃 떡볶이 & 모둠튀김 3인분 밀키트 (K-Street Tteokbokki Kit)',
     name_en: 'K-Street Spicy Tteokbokki & Assorted Tempura Kit',
     collection: 'K-간편식/HMR',
     category: '떡볶이 & 밀키트',
-    price: 10000,
-    format: '720g (3인분 구성)',
-    finish: '특제 붉은 고춧가루 양념',
-    color: '매콤달콤 붉은 떡볶이 양념',
-    look: '쫄깃한 쌀떡 & 찰밀떡 믹스',
-    image_url: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=800&q=80',
-    description: '한국 길거리 분식의 진수. 쫄깃한 떡과 부산 수제 어묵, 김말이 튀김이 어우러진 특제 떡볶이 밀키트.',
-    carton_qty: 10,
-    wholesale_discount_rate: 0.15,
-    gross_weight: 8.5,
-    cbm: 0.032,
+    price: 14000,
+    box_price: 125000,
+    carton_price: 480000,
+    carton_box_qty: 4,
+    carton_qty: 40,
+    format: '650g 밀키트 (3인분)',
+    finish: '급속동결 비법 소스',
+    color: '매콤달콤 크림슨 레드',
+    look: '쫄깃한 쌀떡 & 야채/김말이 튀김',
+    image_url: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=800&q=80',
+    description: '쫄깃한 쌀떡과 매콤달콤 비법 양념소스, 김말이·야채튀김이 어우러진 스트리트 K-떡볶이 수제 밀키트.',
+    gross_weight: 11.8,
+    cbm: 0.035,
     moq_cartons: 50,
     hs_code: '1902.30-9000',
-    export_price_usd: 7.50,
-    wholesale_price_krw: 85000,
+    wholesale_price_krw: 480000,
   },
   {
     id: 'prod-5',
     name: '프리미엄 궁중 소불고기 밀키트 600g (Bulgogi Kit)',
-    name_en: 'Premium Korean Royal Beef Bulgogi Kit 600g',
+    name_en: 'Korean Royal Beef Bulgogi Kit 600g',
     collection: 'K-간편식/HMR',
     category: '육류 & 불고기',
-    price: 10000,
-    format: '600g 냉동팩',
-    finish: '특제 간장 비법 양념',
+    price: 22000,
+    box_price: 200000,
+    carton_price: 750000,
+    carton_box_qty: 4,
+    carton_qty: 40,
+    format: '600g (냉동팩)',
+    finish: '궁중 양념숙성',
     color: '달콤 짭조름한 양념색',
     look: '얇게 썬 청정 소고기',
     image_url: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80',
     description: '배즙과 양파, 특제 마늘 간장 소스로 숙성한 연하고 부드러운 대한민국 전통 궁중 소불고기.',
-    carton_qty: 10,
-    wholesale_discount_rate: 0.15,
-    gross_weight: 7.8,
+    gross_weight: 8.5,
     cbm: 0.029,
     moq_cartons: 50,
     hs_code: '1602.50-1000',
-    export_price_usd: 7.50,
-    wholesale_price_krw: 85000,
+    wholesale_price_krw: 750000,
   },
   {
     id: 'prod-sauce',
@@ -101,21 +106,22 @@ const FALLBACK_RFQ_PRODUCTS: ProductItem[] = [
     name_en: 'Song Youngmin Food Master K-BBQ Soy Marinade Sauce 2kg',
     collection: 'K-소스/조미료',
     category: '양념 & 소스',
-    price: 10000,
+    price: 25000,
+    box_price: 135000,
+    carton_price: 500000,
+    carton_box_qty: 4,
+    carton_qty: 24,
     format: '2kg 업소용 대용량',
     finish: '저온 저장 장기 숙성',
     color: '진한 흑갈색 전통 간장색',
     look: '다진 마늘 & 국산 배 원물',
     image_url: 'https://images.unsplash.com/photo-1472476443507-c7a5948772fc?auto=format&fit=crop&w=800&q=80',
     description: '전 세계 셰프들이 인정하는 만능 K-BBQ 갈비/불고기/삼겹살 볶음 양념소스 2kg 대용량.',
-    carton_qty: 10,
-    wholesale_discount_rate: 0.15,
     gross_weight: 21.0,
     cbm: 0.045,
     moq_cartons: 30,
     hs_code: '2103.90-9030',
-    export_price_usd: 7.50,
-    wholesale_price_krw: 85000,
+    wholesale_price_krw: 500000,
   },
   {
     id: 'prod-2',
@@ -123,21 +129,22 @@ const FALLBACK_RFQ_PRODUCTS: ProductItem[] = [
     name_en: 'WON SOJU Original 24% Premium Spirits 375ml',
     collection: 'K-주류 & 전통주',
     category: '전통주 & 소주',
-    price: 10000,
+    price: 14900,
+    box_price: 165000,
+    carton_price: 620000,
+    carton_box_qty: 4,
+    carton_qty: 48,
     format: '375ml 유리병',
     finish: '옹기 감압증류 원액',
     color: '크리스탈 투명 맑은 빛',
     look: '라벨 모던 엠보싱 자개',
     image_url: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?auto=format&fit=crop&w=800&q=80',
     description: '100% 국내산 쌀과 옹기 찜 증류 공법으로 만들어 부드럽고 맑은 목넘김을 자랑하는 원소주 오리지널.',
-    carton_qty: 10,
-    wholesale_discount_rate: 0.15,
-    gross_weight: 9.8,
-    cbm: 0.028,
-    moq_cartons: 60,
+    gross_weight: 18.5,
+    cbm: 0.035,
+    moq_cartons: 50,
     hs_code: '2208.90-4000',
-    export_price_usd: 7.50,
-    wholesale_price_krw: 85000,
+    wholesale_price_krw: 620000,
   },
   {
     id: 'prod-4',
@@ -145,21 +152,22 @@ const FALLBACK_RFQ_PRODUCTS: ProductItem[] = [
     name_en: 'Neurinmaeul Handcrafted Raw Rice Wine 750ml',
     collection: 'K-주류 & 전통주',
     category: '막걸리 & 탁주',
-    price: 10000,
+    price: 4500,
+    box_price: 80000,
+    carton_price: 300000,
+    carton_box_qty: 4,
+    carton_qty: 80,
     format: '750ml 콜드체인 PET',
     finish: '무인공감미료 100% 순수발효',
     color: '뽀얀 순백의 유산균 미색',
     look: '부드러운 크림 탄산 입자',
     image_url: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=800&q=80',
     description: '인공감미료(아스파탐) 0%. 100% 국산 쌀과 누룩으로만 발효시켜 시간이 지날수록 풍미가 변하는 고급 생막걸리.',
-    carton_qty: 10,
-    wholesale_discount_rate: 0.15,
-    gross_weight: 9.2,
-    cbm: 0.030,
-    moq_cartons: 60,
+    gross_weight: 20.0,
+    cbm: 0.045,
+    moq_cartons: 50,
     hs_code: '2206.00-2010',
-    export_price_usd: 7.50,
-    wholesale_price_krw: 85000,
+    wholesale_price_krw: 300000,
   },
   {
     id: 'prod-snack',
@@ -167,28 +175,29 @@ const FALLBACK_RFQ_PRODUCTS: ProductItem[] = [
     name_en: 'Song Youngmin Premium Crunchy Sweet Potato Chips 100g',
     collection: 'K-스낵/음료',
     category: '과자 & 스낵',
-    price: 10000,
+    price: 3500,
+    box_price: 90000,
+    carton_price: 320000,
+    carton_box_qty: 4,
+    carton_qty: 120,
     format: '100g 알루미늄 파우치',
     finish: '진공 저온 유탕 공법',
     color: '황금빛 자색 고구마색',
     look: '국산 100% 고구마 원물 스낵',
     image_url: 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&w=800&q=80',
     description: '국산 고구마 100%를 진공 저온 공법으로 튀겨 고구마 본연의 달콤함과 바삭함을 살린 프리미엄 K-웰빙 스낵.',
-    carton_qty: 10,
-    wholesale_discount_rate: 0.15,
-    gross_weight: 2.5,
-    cbm: 0.022,
-    moq_cartons: 50,
+    gross_weight: 14.0,
+    cbm: 0.060,
+    moq_cartons: 40,
     hs_code: '1905.90-1000',
-    export_price_usd: 7.50,
-    wholesale_price_krw: 85000,
+    wholesale_price_krw: 320000,
   },
 ];
 
 function RFQContent() {
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<ProductItem[]>(FALLBACK_RFQ_PRODUCTS);
-  const [loading, setLoading] = useState(false);
+  const [exchangeRate, setExchangeRate] = useState<number>(DEFAULT_EXCHANGE_RATE);
   const [step, setStep] = useState(1);
 
   // RFQ Form State
@@ -210,6 +219,21 @@ function RFQContent() {
 
   // Generated Quote State
   const [generatedQuote, setGeneratedQuote] = useState<RFQRequest | null>(null);
+
+  useEffect(() => {
+    // Load stored exchange rate or default 1,450 KRW
+    const currentRate = getStoredExchangeRate();
+    setExchangeRate(currentRate);
+
+    const handleRateUpdate = () => {
+      setExchangeRate(getStoredExchangeRate());
+    };
+
+    window.addEventListener('songfood_exchange_rate_updated', handleRateUpdate);
+    return () => {
+      window.removeEventListener('songfood_exchange_rate_updated', handleRateUpdate);
+    };
+  }, []);
 
   useEffect(() => {
     async function loadData() {
@@ -271,20 +295,18 @@ function RFQContent() {
     }));
   };
 
-  // Calculation Engine based on Carton (Master Carton) Standard Pricing
+  // Calculation Engine based on Product DB Master Carton Pricing & Exchange Rate
   const selectedProductList = products.filter((p) => selectedProducts[p.id] !== undefined);
   
   const rfqItems: RFQItem[] = selectedProductList.map((p) => {
     const qty = selectedProducts[p.id] || 0;
-    const cartonQty = p.carton_qty || 10;
-    const cartonPriceKrw = p.carton_price || Math.round((p.price || 10000) * cartonQty);
-    const cartonPriceUsd = p.export_price_usd
-      ? Math.round(p.export_price_usd * cartonQty * 100) / 100
-      : Math.round((cartonPriceKrw / 1350) * 100) / 100;
+    const cartonQty = p.carton_qty || 100;
+    const cartonPriceKrw = p.carton_price || p.wholesale_price_krw || Math.round((p.price || 18000) * cartonQty * 0.8);
+    const cartonPriceUsd = convertKrwToUsd(cartonPriceKrw, exchangeRate);
 
     const totalUsd = Math.round(cartonPriceUsd * qty * 100) / 100;
-    const cbmPerCtn = p.cbm || 0.035;
-    const grossWeightPerCtn = p.gross_weight || 11.0;
+    const cbmPerCtn = p.cbm || 0.037;
+    const grossWeightPerCtn = p.gross_weight || 11.2;
 
     return {
       productId: p.id,
@@ -299,7 +321,7 @@ function RFQContent() {
   });
 
   const subtotalUsd = Math.round(rfqItems.reduce((sum, item) => sum + item.totalUsd, 0) * 100) / 100;
-  const subtotalKrw = Math.round(subtotalUsd * 1350);
+  const subtotalKrw = Math.round(subtotalUsd * exchangeRate);
   const packingFeeUsd = selectedProductList.length > 0 ? 150 : 0;
   const totalUsd = Math.round((subtotalUsd + packingFeeUsd) * 100) / 100;
   const totalCbm = Math.round(rfqItems.reduce((sum, item) => sum + item.cbm, 0) * 1000) / 1000;
@@ -347,15 +369,22 @@ function RFQContent() {
       <div className="bg-gradient-to-r from-emerald-950 via-stone-900 to-amber-950 border-b border-stone-800 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
-            <Link href="/global" className="inline-flex items-center text-xs text-amber-400 hover:underline mb-2 space-x-1 font-bold">
-              <ArrowLeft size={14} />
-              <span>해외 B2B 카탈로그로 돌아가기</span>
-            </Link>
+            <div className="flex items-center space-x-3 mb-2">
+              <Link href="/global" className="inline-flex items-center text-xs text-amber-400 hover:underline space-x-1 font-bold">
+                <ArrowLeft size={14} />
+                <span>해외 B2B 카탈로그로 돌아가기</span>
+              </Link>
+              <span className="text-stone-600">•</span>
+              <div className="inline-flex items-center space-x-1 text-xs text-emerald-400 font-mono font-bold bg-emerald-950/80 border border-emerald-500/30 px-2.5 py-0.5 rounded-md">
+                <DollarSign size={13} />
+                <span>적용 환율: ₩{exchangeRate.toLocaleString()}원 / $1 USD</span>
+              </div>
+            </div>
             <h1 className="text-3xl sm:text-5xl font-extrabold text-white font-jakarta tracking-tight">
               도매 &amp; 해외바이어 견적 신청 (RFQ)
             </h1>
             <p className="text-stone-300 text-xs sm:text-sm mt-2 max-w-2xl">
-              DB에 등록된 K-Food 상품을 자유롭게 선택하여 표준 Carton(마스터 카톤) 단가 기준 수량별 견적을 즉시 산출하고 공식 Pro Forma Invoice를 발행받으실 수 있습니다.
+              DB에 등록된 K-Food 상품의 Carton(카톤) 단가 기준 수량별 견적을 즉시 산출하고 공식 Pro Forma Invoice를 발행받으실 수 있습니다.
             </p>
           </div>
 
@@ -364,7 +393,7 @@ function RFQContent() {
             <div>
               <div className="text-[10px] uppercase text-stone-400 font-bold">견적 예상 총액 (FOB USD)</div>
               <div className="text-2xl font-extrabold text-[#EAB308] font-jakarta">${totalUsd.toLocaleString()} USD</div>
-              <div className="text-xs text-stone-400 font-mono">약 ₩{subtotalKrw.toLocaleString()}원 (Carton 단가 기준)</div>
+              <div className="text-xs text-stone-400 font-mono">약 ₩{subtotalKrw.toLocaleString()}원 (환율 ₩{exchangeRate.toLocaleString()}원)</div>
             </div>
           </div>
         </div>
@@ -411,7 +440,7 @@ function RFQContent() {
                       <span>Step 1. 견적 대상 상품 선택</span>
                     </h2>
                     <p className="text-xs text-stone-400 mt-1">
-                      상품 카드를 클릭하여 견적에 포함할 K-Food 제품을 선택하세요. (Master Carton 단가 표기)
+                      상품 카드를 클릭하여 견적에 포함할 K-Food 제품을 선택하세요. (Carton 단가 및 박스 수량 표기)
                     </p>
                   </div>
 
@@ -442,11 +471,10 @@ function RFQContent() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {products.map((p) => {
                     const isSelected = selectedProducts[p.id] !== undefined;
-                    const cartonQty = p.carton_qty || 10;
-                    const cartonPriceKrw = p.wholesale_price_krw || Math.round((p.price || 10000) * cartonQty * 0.85);
-                    const cartonPriceUsd = p.export_price_usd
-                      ? Math.round(p.export_price_usd * cartonQty * 100) / 100
-                      : Math.round((cartonPriceKrw / 1350) * 100) / 100;
+                    const cartonQty = p.carton_qty || 100;
+                    const cartonBoxQty = p.carton_box_qty || Math.round(cartonQty / 20) || 5;
+                    const cartonPriceKrw = p.carton_price || p.wholesale_price_krw || Math.round((p.price || 18000) * cartonQty * 0.8);
+                    const cartonPriceUsd = convertKrwToUsd(cartonPriceKrw, exchangeRate);
 
                     return (
                       <div
@@ -487,13 +515,13 @@ function RFQContent() {
 
                           {/* Master Carton Price Badge */}
                           <div className="bg-stone-900/90 border border-stone-800 rounded px-2.5 py-1 text-[11px] font-mono">
-                            <div className="flex justify-between items-center text-stone-400 font-bold text-[10px]">
-                              <span>📦 1 Master Carton ({cartonQty}개입)</span>
+                            <div className="flex justify-between items-center text-stone-300 font-bold text-[10px]">
+                              <span>📦 1 Carton ({cartonQty}개입 / {cartonBoxQty}박스)</span>
                               <span>MOQ: {p.moq_cartons || 50} CTN</span>
                             </div>
-                            <div className="flex justify-between items-center text-[#EAB308] font-extrabold mt-0.5">
-                              <span>₩{cartonPriceKrw.toLocaleString()}원</span>
-                              <span className="text-emerald-400">(${cartonPriceUsd} USD)</span>
+                            <div className="flex justify-between items-center text-emerald-400 font-extrabold mt-0.5">
+                              <span className="text-white">₩{cartonPriceKrw.toLocaleString()}원</span>
+                              <span className="text-emerald-400 font-mono">(${cartonPriceUsd.toLocaleString()} USD)</span>
                             </div>
                           </div>
                         </div>
@@ -532,11 +560,10 @@ function RFQContent() {
 
                 <div className="space-y-4">
                   {selectedProductList.map((p) => {
-                    const cartonQty = p.carton_qty || 10;
-                    const cartonPriceKrw = p.wholesale_price_krw || Math.round((p.price || 10000) * cartonQty * 0.85);
-                    const cartonPriceUsd = p.export_price_usd
-                      ? Math.round(p.export_price_usd * cartonQty * 100) / 100
-                      : Math.round((cartonPriceKrw / 1350) * 100) / 100;
+                    const cartonQty = p.carton_qty || 100;
+                    const cartonBoxQty = p.carton_box_qty || Math.round(cartonQty / 20) || 5;
+                    const cartonPriceKrw = p.carton_price || p.wholesale_price_krw || Math.round((p.price || 18000) * cartonQty * 0.8);
+                    const cartonPriceUsd = convertKrwToUsd(cartonPriceKrw, exchangeRate);
                     const ctnQty = selectedProducts[p.id] || 0;
                     const lineTotalUsd = Math.round(cartonPriceUsd * ctnQty * 100) / 100;
 
@@ -547,7 +574,7 @@ function RFQContent() {
                           <div>
                             <div className="text-xs font-bold text-stone-100">{p.name_en || p.name}</div>
                             <div className="text-[11px] text-stone-400 font-mono">
-                              📦 1 CTN ({cartonQty}개입): ${cartonPriceUsd} USD (₩{cartonPriceKrw.toLocaleString()}원)
+                              📦 1 CTN ({cartonQty}개입 / {cartonBoxQty}박스): ₩{cartonPriceKrw.toLocaleString()}원 (${cartonPriceUsd} USD)
                             </div>
                           </div>
                         </div>
@@ -564,7 +591,7 @@ function RFQContent() {
                               type="number"
                               value={selectedProducts[p.id] || 0}
                               onChange={(e) => updateQuantity(p.id, parseInt(e.target.value) || 0)}
-                              className="w-20 bg-stone-900 border border-stone-700 rounded-lg py-1 px-2 text-center text-xs font-bold text-amber-400"
+                              className="w-20 bg-stone-900 border border-stone-700 rounded-lg py-1 px-2 text-center text-xs font-bold text-amber-400 font-mono"
                             />
                             <button
                               onClick={() => updateQuantity(p.id, (selectedProducts[p.id] || 0) + 10)}
@@ -782,7 +809,7 @@ function RFQContent() {
                     <div className="text-xs text-stone-500 mt-2">
                       Quotation No: <strong className="text-stone-900">{generatedQuote.quoteNo}</strong><br />
                       Date: {new Date().toLocaleDateString()}<br />
-                      Validity: 30 Days from issuance
+                      Validity: 30 Days from issuance (Exchange Rate: ₩{exchangeRate.toLocaleString()} / USD)
                     </div>
                   </div>
 
@@ -810,7 +837,7 @@ function RFQContent() {
                     <div className="font-extrabold text-stone-800 uppercase tracking-wider mb-2">Trade &amp; Export Terms</div>
                     <div>Incoterms: <strong>{generatedQuote.incoterms}</strong></div>
                     <div>Loading Port: <strong>Busan Port, Korea</strong></div>
-                    <div>Production Lead Time: 14 Days</div>
+                    <div>Applied FX Rate: <strong>₩{exchangeRate.toLocaleString()} KRW/USD</strong></div>
                     <div>Payment Terms: T/T 30% Deposit, 70% against B/L</div>
                     <div>Container Spec: Reefer Cold Chain Container (-18°C)</div>
                   </div>
@@ -853,7 +880,7 @@ function RFQContent() {
                   </div>
 
                   <div className="text-right space-y-1">
-                    <div className="text-xs text-stone-600">Subtotal: ${generatedQuote.subtotalUsd.toLocaleString()} USD</div>
+                    <div className="text-xs text-stone-600">Subtotal: ${generatedQuote.subtotalUsd.toLocaleString()} USD (약 ₩{subtotalKrw.toLocaleString()}원)</div>
                     <div className="text-xs text-stone-600">Export Packing / Palletization Fee: ${generatedQuote.packingFeeUsd} USD</div>
                     <div className="text-xl font-extrabold text-stone-900 font-jakarta border-t border-amber-300 pt-1">
                       TOTAL ({generatedQuote.incoterms}): <span className="text-[#14532D]">${generatedQuote.totalUsd.toLocaleString()} USD</span>
@@ -864,7 +891,7 @@ function RFQContent() {
                 {/* Footer Terms */}
                 <div className="text-[11px] text-stone-500 border-t border-stone-200 pt-4 space-y-1">
                   <p>• All export products are manufactured in HACCP &amp; FSSC 22000 certified facilities in South Korea.</p>
-                  <p>• Freight rates and insurance (if CIF) are calculated based on current shipping schedule and subject to final confirmation upon Purchase Order issuance.</p>
+                  <p>• Applied exchange rate: ₩{exchangeRate.toLocaleString()} KRW per 1 USD (Daily rate set by Song Youngmin Food Admin).</p>
                 </div>
               </div>
             )}
@@ -883,6 +910,10 @@ function RFQContent() {
                 <div className="flex justify-between text-stone-300">
                   <span>Selected Products:</span>
                   <strong className="text-white">{selectedProductList.length} Items</strong>
+                </div>
+                <div className="flex justify-between text-stone-300">
+                  <span>Applied Exchange Rate:</span>
+                  <strong className="text-emerald-400 font-mono">₩{exchangeRate.toLocaleString()} / $1 USD</strong>
                 </div>
                 <div className="flex justify-between text-stone-300">
                   <span>Total Volume (CBM):</span>
@@ -920,7 +951,7 @@ function RFQContent() {
                   <span>Song Youngmin Export Guarantee</span>
                 </div>
                 <p className="text-[11px] text-stone-300">
-                  Official Pro Forma Invoice with HS Code classification &amp; custom loading schedule provided upon RFQ submission.
+                  Official Pro Forma Invoice calculated using standard Master Carton prices and daily FX rate (₩{exchangeRate.toLocaleString()} / USD).
                 </p>
               </div>
             </div>

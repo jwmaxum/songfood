@@ -15,6 +15,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import type { KpiData } from '@/app/api/kpi/route';
+import ExchangeRateWidget from './ExchangeRateWidget';
 
 export const metadata = {
   title: '송영민푸드 관리자 대시보드 | Song Youngmin Food CMS',
@@ -180,6 +181,11 @@ export default async function AdminDashboardPage() {
             );
           })}
         </div>
+      </section>
+
+      {/* Daily USD/KRW Exchange Rate Management */}
+      <section>
+        <ExchangeRateWidget />
       </section>
 
       {/* CMS Summary Cards */}
