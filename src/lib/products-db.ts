@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { ProductItem } from './types';
+import { supabaseAdmin, isSupabaseConfigured } from './supabase';
 
 const PRODUCTS_DATA_PATH = path.join(process.cwd(), 'data', 'products.json');
 
@@ -433,7 +434,7 @@ function ensureProductsFile(): ProductItem[] {
   try {
     const fileData = fs.readFileSync(PRODUCTS_DATA_PATH, 'utf-8');
     const parsed = JSON.parse(fileData) as ProductItem[];
-    if (!parsed || parsed.length === 0 || parsed.some((p) => p.price !== 10000 || p.carton_qty !== 10)) {
+    if (!parsed || !Array.isArray(parsed) || parsed.length === 0) {
       saveProductsData(INITIAL_PRODUCTS);
       return INITIAL_PRODUCTS;
     }
@@ -466,13 +467,28 @@ export async function getProducts(filters?: {
   targetMarket?: string[];
   search?: string;
 }): Promise<ProductItem[]> {
-  let products = ensureProductsFile();
+  let products: ProductItem[] = [];
+
+  if (isSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabaseAdmin.from('products').select('*');
+      if (!error && data && data.length > 0) {
+        products = data as ProductItem[];
+      }
+    } catch (err) {
+      console.error('Error querying products from Supabase:', err);
+    }
+  }
+
+  if (products.length === 0) {
+    products = ensureProductsFile();
+  }
 
   if (!filters) return products;
 
   if (filters.collection) {
     products = products.filter(
-      (p) => p.collection.toLowerCase() === filters.collection?.toLowerCase()
+      (p) => p.collection?.toLowerCase() === filters.collection?.toLowerCase()
     );
   }
 
@@ -514,10 +530,10 @@ export async function getProducts(filters?: {
     const q = filters.search.toLowerCase();
     products = products.filter(
       (p) =>
-        p.name.toLowerCase().includes(q) ||
+        p.name?.toLowerCase().includes(q) ||
         (p.name_en && p.name_en.toLowerCase().includes(q)) ||
-        p.description.toLowerCase().includes(q) ||
-        p.collection.toLowerCase().includes(q) ||
+        p.description?.toLowerCase().includes(q) ||
+        p.collection?.toLowerCase().includes(q) ||
         (p.hs_code && p.hs_code.includes(q))
     );
   }
@@ -529,7 +545,7 @@ export async function getProducts(filters?: {
  * Get single product details by ID
  */
 export async function getProductById(id: string): Promise<ProductItem | null> {
-  const products = ensureProductsFile();
+  const products = await getProducts();
   return products.find((p) => p.id === id) || null;
 }
 
@@ -538,35 +554,62 @@ export async function getProductById(id: string): Promise<ProductItem | null> {
  */
 export async function saveProduct(product: Partial<ProductItem> & { id?: string }): Promise<ProductItem> {
   const products = ensureProductsFile();
+  let resultProduct: ProductItem;
 
   if (product.id) {
     const idx = products.findIndex((p) => p.id === product.id);
     if (idx !== -1) {
       products[idx] = { ...products[idx], ...product };
-      saveProductsData(products);
-      return products[idx];
+      resultProduct = products[idx];
+    } else {
+      resultProduct = {
+        id: product.id,
+        name: product.name || 'New Gourmet Ingredient',
+        collection: product.collection || 'K-냉동식품',
+        format: product.format || '1kg',
+        finish: product.finish || 'Standard',
+        color: product.color || 'Default',
+        look: product.look || 'Classic',
+        image_url: product.image_url || '',
+        description: product.description || '',
+        origin: product.origin || '대한민국',
+        price: product.price || 10000,
+        is_featured: product.is_featured ?? false,
+        ...product,
+      } as ProductItem;
+      products.unshift(resultProduct);
+    }
+  } else {
+    const newId = `prod-${Date.now()}`;
+    resultProduct = {
+      id: newId,
+      name: product.name || 'New Gourmet Ingredient',
+      collection: product.collection || 'K-냉동식품',
+      format: product.format || '1kg',
+      finish: product.finish || 'Standard',
+      color: product.color || 'Default',
+      look: product.look || 'Classic',
+      image_url: product.image_url || '',
+      description: product.description || '',
+      origin: product.origin || '대한민국',
+      price: product.price || 10000,
+      is_featured: product.is_featured ?? false,
+      ...product,
+    } as ProductItem;
+    products.unshift(resultProduct);
+  }
+
+  saveProductsData(products);
+
+  if (isSupabaseConfigured()) {
+    try {
+      await supabaseAdmin.from('products').upsert(resultProduct);
+    } catch (err) {
+      console.error('Error saving product to Supabase:', err);
     }
   }
 
-  const newId = `prod-${Date.now()}`;
-  const newProd: ProductItem = {
-    id: newId,
-    name: product.name || 'New Gourmet Ingredient',
-    collection: product.collection || 'Artisanal Pantry',
-    format: product.format || '500ml Bottle',
-    finish: product.finish || 'Cold-Pressed',
-    color: product.color || 'Emerald Gold',
-    look: product.look || 'Italian Heritage',
-    image_url: product.image_url || '',
-    description: product.description || '',
-    thickness: product.thickness || '9 mm',
-    origin: product.origin || 'Italy',
-    is_featured: product.is_featured ?? false,
-  };
-
-  products.unshift(newProd);
-  saveProductsData(products);
-  return newProd;
+  return resultProduct;
 }
 
 /**
@@ -577,5 +620,14 @@ export async function deleteProduct(id: string): Promise<boolean> {
   const initLen = products.length;
   products = products.filter((p) => p.id !== id);
   saveProductsData(products);
+
+  if (isSupabaseConfigured()) {
+    try {
+      await supabaseAdmin.from('products').delete().eq('id', id);
+    } catch (err) {
+      console.error('Error deleting product from Supabase:', err);
+    }
+  }
+
   return products.length < initLen;
 }

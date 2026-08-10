@@ -1,9 +1,8 @@
-import productsData from '@/../data/products.json';
-import { ProductItem } from '@/lib/types';
+import { getProducts, getProductById } from '@/lib/products-db';
 import ProductDetailClient from './ProductDetailClient';
 
-export function generateStaticParams() {
-  const products = productsData as ProductItem[];
+export async function generateStaticParams() {
+  const products = await getProducts();
   return products.map((p) => ({
     id: p.id,
   }));
@@ -12,9 +11,9 @@ export function generateStaticParams() {
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   const productId = resolvedParams.id;
-  const products = productsData as ProductItem[];
+  const products = await getProducts();
 
-  const product = products.find((p) => p.id === productId) || products[0];
+  const product = (await getProductById(productId)) || products[0];
 
   const relatedProducts = products
     .filter((p) => p.id !== product.id && p.collection === product.collection)
