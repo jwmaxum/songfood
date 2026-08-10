@@ -1,24 +1,20 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { JournalArticle } from '@/lib/types';
 import JournalManager from '../journal/JournalManager';
-import ContentBlockManager from '../content-blocks/ContentBlockManager';
 import MediaManager from '../media/MediaManager';
 import {
   FileText,
   FolderDown,
   ImageIcon,
   Sparkles,
-  Layers,
-  ArrowLeft,
   Plus,
   Trash2,
-  Download,
-  Upload,
   CheckCircle2,
-  ExternalLink
+  ExternalLink,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 interface CatalogueAdminItem {
@@ -76,8 +72,9 @@ const INITIAL_ADMIN_CATALOGUES: CatalogueAdminItem[] = [
 ];
 
 export default function MediaLabUnifiedManager() {
-  const [activeTab, setActiveTab] = useState<'news' | 'catalogues' | 'cdn'>('news');
+  const [activeTab, setActiveTab] = useState<'news' | 'catalogues'>('news');
   const [catalogues, setCatalogues] = useState<CatalogueAdminItem[]>(INITIAL_ADMIN_CATALOGUES);
+  const [showMediaCdnUpload, setShowMediaCdnUpload] = useState(false);
   
   // Catalogue Upload Modal
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
@@ -140,13 +137,13 @@ export default function MediaLabUnifiedManager() {
           <div className="space-y-1">
             <div className="inline-flex items-center space-x-2 text-[#EAB308] text-xs font-mono uppercase tracking-widest bg-amber-950/40 border border-amber-500/30 px-3 py-1 rounded-full">
               <Sparkles size={13} />
-              <span>UNIFIED MEDIA LAB CMS STUDIO</span>
+              <span>MEDIA LAB UNIFIED CMS STUDIO</span>
             </div>
             <h1 className="font-serif-luxury text-2xl sm:text-3xl font-extrabold text-white">
               🎬 미디어랩 통합 관리 센터
             </h1>
             <p className="text-xs text-stone-400 font-light">
-              뉴스&amp;이벤트 게시글 편집, 자료실 PDF 카탈로그 등록, 미디어 라이브러리 CDN을 한곳에서 통합 관리합니다.
+              프론트엔드 Media Lab 구조와 1:1 일치하는 뉴스&amp;이벤트 에디터 및 자료실 PDF 카탈로그 관리 센터입니다.
             </p>
           </div>
 
@@ -170,14 +167,14 @@ export default function MediaLabUnifiedManager() {
           </div>
         </div>
 
-        {/* 3 Unified Tabs Navigation */}
-        <div className="flex items-center space-x-2 border-b border-stone-800 pb-2">
+        {/* 2 Front-End Matched Tabs Navigation */}
+        <div className="flex items-center space-x-3 border-b border-stone-800 pb-2">
           <button
             type="button"
             onClick={() => setActiveTab('news')}
-            className={`flex items-center space-x-2 px-5 py-3 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center space-x-2 px-6 py-3.5 rounded-xl text-xs font-extrabold transition-all ${
               activeTab === 'news'
-                ? 'bg-[#14532D] text-white shadow-lg ring-1 ring-emerald-400/40'
+                ? 'bg-[#14532D] text-white shadow-xl ring-2 ring-emerald-400/40'
                 : 'bg-stone-900/80 text-stone-400 hover:text-white hover:bg-stone-800'
             }`}
           >
@@ -188,34 +185,48 @@ export default function MediaLabUnifiedManager() {
           <button
             type="button"
             onClick={() => setActiveTab('catalogues')}
-            className={`flex items-center space-x-2 px-5 py-3 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center space-x-2 px-6 py-3.5 rounded-xl text-xs font-extrabold transition-all ${
               activeTab === 'catalogues'
-                ? 'bg-amber-600 text-white shadow-lg ring-1 ring-amber-400/40'
+                ? 'bg-amber-600 text-white shadow-xl ring-2 ring-amber-400/40'
                 : 'bg-stone-900/80 text-stone-400 hover:text-white hover:bg-stone-800'
             }`}
           >
             <FolderDown size={16} className={activeTab === 'catalogues' ? 'text-yellow-200' : ''} />
-            <span>2. 자료실 카탈로그 관리 (Catalogues)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('cdn')}
-            className={`flex items-center space-x-2 px-5 py-3 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'cdn'
-                ? 'bg-purple-900 text-white shadow-lg ring-1 ring-purple-400/40'
-                : 'bg-stone-900/80 text-stone-400 hover:text-white hover:bg-stone-800'
-            }`}
-          >
-            <ImageIcon size={16} className={activeTab === 'cdn' ? 'text-purple-300' : ''} />
-            <span>3. 미디어 CDN &amp; 섹션 콘텐츠</span>
+            <span>2. 자료실 (Catalogues)</span>
           </button>
         </div>
 
         {/* Tab 1: News & Events Manager */}
         {activeTab === 'news' && (
-          <div className="bg-[#111118] border border-stone-800/80 rounded-2xl p-6 shadow-2xl">
-            <JournalManager />
+          <div className="space-y-6">
+            {/* Quick Media CDN File Upload Accordion Box */}
+            <div className="bg-[#111118] border border-stone-800/90 rounded-2xl overflow-hidden shadow-xl">
+              <button
+                type="button"
+                onClick={() => setShowMediaCdnUpload(!showMediaCdnUpload)}
+                className="w-full px-6 py-4 bg-stone-900/80 hover:bg-stone-800 flex items-center justify-between text-xs font-bold text-stone-300 transition-colors"
+              >
+                <div className="flex items-center space-x-2">
+                  <ImageIcon size={16} className="text-amber-400" />
+                  <span>[미디어 라이브러리 CDN] 이미지 &amp; 동영상 업로드 툴</span>
+                  <span className="text-[11px] font-mono text-stone-400 font-normal">
+                    (기사 작성 시 필요한 썸네일/첨부 이미지를 직접 업로드하고 CDN URL을 복사할 수 있습니다)
+                  </span>
+                </div>
+                {showMediaCdnUpload ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </button>
+
+              {showMediaCdnUpload && (
+                <div className="p-6 border-t border-stone-800 bg-[#0c0c10]">
+                  <MediaManager />
+                </div>
+              )}
+            </div>
+
+            {/* News & Events Article CRUD Editor */}
+            <div className="bg-[#111118] border border-stone-800/80 rounded-2xl p-6 shadow-2xl">
+              <JournalManager />
+            </div>
           </div>
         )}
 
@@ -283,27 +294,6 @@ export default function MediaLabUnifiedManager() {
                   ))}
                 </tbody>
               </table>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 3: CDN Media Library & Content Blocks */}
-        {activeTab === 'cdn' && (
-          <div className="space-y-8">
-            <div className="bg-[#111118] border border-stone-800/80 rounded-2xl p-6 shadow-2xl">
-              <h2 className="text-lg font-bold text-white mb-4 flex items-center space-x-2 border-b border-stone-800 pb-3">
-                <ImageIcon size={20} className="text-purple-400" />
-                <span>미디어 라이브러리 CDN 이미지/동영상 업로드</span>
-              </h2>
-              <MediaManager />
-            </div>
-
-            <div className="bg-[#111118] border border-stone-800/80 rounded-2xl p-6 shadow-2xl">
-              <h2 className="text-lg font-bold text-white mb-4 flex items-center space-x-2 border-b border-stone-800 pb-3">
-                <Layers size={20} className="text-emerald-400" />
-                <span>페이지 섹션 타이틀 &amp; 미디어 블록 편집</span>
-              </h2>
-              <ContentBlockManager />
             </div>
           </div>
         )}

@@ -141,7 +141,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/payments', label: '💳 토스 결제 승인 연동', icon: Lock },
     { href: '/admin/hero', label: '히어로 슬라이더 & 비디오 CMS', icon: Film },
     { href: '/admin/products', label: 'K-Food 상품 CRUD & 메인 노출', icon: Shield },
-    { href: '/admin/media-lab', label: '🎬 미디어랩 통합 CMS (News, Catalogue & CDN)', icon: FileText },
+    { href: '/admin/media-lab', label: '🎬 미디어랩 통합 CMS (뉴스&이벤트/자료실)', icon: FileText },
     { href: '/admin/users', label: '서브 관리자 직원/권한 CRUD', icon: Users },
   ];
 
