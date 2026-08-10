@@ -29,7 +29,7 @@ export default function RecipesSection({ articles }: RecipesSectionProps) {
           </div>
 
           <Link
-            href="/journal"
+            href="/news-events"
             className="inline-flex items-center space-x-1 text-xs font-bold text-[#14532D] hover:text-emerald-700 uppercase tracking-wider"
           >
             <span>View All Articles</span>
@@ -60,7 +60,7 @@ export default function RecipesSection({ articles }: RecipesSectionProps) {
                   <span className="text-[11px] font-semibold text-stone-400 font-mono">
                     {article.published_date}
                   </span>
-                  <Link href={`/journal/${article.slug}`}>
+                  <Link href={`/news-events/${article.slug}`}>
                     <h3 className="font-jakarta text-base font-bold text-stone-900 group-hover:text-[#14532D] transition-colors mt-1 line-clamp-2">
                       {article.title}
                     </h3>
@@ -72,7 +72,7 @@ export default function RecipesSection({ articles }: RecipesSectionProps) {
 
                 <div className="pt-3 border-t border-stone-200 flex items-center justify-between">
                   <Link
-                    href={`/journal/${article.slug}`}
+                    href={`/news-events/${article.slug}`}
                     className="inline-flex items-center space-x-1 text-xs font-bold text-[#14532D] hover:text-emerald-800"
                   >
                     <span>Read Recipe Story</span>

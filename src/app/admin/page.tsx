@@ -101,22 +101,13 @@ export default async function AdminDashboardPage() {
       linkLabel: '메뉴 관리 바로가기',
     },
     {
-      label: '미디어 파일',
-      value: kpi.totalMediaItems.toString(),
-      sub: '업로드된 파일',
-      icon: ImageIcon,
-      iconColor: 'text-emerald-400',
-      href: '/admin/media',
-      linkLabel: '미디어 라이브러리',
-    },
-    {
-      label: 'K-Food 저널 & Media Lab',
-      value: kpi.publishedArticles.toString(),
-      sub: '발행된 아티클 & 소식',
-      icon: BookOpen,
-      iconColor: 'text-amber-400',
-      href: '/admin/journal',
-      linkLabel: '저널 & Media Lab 바로가기',
+      label: '미디어랩 통합 CMS',
+      value: (kpi.totalMediaItems + kpi.publishedArticles).toString(),
+      sub: '뉴스, 자료실 PDF, CDN 통합',
+      icon: FileText,
+      iconColor: 'text-[#EAB308]',
+      href: '/admin/media-lab',
+      linkLabel: '미디어랩 통합 관리 센터',
     },
     {
       label: '미처리 대기 주문',
@@ -287,35 +278,18 @@ export default async function AdminDashboardPage() {
           </Link>
 
           <Link
-            href="/admin/content-blocks"
-            className="group bg-[#121218] border border-stone-800 hover:border-[#c5a880] p-6 rounded-lg transition-all duration-300 flex items-start space-x-4"
+            href="/admin/media-lab"
+            className="group bg-[#121218] border border-stone-800 hover:border-[#EAB308] p-6 rounded-lg transition-all duration-300 flex items-start space-x-4 col-span-1 md:col-span-2"
           >
-            <div className="p-3 bg-[#181822] rounded border border-stone-700 text-amber-400">
+            <div className="p-3 bg-[#181822] rounded border border-stone-700 text-[#EAB308]">
               <FileText size={24} />
             </div>
             <div className="space-y-1">
-              <h3 className="font-serif-luxury text-lg text-white group-hover:text-[#c5a880] transition-colors">
-                Section Content Block Editor
+              <h3 className="font-serif-luxury text-lg text-white group-hover:text-[#EAB308] transition-colors">
+                🎬 미디어랩 통합 CMS (News, Catalogues &amp; Media CDN)
               </h3>
               <p className="text-xs text-stone-400 font-light leading-relaxed">
-                페이지별 섹션 헤드라인, 설명, 뱃지, 미디어 링크 편집.
-              </p>
-            </div>
-          </Link>
-
-          <Link
-            href="/admin/media"
-            className="group bg-[#121218] border border-stone-800 hover:border-[#c5a880] p-6 rounded-lg transition-all duration-300 flex items-start space-x-4"
-          >
-            <div className="p-3 bg-[#181822] rounded border border-stone-700 text-emerald-400">
-              <ImageIcon size={24} />
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-serif-luxury text-lg text-white group-hover:text-[#c5a880] transition-colors">
-                Media Library &amp; File Upload
-              </h3>
-              <p className="text-xs text-stone-400 font-light leading-relaxed">
-                이미지·영상 직접 업로드 또는 CDN URL 등록, URL 복사 기능.
+                뉴스&amp;이벤트 아티클 편집, 자료실 PDF 카탈로그 업로드 및 미디어 CDN 라이브러리를 단일 통합 센터에서 관리합니다.
               </p>
             </div>
           </Link>

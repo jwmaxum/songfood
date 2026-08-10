@@ -94,7 +94,7 @@ const INITIAL_MENUS: MenuItem[] = [
   {
     id: 'menu-hdr-9',
     title: '미디어랩 (Media Lab)',
-    url: '/journal',
+    url: '/news-events',
     parent_id: null,
     sort_order: 9,
     is_active: true,
@@ -103,7 +103,7 @@ const INITIAL_MENUS: MenuItem[] = [
   {
     id: 'menu-sub-media-1',
     title: '뉴스&이벤트 (News&Events)',
-    url: '/journal',
+    url: '/news-events',
     parent_id: 'menu-hdr-9',
     sort_order: 1,
     is_active: true,

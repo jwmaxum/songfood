@@ -1,11 +1,11 @@
 import React from 'react';
-import JournalManager from './JournalManager';
+import MediaLabUnifiedManager from '../media-lab/MediaLabUnifiedManager';
 
 export const metadata = {
-  title: 'K-레시피 & 저널 아티클 에디터 | 송영민푸드 관리자',
-  description: '송영민푸드 한식 레시피, 미식 인사이트, 이벤트 및 블로그 아티클 편집기.',
+  title: '미디어랩 통합 CMS | 송영민푸드 관리자',
+  description: '뉴스&이벤트 에디터, 자료실 카탈로그 관리 및 미디어 라이브러리 CDN 통합 관리 센터.',
 };
 
 export default function AdminJournalPage() {
-  return <JournalManager />;
+  return <MediaLabUnifiedManager />;
 }

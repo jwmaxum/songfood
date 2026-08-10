@@ -74,8 +74,8 @@ export default function FooterClient({ menus }: { menus: any[] }) {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/journal" className="hover:text-white transition-colors duration-200 inline-flex items-center group">
-                    <span>📰 Media Lab &amp; K-Food 저널</span>
+                  <Link href="/news-events" className="hover:text-white transition-colors duration-200 inline-flex items-center group">
+                    <span>📰 Media Lab &amp; 뉴스&amp;이벤트</span>
                     <ArrowUpRight size={12} className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-[#c59b27]" />
                   </Link>
                 </li>
@@ -101,7 +101,7 @@ export default function FooterClient({ menus }: { menus: any[] }) {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/journal" className="hover:text-white transition-colors duration-200 inline-flex items-center group">
+                  <Link href="/news-events" className="hover:text-white transition-colors duration-200 inline-flex items-center group">
                     <span>📰 뉴스&amp;이벤트 (News &amp; Events)</span>
                     <ArrowUpRight size={12} className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-[#c59b27]" />
                   </Link>

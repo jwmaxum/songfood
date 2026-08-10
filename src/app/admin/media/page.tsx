@@ -1,11 +1,11 @@
 import React from 'react';
-import MediaManager from './MediaManager';
+import MediaLabUnifiedManager from '../media-lab/MediaLabUnifiedManager';
 
 export const metadata = {
-  title: '미디어 라이브러리 CDN | 송영민푸드 관리자',
-  description: '송영민푸드 고화질 이미지 및 MP4 동영상 파일 안전 업로드 & 1-Click CDN URL 복사.',
+  title: '미디어랩 통합 CMS | 송영민푸드 관리자',
+  description: '뉴스&이벤트 에디터, 자료실 카탈로그 관리 및 미디어 라이브러리 CDN 통합 관리 센터.',
 };
 
 export default function AdminMediaPage() {
-  return <MediaManager />;
+  return <MediaLabUnifiedManager />;
 }
