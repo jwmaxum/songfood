@@ -101,8 +101,14 @@ export default function FooterClient({ menus }: { menus: any[] }) {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/global" className="hover:text-white transition-colors duration-200 inline-flex items-center group">
-                    <span>📖 Export Catalogue (카탈로그)</span>
+                  <Link href="/journal" className="hover:text-white transition-colors duration-200 inline-flex items-center group">
+                    <span>📰 뉴스&amp;이벤트 (News &amp; Events)</span>
+                    <ArrowUpRight size={12} className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-[#c59b27]" />
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/catalogues" className="hover:text-white transition-colors duration-200 inline-flex items-center group">
+                    <span>📁 자료실 (Catalogues)</span>
                     <ArrowUpRight size={12} className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-[#c59b27]" />
                   </Link>
                 </li>

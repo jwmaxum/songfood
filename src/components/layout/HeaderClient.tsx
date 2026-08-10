@@ -127,7 +127,7 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
               </div>
             </div>
 
-            {/* Media Lab Dropdown (News, Event, Catalogue) */}
+            {/* Media Lab Dropdown (News & Events, Catalogues) */}
             <div className="relative group py-2">
               <Link href="/journal" className="flex items-center space-x-1.5 hover:text-[#14532D] transition-colors py-2">
                 <FileText size={15} className="text-[#EAB308]" />
@@ -135,15 +135,12 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
                 <ChevronDown size={12} className="group-hover:rotate-180 transition-transform duration-200" />
               </Link>
 
-              <div className="absolute top-full left-0 w-56 bg-white border border-stone-200 rounded-xl shadow-xl py-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all duration-200 -translate-y-1 group-hover:translate-y-0 z-50">
+              <div className="absolute top-full left-0 w-60 bg-white border border-stone-200 rounded-xl shadow-xl py-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all duration-200 -translate-y-1 group-hover:translate-y-0 z-50">
                 <Link href="/journal" className="block px-4 py-2.5 hover:bg-[#FAFAF8] text-xs font-bold text-stone-700 hover:text-[#14532D] transition-colors">
-                  📰 K-Food News &amp; 보도자료
+                  📰 뉴스&amp;이벤트 (News &amp; Events)
                 </Link>
-                <Link href="/journal?category=Event" className="block px-4 py-2.5 hover:bg-[#FAFAF8] text-xs font-bold text-stone-700 hover:text-[#14532D] transition-colors">
-                  🎉 Expo &amp; Event 소식
-                </Link>
-                <Link href="/global" className="block px-4 py-2.5 hover:bg-[#FAFAF8] text-xs font-bold text-stone-700 hover:text-[#14532D] transition-colors">
-                  📖 Export Catalogue (카탈로그)
+                <Link href="/catalogues" className="block px-4 py-2.5 hover:bg-[#FAFAF8] text-xs font-bold text-stone-700 hover:text-[#14532D] transition-colors">
+                  📁 자료실 (Catalogues)
                 </Link>
               </div>
             </div>
@@ -231,15 +228,12 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
             </div>
 
             <div className="border-b border-emerald-900/30 pb-3 space-y-3">
-              <div className="text-xs font-extrabold uppercase text-[#c59b27] tracking-wider">Media Lab</div>
+              <div className="text-xs font-extrabold uppercase text-[#c59b27] tracking-wider">Media Lab (미디어랩)</div>
               <Link href="/journal" onClick={() => setMobileMenuOpen(false)} className="block text-xs text-stone-300 hover:text-white pl-2">
-                📰 K-Food News &amp; 보도자료
+                📰 뉴스&amp;이벤트 (News &amp; Events)
               </Link>
-              <Link href="/journal?category=Event" onClick={() => setMobileMenuOpen(false)} className="block text-xs text-stone-300 hover:text-white pl-2">
-                🎉 Expo &amp; Event 소식
-              </Link>
-              <Link href="/global" onClick={() => setMobileMenuOpen(false)} className="block text-xs text-stone-300 hover:text-white pl-2">
-                📖 Export Catalogue (카탈로그)
+              <Link href="/catalogues" onClick={() => setMobileMenuOpen(false)} className="block text-xs text-stone-300 hover:text-white pl-2">
+                📁 자료실 (Catalogues)
               </Link>
             </div>
 

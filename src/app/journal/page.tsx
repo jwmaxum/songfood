@@ -4,8 +4,8 @@ import { getJournalArticles } from '@/lib/journal-db';
 import { Sparkles, Calendar, Tag, ArrowRight } from 'lucide-react';
 
 export const metadata = {
-  title: 'Journal & Press News | Anatolia',
-  description: 'Discover the latest news, architectural events, and surface design innovations from Anatolia.',
+  title: '뉴스&이벤트 (News & Events) | 송영민푸드 (Song Youngmin Food)',
+  description: '송영민푸드 K-Food 신제품 출시 소식, 글로벌 식품 엑스포(Expo) 참관, 언론 보도자료 및 이벤트.',
 };
 
 export default async function JournalPage() {
@@ -15,17 +15,17 @@ export default async function JournalPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0c] text-stone-100 font-sans pb-24">
       {/* Top Banner */}
-      <div className="relative py-20 bg-gradient-to-b from-[#121218] via-[#0e0e12] to-[#0a0a0c] border-b border-stone-800/80">
+      <div className="relative py-20 bg-gradient-to-b from-[#121814] via-[#0e120f] to-[#0a0a0c] border-b border-stone-800/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-          <div className="inline-flex items-center space-x-2 text-[#c5a880] text-xs uppercase tracking-[0.3em]">
+          <div className="inline-flex items-center space-x-2 text-[#EAB308] text-xs font-mono uppercase tracking-[0.25em] bg-amber-950/40 border border-amber-500/30 px-3 py-1 rounded-full">
             <Sparkles size={14} />
-            <span>Anatolia Editorial & Press</span>
+            <span>MEDIA LAB — NEWS &amp; EVENTS</span>
           </div>
-          <h1 className="font-serif-luxury text-4xl sm:text-6xl font-light text-white tracking-tight">
-            News, Events & Architectural Stories
+          <h1 className="font-serif-luxury text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+            뉴스&amp;이벤트 <span className="text-[#EAB308] font-normal">(News &amp; Events)</span>
           </h1>
-          <p className="text-stone-400 text-xs sm:text-sm max-w-xl mx-auto font-light leading-relaxed">
-            Stay informed on our latest sintered slab manufacturing breakthroughs, global design exhibitions, and surface craftsmanship.
+          <p className="text-stone-300 text-xs sm:text-sm max-w-xl mx-auto font-light leading-relaxed">
+            송영민푸드 최신 보도자료, 해외 K-Food 엑스포 참관 소식, 신제품 런칭 및 브랜드 스토리를 만나보세요.
           </p>
         </div>
       </div>
