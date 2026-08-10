@@ -120,11 +120,11 @@ export default function DualPortalSection() {
 
             <div className="pt-8 flex flex-col sm:flex-row gap-3 relative z-10">
               <Link
-                href="/global"
+                href="/rfq"
                 className="flex-1 px-5 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center space-x-2 shadow-xl"
               >
                 <Globe size={16} />
-                <span>Global B2B Catalog 입장</span>
+                <span>Overseas Buyer RFQ 입장</span>
                 <ArrowRight size={14} />
               </Link>
 

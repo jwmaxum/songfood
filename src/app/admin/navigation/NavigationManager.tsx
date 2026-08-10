@@ -45,7 +45,7 @@ const FALLBACK_RAW_MENUS: MenuItem[] = [
 
   // Footer Menus
   { id: 'menu-ftr-1', title: '송영민푸드 K-Food 브랜드 소개', url: '/why-kfood', parent_id: null, sort_order: 1, is_active: true, position: 'footer' },
-  { id: 'menu-ftr-2', title: '해외 수출 카탈로그 (Export)', url: '/global', parent_id: null, sort_order: 2, is_active: true, position: 'footer' },
+  { id: 'menu-ftr-2', title: 'Overseas Buyer RFQ (해외 바이어 RFQ)', url: '/rfq', parent_id: null, sort_order: 2, is_active: true, position: 'footer' },
   { id: 'menu-ftr-3', title: 'B2B 도매 & 식자재 공급 문의', url: '/wholesale', parent_id: null, sort_order: 3, is_active: true, position: 'footer' },
   { id: 'menu-ftr-4', title: '고객 센터 & 문의', url: '/contact', parent_id: null, sort_order: 4, is_active: true, position: 'footer' },
   { id: 'menu-ftr-5', title: '해외 바이어 RFQ 견적 위저드', url: '/rfq', parent_id: null, sort_order: 5, is_active: true, position: 'footer' },

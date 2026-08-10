@@ -106,10 +106,10 @@ export default function HeroSlider({ initialSlides }: HeroSliderProps) {
           </Link>
 
           <Link
-            href="/global"
+            href="/rfq"
             className="w-full sm:w-1/2 px-8 py-4 bg-gradient-to-r from-amber-500 via-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-stone-950 font-black text-xs uppercase tracking-wider transition-all duration-300 shadow-2xl rounded-xl flex items-center justify-center space-x-2.5 ring-2 ring-amber-400/60 scale-[1.02] hover:scale-[1.05]"
           >
-            <span>🌎 GLOBAL BUYER → REQUEST QUOTE</span>
+            <span>🌎 OVERSEAS BUYER RFQ</span>
           </Link>
         </div>
       </div>

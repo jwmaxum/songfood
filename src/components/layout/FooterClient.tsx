@@ -68,8 +68,8 @@ export default function FooterClient({ menus }: { menus: any[] }) {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/global" className="hover:text-white transition-colors duration-200 inline-flex items-center group">
-                    <span>🌐 글로벌 유통 파트너십</span>
+                  <Link href="/rfq" className="hover:text-white transition-colors duration-200 inline-flex items-center group">
+                    <span>🌐 Overseas Buyer RFQ</span>
                     <ArrowUpRight size={12} className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-[#c59b27]" />
                   </Link>
                 </li>

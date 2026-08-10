@@ -10,21 +10,21 @@ import { Globe, Calculator, FileText, CheckCircle2, ChevronRight, ArrowLeft, Shi
 const FALLBACK_RFQ_PRODUCTS: ProductItem[] = [
   {
     id: 'prod-1',
-    name: 'CJ 비비고 수제 프리미엄 왕교자 만두 (Bibigo Pork & Leek Mandu)',
+    name: 'CJ Bibigo Premium Pork & Leek Mandu Dumplings (1.05kg Family Pack)',
     name_en: 'Bibigo Premium Pork & Leek Mandu Dumplings',
-    collection: 'K-냉동식품',
-    category: '만두 & 교자',
+    collection: 'K-Frozen Food',
+    category: 'Dumplings & Mandu',
     price: 18000,
     box_price: 324000,
     carton_price: 1440000,
     carton_box_qty: 5,
     carton_qty: 100,
-    format: '1.05kg 패밀리팩',
-    finish: '-40°C IQF 급속냉동',
-    color: '노릇노릇한 바삭함',
-    look: '수제 손주름 왕교자',
+    format: '1.05kg Family Pack',
+    finish: '-40°C IQF Deep Frozen',
+    color: 'Crispy Golden Dumpling Skin',
+    look: 'Handcrafted Pleated Mandu',
     image_url: 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=800&q=80',
-    description: '100% 얇은 피 속 국내산 돼지고기와 신선한 부추, 당면이 듬뿍 들어간 대한민국 대표 비비고 왕교자 만두.',
+    description: 'Thin delicate skin packed with 100% domestic Korean pork, fresh chives, and glass noodles. Korea\'s #1 best-selling Mandu.',
     gross_weight: 11.2,
     cbm: 0.037,
     moq_cartons: 50,
@@ -33,21 +33,21 @@ const FALLBACK_RFQ_PRODUCTS: ProductItem[] = [
   },
   {
     id: 'prod-kimchi',
-    name: '송영민푸드 명품 전통 포기김치 5kg (Premium Artisanal Poggi Kimchi)',
+    name: 'Song Youngmin Food Premium Artisanal Poggi Kimchi 5kg',
     name_en: 'Song Youngmin Food Premium Artisanal Poggi Kimchi 5kg',
-    collection: 'K-전통식품',
-    category: '김치 & 발효식품',
+    collection: 'K-Traditional Food',
+    category: 'Kimchi & Fermented Food',
     price: 35000,
     box_price: 160000,
     carton_price: 600000,
     carton_box_qty: 4,
     carton_qty: 20,
-    format: '5kg 업소용/가정용',
-    finish: '자연 유산균 발효',
-    color: '진한 붉은빛 갓담근 김치',
-    look: '해남 배추 수제 포기김치',
+    format: '5kg Commercial/Catering Pack',
+    finish: 'Natural Probiotic Fermentation',
+    color: 'Rich Crimson Fresh Poggi',
+    look: 'Handcrafted Haenam Napa Cabbage',
     image_url: 'https://images.unsplash.com/photo-1583224964978-2257b960c3d3?auto=format&fit=crop&w=800&q=80',
-    description: '100% 해남 배추와 고춧가루, 황석어젓, 멸치액젓으로 정성껏 담근 한국 전통 발효 명품 포기김치.',
+    description: '100% domestic Haenam napa cabbage, red pepper powder, and aged salted seafood. Authentic handcrafted Korean ferment.',
     gross_weight: 21.5,
     cbm: 0.052,
     moq_cartons: 40,
@@ -56,21 +56,21 @@ const FALLBACK_RFQ_PRODUCTS: ProductItem[] = [
   },
   {
     id: 'prod-3',
-    name: 'K-수제 눈꽃 떡볶이 & 모둠튀김 3인분 밀키트 (K-Street Tteokbokki Kit)',
+    name: 'K-Street Spicy Tteokbokki & Assorted Tempura Kit (3 Servings)',
     name_en: 'K-Street Spicy Tteokbokki & Assorted Tempura Kit',
-    collection: 'K-간편식/HMR',
-    category: '떡볶이 & 밀키트',
+    collection: 'K-Convenience/HMR',
+    category: 'Tteokbokki & Meal Kits',
     price: 14000,
     box_price: 125000,
     carton_price: 480000,
     carton_box_qty: 4,
     carton_qty: 40,
-    format: '650g 밀키트 (3인분)',
-    finish: '급속동결 비법 소스',
-    color: '매콤달콤 크림슨 레드',
-    look: '쫄깃한 쌀떡 & 야채/김말이 튀김',
+    format: '650g Meal Kit (3 Servings)',
+    finish: 'IQF Frozen Secret Sauce',
+    color: 'Sweet & Spicy Crimson Sauce',
+    look: 'Chewy Rice Cake & Fried Seaweed Roll',
     image_url: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=800&q=80',
-    description: '쫄깃한 쌀떡과 매콤달콤 비법 양념소스, 김말이·야채튀김이 어우러진 스트리트 K-떡볶이 수제 밀키트.',
+    description: 'The essence of Korean street food. Chewy rice cakes, Busan artisanal fish cakes, and fried seaweed rolls in signature sauce.',
     gross_weight: 11.8,
     cbm: 0.035,
     moq_cartons: 50,
@@ -79,21 +79,21 @@ const FALLBACK_RFQ_PRODUCTS: ProductItem[] = [
   },
   {
     id: 'prod-5',
-    name: '프리미엄 궁중 소불고기 밀키트 600g (Bulgogi Kit)',
+    name: 'Korean Royal Beef Bulgogi Kit 600g (Soy Marinade)',
     name_en: 'Korean Royal Beef Bulgogi Kit 600g',
-    collection: 'K-간편식/HMR',
-    category: '육류 & 불고기',
+    collection: 'K-Convenience/HMR',
+    category: 'Meat & Bulgogi',
     price: 22000,
     box_price: 200000,
     carton_price: 750000,
     carton_box_qty: 4,
     carton_qty: 40,
-    format: '600g (냉동팩)',
-    finish: '궁중 양념숙성',
-    color: '달콤 짭조름한 양념색',
-    look: '얇게 썬 청정 소고기',
+    format: '600g Frozen Pack',
+    finish: 'Royal Soy Sauce Marinade',
+    color: 'Sweet & Savory Soy Glaze',
+    look: 'Thinly Sliced Premium Beef',
     image_url: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80',
-    description: '배즙과 양파, 특제 마늘 간장 소스로 숙성한 연하고 부드러운 대한민국 전통 궁중 소불고기.',
+    description: 'Tender premium beef marinated in sweet Korean pear, onion, and aged garlic soy sauce. Classic Korean royal dish.',
     gross_weight: 8.5,
     cbm: 0.029,
     moq_cartons: 50,
@@ -102,21 +102,21 @@ const FALLBACK_RFQ_PRODUCTS: ProductItem[] = [
   },
   {
     id: 'prod-sauce',
-    name: '송영민푸드 만능 K-BBQ 불고기&갈비 양념소스 2kg (K-BBQ Sauce)',
+    name: 'Song Youngmin Food Master K-BBQ Soy Marinade Sauce 2kg',
     name_en: 'Song Youngmin Food Master K-BBQ Soy Marinade Sauce 2kg',
-    collection: 'K-소스/조미료',
-    category: '양념 & 소스',
+    collection: 'K-Sauce & Condiments',
+    category: 'Sauces & Marinades',
     price: 25000,
     box_price: 135000,
     carton_price: 500000,
     carton_box_qty: 4,
     carton_qty: 24,
-    format: '2kg 업소용 대용량',
-    finish: '저온 저장 장기 숙성',
-    color: '진한 흑갈색 전통 간장색',
-    look: '다진 마늘 & 국산 배 원물',
+    format: '2kg Commercial Jug',
+    finish: 'Low-Temp Slow Aged',
+    color: 'Dark Soy Brown Glaze',
+    look: 'Minced Garlic & Pear Puree',
     image_url: 'https://images.unsplash.com/photo-1472476443507-c7a5948772fc?auto=format&fit=crop&w=800&q=80',
-    description: '전 세계 셰프들이 인정하는 만능 K-BBQ 갈비/불고기/삼겹살 볶음 양념소스 2kg 대용량.',
+    description: 'All-in-one K-BBQ marinade for Galbi, Bulgogi, and Pork Belly. Preferred by professional chefs worldwide.',
     gross_weight: 21.0,
     cbm: 0.045,
     moq_cartons: 30,
@@ -125,21 +125,21 @@ const FALLBACK_RFQ_PRODUCTS: ProductItem[] = [
   },
   {
     id: 'prod-2',
-    name: '원소주 오리지널 24% 375ml (WON SOJU Original 24%)',
+    name: 'WON SOJU Original 24% Premium Distilled Spirits 375ml',
     name_en: 'WON SOJU Original 24% Premium Spirits 375ml',
-    collection: 'K-주류 & 전통주',
-    category: '전통주 & 소주',
+    collection: 'K-Liquor & Spirits',
+    category: 'Traditional Spirits & Soju',
     price: 14900,
     box_price: 165000,
     carton_price: 620000,
     carton_box_qty: 4,
     carton_qty: 48,
-    format: '375ml 유리병',
-    finish: '옹기 감압증류 원액',
-    color: '크리스탈 투명 맑은 빛',
-    look: '라벨 모던 엠보싱 자개',
+    format: '375ml Glass Bottle',
+    finish: 'Earthenware Pot Distilled',
+    color: 'Crystal Clear Pure Spirits',
+    look: 'Modern Holographic Label',
     image_url: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?auto=format&fit=crop&w=800&q=80',
-    description: '100% 국내산 쌀과 옹기 찜 증류 공법으로 만들어 부드럽고 맑은 목넘김을 자랑하는 원소주 오리지널.',
+    description: '100% Korean domestic rice distilled in traditional earthenware pots for ultra-smooth texture and refined aroma.',
     gross_weight: 18.5,
     cbm: 0.035,
     moq_cartons: 50,
@@ -148,21 +148,21 @@ const FALLBACK_RFQ_PRODUCTS: ProductItem[] = [
   },
   {
     id: 'prod-4',
-    name: '느린마을 수제 생막걸리 750ml (Neurinmaeul Makgeolli)',
+    name: 'Neurinmaeul Handcrafted Raw Rice Wine Makgeolli 750ml',
     name_en: 'Neurinmaeul Handcrafted Raw Rice Wine 750ml',
-    collection: 'K-주류 & 전통주',
-    category: '막걸리 & 탁주',
+    collection: 'K-Liquor & Spirits',
+    category: 'Makgeolli & Rice Wine',
     price: 4500,
     box_price: 80000,
     carton_price: 300000,
     carton_box_qty: 4,
     carton_qty: 80,
-    format: '750ml 콜드체인 PET',
-    finish: '무인공감미료 100% 순수발효',
-    color: '뽀얀 순백의 유산균 미색',
-    look: '부드러운 크림 탄산 입자',
+    format: '750ml Cold-Chain PET',
+    finish: '0% Artificial Sweeteners',
+    color: 'Milky White Probiotic Rice Wine',
+    look: 'Creamy Micro-Bubble Carbonation',
     image_url: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=800&q=80',
-    description: '인공감미료(아스파탐) 0%. 100% 국산 쌀과 누룩으로만 발효시켜 시간이 지날수록 풍미가 변하는 고급 생막걸리.',
+    description: 'Zero artificial sweeteners (Aspartame-free). 100% Korean rice naturally fermented for rich creamy carbonation.',
     gross_weight: 20.0,
     cbm: 0.045,
     moq_cartons: 50,
@@ -171,21 +171,21 @@ const FALLBACK_RFQ_PRODUCTS: ProductItem[] = [
   },
   {
     id: 'prod-snack',
-    name: '송영민푸드 프리미엄 K-스낵 바삭 고구마칩 100g (Sweet Potato Chips)',
+    name: 'Song Youngmin Premium Crunchy Sweet Potato Chips 100g',
     name_en: 'Song Youngmin Premium Crunchy Sweet Potato Chips 100g',
-    collection: 'K-스낵/음료',
-    category: '과자 & 스낵',
+    collection: 'K-Snack & Drinks',
+    category: 'Snacks & Confectionery',
     price: 3500,
     box_price: 90000,
     carton_price: 320000,
     carton_box_qty: 4,
     carton_qty: 120,
-    format: '100g 알루미늄 파우치',
-    finish: '진공 저온 유탕 공법',
-    color: '황금빛 자색 고구마색',
-    look: '국산 100% 고구마 원물 스낵',
+    format: '100g Foil Pouch',
+    finish: 'Vacuum Low-Temp Frying',
+    color: 'Golden Purple Sweet Potato',
+    look: '100% Real Sweet Potato Slices',
     image_url: 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&w=800&q=80',
-    description: '국산 고구마 100%를 진공 저온 공법으로 튀겨 고구마 본연의 달콤함과 바삭함을 살린 프리미엄 K-웰빙 스낵.',
+    description: '100% Korean sweet potatoes vacuum-fried at low temperatures to preserve natural sweetness and crispy crunch.',
     gross_weight: 14.0,
     cbm: 0.060,
     moq_cartons: 40,
@@ -310,7 +310,7 @@ function RFQContent() {
 
     return {
       productId: p.id,
-      name: p.name,
+      name: p.name_en || p.name,
       quantityCartons: qty,
       unitPriceUsd: cartonPriceUsd,
       totalUsd,
@@ -331,7 +331,7 @@ function RFQContent() {
   const handleGenerateQuote = (e: React.FormEvent) => {
     e.preventDefault();
     if (!company || !name || !email) {
-      alert('바이어 기업 정보(회사명, 담당자 성함, 이메일)를 입력해주세요.');
+      alert('Please enter required buyer contact information (Company Name, Contact Name, Business Email).');
       return;
     }
 
@@ -370,30 +370,30 @@ function RFQContent() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
             <div className="flex items-center space-x-3 mb-2">
-              <Link href="/global" className="inline-flex items-center text-xs text-amber-400 hover:underline space-x-1 font-bold">
+              <Link href="/shop" className="inline-flex items-center text-xs text-amber-400 hover:underline space-x-1 font-bold">
                 <ArrowLeft size={14} />
-                <span>해외 B2B 카탈로그로 돌아가기</span>
+                <span>Back to K-Food Shop</span>
               </Link>
               <span className="text-stone-600">•</span>
               <div className="inline-flex items-center space-x-1 text-xs text-emerald-400 font-mono font-bold bg-emerald-950/80 border border-emerald-500/30 px-2.5 py-0.5 rounded-md">
                 <DollarSign size={13} />
-                <span>적용 환율: ₩{exchangeRate.toLocaleString()}원 / $1 USD</span>
+                <span>Applied FX Rate: ₩{exchangeRate.toLocaleString()} KRW / $1 USD</span>
               </div>
             </div>
             <h1 className="text-3xl sm:text-5xl font-extrabold text-white font-jakarta tracking-tight">
-              도매 &amp; 해외바이어 견적 신청 (RFQ)
+              Overseas Buyer RFQ
             </h1>
             <p className="text-stone-300 text-xs sm:text-sm mt-2 max-w-2xl">
-              DB에 등록된 K-Food 상품의 Carton(카톤) 단가 기준 수량별 견적을 즉시 산출하고 공식 Pro Forma Invoice를 발행받으실 수 있습니다.
+              Select premium K-Food products from our export database to calculate instant master carton FOB pricing and generate official Pro Forma Invoices.
             </p>
           </div>
 
           <div className="flex items-center space-x-3 bg-stone-900/80 border border-amber-500/40 p-4 rounded-xl backdrop-blur shadow-2xl">
             <Calculator className="text-[#EAB308] w-8 h-8" />
             <div>
-              <div className="text-[10px] uppercase text-stone-400 font-bold">견적 예상 총액 (FOB USD)</div>
+              <div className="text-[10px] uppercase text-stone-400 font-bold">Estimated Total Quote (FOB USD)</div>
               <div className="text-2xl font-extrabold text-[#EAB308] font-jakarta">${totalUsd.toLocaleString()} USD</div>
-              <div className="text-xs text-stone-400 font-mono">약 ₩{subtotalKrw.toLocaleString()}원 (환율 ₩{exchangeRate.toLocaleString()}원)</div>
+              <div className="text-xs text-stone-400 font-mono">≈ ₩{subtotalKrw.toLocaleString()} KRW (FX Rate: ₩{exchangeRate.toLocaleString()})</div>
             </div>
           </div>
         </div>
@@ -403,13 +403,13 @@ function RFQContent() {
         {/* Progress Step Bar */}
         <div className="grid grid-cols-7 gap-2 mb-10 text-center text-xs">
           {[
-            { num: 1, title: '상품 선택' },
-            { num: 2, title: '수량 설정' },
-            { num: 3, title: '목적지 국가' },
-            { num: 4, title: '입항 항구' },
-            { num: 5, title: '무역 조건' },
-            { num: 6, title: '바이어 정보' },
-            { num: 7, title: '견적서 발행' },
+            { num: 1, title: 'Select Products' },
+            { num: 2, title: 'Quantity Setup' },
+            { num: 3, title: 'Destination' },
+            { num: 4, title: 'Port of Entry' },
+            { num: 5, title: 'Incoterms Trade' },
+            { num: 6, title: 'Buyer Details' },
+            { num: 7, title: 'Pro Forma Invoice' },
           ].map((s) => (
             <button
               key={s.num}
@@ -437,16 +437,16 @@ function RFQContent() {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-stone-800 pb-4 gap-4">
                   <div>
                     <h2 className="text-xl font-extrabold text-white font-jakarta flex items-center space-x-2">
-                      <span>Step 1. 견적 대상 상품 선택</span>
+                      <span>Step 1. Select Export Target Products</span>
                     </h2>
                     <p className="text-xs text-stone-400 mt-1">
-                      상품 카드를 클릭하여 견적에 포함할 K-Food 제품을 선택하세요. (Carton 단가 및 박스 수량 표기)
+                      Click product cards to select K-Food products for quotation. (Master Carton Pricing)
                     </p>
                   </div>
 
                   <div className="flex items-center space-x-3">
                     <span className="text-xs text-amber-400 font-extrabold px-3 py-1 bg-amber-950/50 border border-amber-500/30 rounded-lg">
-                      {selectedProductList.length} / {products.length}개 선택됨
+                      {selectedProductList.length} / {products.length} Products Selected
                     </span>
                     <button
                       type="button"
@@ -454,7 +454,7 @@ function RFQContent() {
                       className="px-2.5 py-1 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded text-xs font-bold transition-colors flex items-center space-x-1"
                     >
                       <CheckSquare size={13} />
-                      <span>전체 선택</span>
+                      <span>Select All</span>
                     </button>
                     <button
                       type="button"
@@ -462,7 +462,7 @@ function RFQContent() {
                       className="px-2.5 py-1 bg-stone-800 hover:bg-stone-700 text-stone-400 hover:text-stone-200 rounded text-xs transition-colors flex items-center space-x-1"
                     >
                       <Square size={13} />
-                      <span>선택 해제</span>
+                      <span>Deselect All</span>
                     </button>
                   </div>
                 </div>
@@ -489,7 +489,7 @@ function RFQContent() {
                         <div className="relative overflow-hidden rounded-lg flex-shrink-0 w-24 h-24 bg-stone-900">
                           <img
                             src={p.image_url}
-                            alt={p.name}
+                            alt={p.name_en || p.name}
                             className="w-full h-full object-cover rounded-lg border border-stone-700/60 shadow-md group-hover:scale-105 transition-transform duration-300"
                           />
                           {isSelected && (
@@ -510,17 +510,17 @@ function RFQContent() {
                           </div>
 
                           <h3 className="text-xs font-bold text-stone-100 group-hover:text-amber-400 transition-colors leading-snug line-clamp-2">
-                            {p.name}
+                            {p.name_en || p.name}
                           </h3>
 
                           {/* Master Carton Price Badge */}
                           <div className="bg-stone-900/90 border border-stone-800 rounded px-2.5 py-1 text-[11px] font-mono">
                             <div className="flex justify-between items-center text-stone-300 font-bold text-[10px]">
-                              <span>📦 1 Carton ({cartonQty}개입 / {cartonBoxQty}박스)</span>
+                              <span>📦 1 CTN ({cartonQty} PKGs / {cartonBoxQty} Boxes)</span>
                               <span>MOQ: {p.moq_cartons || 50} CTN</span>
                             </div>
                             <div className="flex justify-between items-center text-emerald-400 font-extrabold mt-0.5">
-                              <span className="text-white">₩{cartonPriceKrw.toLocaleString()}원</span>
+                              <span className="text-white">₩{cartonPriceKrw.toLocaleString()} KRW</span>
                               <span className="text-emerald-400 font-mono">(${cartonPriceUsd.toLocaleString()} USD)</span>
                             </div>
                           </div>
@@ -536,14 +536,14 @@ function RFQContent() {
 
                 <div className="pt-4 flex justify-between items-center border-t border-stone-800">
                   <div className="text-xs text-stone-400">
-                    선택된 상품: <strong className="text-amber-400">{selectedProductList.length}개</strong> (수량은 다음 단계에서 설정)
+                    Selected Products: <strong className="text-amber-400">{selectedProductList.length} Items</strong> (Quantities set in next step)
                   </div>
                   <button
                     disabled={selectedProductList.length === 0}
                     onClick={() => setStep(2)}
                     className="px-8 py-3 bg-[#14532D] hover:bg-emerald-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center space-x-2 disabled:opacity-50 shadow-lg"
                   >
-                    <span>다음: 수량 입력하기</span>
+                    <span>Next: Enter Quantities</span>
                     <ChevronRight size={16} />
                   </button>
                 </div>
@@ -554,7 +554,7 @@ function RFQContent() {
             {step === 2 && (
               <div className="bg-stone-900/80 border border-stone-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-2xl">
                 <div className="border-b border-stone-800 pb-4">
-                  <h2 className="text-xl font-bold text-white font-jakarta">Step 2. Quantity (Master Cartons)</h2>
+                  <h2 className="text-xl font-bold text-white font-jakarta">Step 2. Order Quantity (Master Cartons)</h2>
                   <p className="text-xs text-stone-400">Specify order volume in standard master carton (CTN) units.</p>
                 </div>
 
@@ -570,11 +570,11 @@ function RFQContent() {
                     return (
                       <div key={p.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-stone-950/80 border border-stone-800 p-4 rounded-xl gap-4">
                         <div className="flex items-center space-x-3">
-                          <img src={p.image_url} alt={p.name} className="w-12 h-12 object-cover rounded-lg flex-shrink-0" />
+                          <img src={p.image_url} alt={p.name_en || p.name} className="w-12 h-12 object-cover rounded-lg flex-shrink-0" />
                           <div>
                             <div className="text-xs font-bold text-stone-100">{p.name_en || p.name}</div>
                             <div className="text-[11px] text-stone-400 font-mono">
-                              📦 1 CTN ({cartonQty}개입 / {cartonBoxQty}박스): ₩{cartonPriceKrw.toLocaleString()}원 (${cartonPriceUsd} USD)
+                              📦 1 CTN ({cartonQty} PKGs / {cartonBoxQty} Boxes): ₩{cartonPriceKrw.toLocaleString()} KRW (${cartonPriceUsd} USD)
                             </div>
                           </div>
                         </div>
@@ -612,7 +612,7 @@ function RFQContent() {
 
                 <div className="pt-4 flex justify-between">
                   <button onClick={() => setStep(1)} className="px-6 py-3 bg-stone-800 text-stone-300 text-xs font-bold rounded-xl">Back</button>
-                  <button onClick={() => setStep(3)} className="px-8 py-3 bg-[#14532D] text-white font-bold text-xs uppercase tracking-wider rounded-xl">Next: Select Country</button>
+                  <button onClick={() => setStep(3)} className="px-8 py-3 bg-[#14532D] text-white font-bold text-xs uppercase tracking-wider rounded-xl">Next: Select Destination</button>
                 </div>
               </div>
             )}
@@ -621,8 +621,8 @@ function RFQContent() {
             {step >= 3 && step <= 5 && (
               <div className="bg-stone-900/80 border border-stone-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-2xl">
                 <div className="border-b border-stone-800 pb-4">
-                  <h2 className="text-xl font-bold text-white font-jakarta">Step 3-5. Destination &amp; Incoterms</h2>
-                  <p className="text-xs text-stone-400">Set shipping destination, port of entry, and trade terms.</p>
+                  <h2 className="text-xl font-bold text-white font-jakarta">Step 3-5. Destination Country &amp; Incoterms</h2>
+                  <p className="text-xs text-stone-400">Set shipping destination country, port of entry, and trade terms.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -677,7 +677,7 @@ function RFQContent() {
 
                 <div className="pt-4 flex justify-between">
                   <button onClick={() => setStep(2)} className="px-6 py-3 bg-stone-800 text-stone-300 text-xs font-bold rounded-xl">Back</button>
-                  <button onClick={() => setStep(6)} className="px-8 py-3 bg-[#14532D] text-white font-bold text-xs uppercase tracking-wider rounded-xl">Next: Buyer Details</button>
+                  <button onClick={() => setStep(6)} className="px-8 py-3 bg-[#14532D] text-white font-bold text-xs uppercase tracking-wider rounded-xl">Next: Buyer Contact Details</button>
                 </div>
               </div>
             )}
@@ -809,7 +809,7 @@ function RFQContent() {
                     <div className="text-xs text-stone-500 mt-2">
                       Quotation No: <strong className="text-stone-900">{generatedQuote.quoteNo}</strong><br />
                       Date: {new Date().toLocaleDateString()}<br />
-                      Validity: 30 Days from issuance (Exchange Rate: ₩{exchangeRate.toLocaleString()} / USD)
+                      Validity: 30 Days from issuance (FX Rate: ₩{exchangeRate.toLocaleString()} KRW/USD)
                     </div>
                   </div>
 
@@ -880,7 +880,7 @@ function RFQContent() {
                   </div>
 
                   <div className="text-right space-y-1">
-                    <div className="text-xs text-stone-600">Subtotal: ${generatedQuote.subtotalUsd.toLocaleString()} USD (약 ₩{subtotalKrw.toLocaleString()}원)</div>
+                    <div className="text-xs text-stone-600">Subtotal: ${generatedQuote.subtotalUsd.toLocaleString()} USD (≈ ₩{subtotalKrw.toLocaleString()} KRW)</div>
                     <div className="text-xs text-stone-600">Export Packing / Palletization Fee: ${generatedQuote.packingFeeUsd} USD</div>
                     <div className="text-xl font-extrabold text-stone-900 font-jakarta border-t border-amber-300 pt-1">
                       TOTAL ({generatedQuote.incoterms}): <span className="text-[#14532D]">${generatedQuote.totalUsd.toLocaleString()} USD</span>

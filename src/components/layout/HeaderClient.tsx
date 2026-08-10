@@ -127,8 +127,8 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
                 <Link href="/why-kfood" className="block px-4 py-2.5 hover:bg-[#FAFAF8] text-xs font-bold text-stone-700 hover:text-[#14532D] transition-colors">
                   🏆 Why K-Food &amp; 품질인증
                 </Link>
-                <Link href="/global" className="block px-4 py-2.5 hover:bg-[#FAFAF8] text-xs font-bold text-stone-700 hover:text-[#14532D] transition-colors">
-                  🌐 글로벌 유통 파트너십
+                <Link href="/rfq" className="block px-4 py-2.5 hover:bg-[#FAFAF8] text-xs font-bold text-stone-700 hover:text-[#14532D] transition-colors">
+                  🌐 Overseas Buyer RFQ
                 </Link>
                 <div className="my-1 border-t border-stone-100" />
                 <Link href="/news-events" className="block px-4 py-2.5 hover:bg-[#FAFAF8] text-xs font-bold text-stone-700 hover:text-[#14532D] transition-colors">
@@ -143,7 +143,7 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
             {/* 3rd Position: B2B / RFQ QUOTE */}
             <Link href="/rfq" className="flex items-center space-x-1.5 text-amber-700 hover:text-amber-600 transition-colors py-2 font-black">
               <Globe size={15} className="text-[#EAB308]" />
-              <span>B2B / RFQ QUOTE</span>
+              <span>OVERSEAS BUYER RFQ</span>
             </Link>
           </nav>
 
@@ -211,8 +211,8 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
               <Link href="/why-kfood" onClick={() => setMobileMenuOpen(false)} className="block text-xs text-stone-300 hover:text-white pl-2">
                 🏆 Why K-Food &amp; 품질인증
               </Link>
-              <Link href="/global" onClick={() => setMobileMenuOpen(false)} className="block text-xs text-stone-300 hover:text-white pl-2">
-                🌐 글로벌 유통 파트너십
+              <Link href="/rfq" onClick={() => setMobileMenuOpen(false)} className="block text-xs text-stone-300 hover:text-white pl-2">
+                🌐 Overseas Buyer RFQ
               </Link>
               <Link href="/news-events" onClick={() => setMobileMenuOpen(false)} className="block text-xs text-stone-300 hover:text-white pl-2">
                 📰 뉴스&amp;이벤트 (News &amp; Events)
