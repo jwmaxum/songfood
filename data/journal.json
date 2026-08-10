@@ -1,35 +1,35 @@
 [
   {
     "id": "art-1",
-    "title": "Anatolia Unveils Organic Culinary Innovation Lab in Florence",
-    "slug": "florence-culinary-innovation-lab",
-    "category": "Culinary News",
-    "excerpt": "A state-of-the-art tasting lab and cold-press facility dedicated to certifying biodynamic olive oils and heritage vinegar casks.",
-    "content": "Anatolia Gourmet is thrilled to announce the opening of its flagship Culinary Innovation Lab in Florence, Italy. Engineered for sensory analysis and organic verification, the lab works directly with over 40 traditional Tuscan estate farmers.\n\nChefs and culinary connoisseurs can now request bespoke olive oil batch pressings and custom aged balsamic barrel selections with full blockchain traceability.",
-    "cover_image": "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=1000&h=700&auto=compress%2Cformat&fit=crop",
+    "title": "송영민푸드 K-푸드 신선 공방 오픈 소식",
+    "slug": "songyoungminfood-k-food-lab-open",
+    "category": "뉴스",
+    "excerpt": "대한민국 프리미엄 K-냉동식품과 원소주, 생막걸리 전통주 직송 라인업이 강화되었습니다.",
+    "content": "# 송영민푸드 K-푸드 신선 공방 오픈\n\n송영민푸드(Song Youngmin Food)에서 엄선된 국산 100% 원재료 기반 K-냉동식품과 명품 전통주 라인업을 신규 출시합니다.\n\n세계 50개국에 진출하는 프리미엄 K-Food 표준을 제시합니다.",
+    "cover_image": "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=1200&q=80",
     "is_published": true,
-    "published_date": "2026-07-28"
+    "published_date": "2026-06-15"
   },
   {
     "id": "art-2",
-    "title": "Paris Gourmet Expo 2026: The Harvest & Terroir Showcase",
-    "slug": "paris-gourmet-expo-2026-terroir",
-    "category": "Event",
-    "excerpt": "Experience Anatolia's exclusive tasting pavilion featuring 36-month Jamón Ibérico de Bellota and wild Piedmont black truffles.",
-    "content": "Join Anatolia Gourmet at the Paris Fine Foods Expo 2026. Our pavilion offers an immersive sensory journey through rare artisan cheeses, cold-extracted Tuscan oils, and Miyazaki A5 Wagyu paired by world-class sommeliers.",
-    "cover_image": "https://images.unsplash.com/photo-1541544741938-0af808871cc0?w=1000&h=700&auto=compress%2Cformat&fit=crop",
+    "title": "원소주 24% & 느린마을 생막걸리 미식 페어링 가이드",
+    "slug": "wonsoju-makgeolli-pairing-guide",
+    "category": "K-레시피",
+    "excerpt": "비비고 왕교자 만두 및 수제 떡볶이 밀키트와 완벽하게 어우러지는 전통주 페어링 팁.",
+    "content": "# K-주류 미식 페어링 가이드\n\n옹기 숙성 원소주의 청량하고 깊은 풍미와 떡볶이의 매콤함이 이루는 환상의 조합을 경험하세요.",
+    "cover_image": "https://images.unsplash.com/photo-1527281400683-1aae777175f8?auto=format&fit=crop&w=1200&q=80",
     "is_published": true,
-    "published_date": "2026-07-18"
+    "published_date": "2026-05-20"
   },
   {
     "id": "art-3",
-    "title": "The Art of Cold-Pressing: Why First-Harvest EVOO Matters",
-    "slug": "art-of-cold-pressing-evoo",
-    "category": "Gastronomy",
-    "excerpt": "How low-temperature extraction within 4 hours of harvesting preserves polyphenol antioxidants and vivid herbaceous aromas.",
-    "content": "Purity is paramount in every bottle of Anatolia EVOO. By maintaining cold pressing under 24°C and avoiding filtration chemical additives, we preserve the vibrant green color and high antioxidant concentration essential for gourmet cuisine.",
-    "cover_image": "https://images.unsplash.com/photo-1509358271058-acd02cc93898?w=1000&h=700&auto=compress%2Cformat&fit=crop",
+    "title": "에어프라이어 15분! 바삭한 크리스피 반반 치킨 비법",
+    "slug": "airfryer-crispy-chicken-recipe",
+    "category": "K-레시피",
+    "excerpt": "집에서도 갓 튀겨낸 듯 바삭하고 튀김 옷이 살아있는 양념 & 간장 치킨 조리법.",
+    "content": "# 에어프라이어 치킨 조리 비법\n\n180도 예열된 에어프라이어에서 15분간 조리하면 극강의 바삭함이 완성됩니다.",
+    "cover_image": "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=1200&q=80",
     "is_published": true,
-    "published_date": "2026-07-05"
+    "published_date": "2026-04-10"
   }
 ]

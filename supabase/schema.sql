@@ -557,3 +557,74 @@ ON CONFLICT (id) DO UPDATE SET
     wholesale_discount_rate = EXCLUDED.wholesale_discount_rate,
     wholesale_price_krw = EXCLUDED.wholesale_price_krw,
     export_price_usd = EXCLUDED.export_price_usd;
+
+-- ------------------------------------------------------------------------------
+-- JOURNAL_ARTICLES TABLE (News, Events & Recipes)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.journal_articles (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    slug TEXT UNIQUE NOT NULL,
+    category TEXT NOT NULL DEFAULT '뉴스',
+    excerpt TEXT,
+    content TEXT,
+    cover_image TEXT,
+    is_published BOOLEAN DEFAULT true,
+    published_date TEXT DEFAULT TO_CHAR(NOW(), 'YYYY-MM-DD'),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- RLS Policies for journal_articles
+ALTER TABLE public.journal_articles ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public Read Journal Articles" ON public.journal_articles;
+CREATE POLICY "Public Read Journal Articles" ON public.journal_articles FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Admin Full Access Journal Articles" ON public.journal_articles;
+CREATE POLICY "Admin Full Access Journal Articles" ON public.journal_articles FOR ALL USING (true);
+
+-- Seed Data for journal_articles
+INSERT INTO public.journal_articles (id, title, slug, category, excerpt, content, cover_image, is_published, published_date)
+VALUES
+(
+    'art-1',
+    '송영민푸드 K-푸드 신선 공방 오픈 소식',
+    'songyoungminfood-k-food-lab-open',
+    '뉴스',
+    '대한민국 프리미엄 K-냉동식품과 원소주, 생막걸리 전통주 직송 라인업이 강화되었습니다.',
+    '# 송영민푸드 K-푸드 신선 공방 오픈\n\n송영민푸드(Song Youngmin Food)에서 엄선된 국산 100% 원재료 기반 K-냉동식품과 명품 전통주 라인업을 신규 출시합니다.\n\n세계 50개국에 진출하는 프리미엄 K-Food 표준을 제시합니다.',
+    'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=1200&q=80',
+    true,
+    '2026-06-15'
+),
+(
+    'art-2',
+    '원소주 24% & 느린마을 생막걸리 미식 페어링 가이드',
+    'wonsoju-makgeolli-pairing-guide',
+    'K-레시피',
+    '비비고 왕교자 만두 및 수제 떡볶이 밀키트와 완벽하게 어우러지는 전통주 페어링 팁.',
+    '# K-주류 미식 페어링 가이드\n\n옹기 숙성 원소주의 청량하고 깊은 풍미와 떡볶이의 매콤함이 이루는 환상의 조합을 경험하세요.',
+    'https://images.unsplash.com/photo-1527281400683-1aae777175f8?auto=format&fit=crop&w=1200&q=80',
+    true,
+    '2026-05-20'
+),
+(
+    'art-3',
+    '에어프라이어 15분! 바삭한 크리스피 반반 치킨 비법',
+    'airfryer-crispy-chicken-recipe',
+    'K-레시피',
+    '집에서도 갓 튀겨낸 듯 바삭하고 튀김 옷이 살아있는 양념 & 간장 치킨 조리법.',
+    '# 에어프라이어 치킨 조리 비법\n\n180도 예열된 에어프라이어에서 15분간 조리하면 극강의 바삭함이 완성됩니다.',
+    'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=1200&q=80',
+    true,
+    '2026-04-10'
+)
+ON CONFLICT (id) DO UPDATE SET
+    title = EXCLUDED.title,
+    slug = EXCLUDED.slug,
+    category = EXCLUDED.category,
+    excerpt = EXCLUDED.excerpt,
+    content = EXCLUDED.content,
+    cover_image = EXCLUDED.cover_image,
+    is_published = EXCLUDED.is_published,
+    published_date = EXCLUDED.published_date;
