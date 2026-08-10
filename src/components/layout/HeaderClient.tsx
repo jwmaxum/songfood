@@ -104,9 +104,15 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
             />
           </Link>
 
-          {/* Center: Company Introduction & Media Lab GNB Navigation */}
+          {/* Center: GNB Navigation */}
           <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8 font-jakarta text-xs uppercase tracking-wider font-extrabold text-stone-800 z-20">
-            {/* Company Introduction Dropdown */}
+            {/* 1st Position: K-FOOD SHOP */}
+            <Link href="/shop" className="flex items-center space-x-1.5 hover:text-[#14532D] transition-colors py-2">
+              <Store size={15} className="text-[#14532D]" />
+              <span>K-FOOD SHOP</span>
+            </Link>
+
+            {/* 2nd Position: COMPANY Dropdown */}
             <div className="relative group py-2">
               <Link href="/about" className="flex items-center space-x-1.5 hover:text-[#14532D] transition-colors py-2">
                 <Building2 size={15} className="text-[#14532D]" />
@@ -114,7 +120,7 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
                 <ChevronDown size={12} className="group-hover:rotate-180 transition-transform duration-200" />
               </Link>
 
-              <div className="absolute top-full left-0 w-56 bg-white border border-stone-200 rounded-xl shadow-xl py-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all duration-200 -translate-y-1 group-hover:translate-y-0 z-50">
+              <div className="absolute top-full left-0 w-60 bg-white border border-stone-200 rounded-xl shadow-xl py-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all duration-200 -translate-y-1 group-hover:translate-y-0 z-50">
                 <Link href="/about" className="block px-4 py-2.5 hover:bg-[#FAFAF8] text-xs font-bold text-stone-700 hover:text-[#14532D] transition-colors">
                   🏢 회사 소개 &amp; 브랜드 스토리
                 </Link>
@@ -124,18 +130,7 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
                 <Link href="/global" className="block px-4 py-2.5 hover:bg-[#FAFAF8] text-xs font-bold text-stone-700 hover:text-[#14532D] transition-colors">
                   🌐 글로벌 유통 파트너십
                 </Link>
-              </div>
-            </div>
-
-            {/* Media Lab Dropdown (News & Events, Catalogues) */}
-            <div className="relative group py-2">
-              <Link href="/news-events" className="flex items-center space-x-1.5 hover:text-[#14532D] transition-colors py-2">
-                <FileText size={15} className="text-[#EAB308]" />
-                <span>MEDIA LAB</span>
-                <ChevronDown size={12} className="group-hover:rotate-180 transition-transform duration-200" />
-              </Link>
-
-              <div className="absolute top-full left-0 w-60 bg-white border border-stone-200 rounded-xl shadow-xl py-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all duration-200 -translate-y-1 group-hover:translate-y-0 z-50">
+                <div className="my-1 border-t border-stone-100" />
                 <Link href="/news-events" className="block px-4 py-2.5 hover:bg-[#FAFAF8] text-xs font-bold text-stone-700 hover:text-[#14532D] transition-colors">
                   📰 뉴스&amp;이벤트 (News &amp; Events)
                 </Link>
@@ -145,13 +140,7 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
               </div>
             </div>
 
-            {/* K-FOOD SHOP */}
-            <Link href="/shop" className="flex items-center space-x-1.5 hover:text-[#14532D] transition-colors py-2">
-              <Store size={15} className="text-[#14532D]" />
-              <span>K-FOOD SHOP</span>
-            </Link>
-
-            {/* B2B / RFQ QUOTE */}
+            {/* 3rd Position: B2B / RFQ QUOTE */}
             <Link href="/rfq" className="flex items-center space-x-1.5 text-amber-700 hover:text-amber-600 transition-colors py-2 font-black">
               <Globe size={15} className="text-[#EAB308]" />
               <span>B2B / RFQ QUOTE</span>
@@ -215,7 +204,7 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
           <div className="px-6 py-6 space-y-4">
             {/* Mobile GNB Items */}
             <div className="border-b border-emerald-900/30 pb-3 space-y-3">
-              <div className="text-xs font-extrabold uppercase text-[#c59b27] tracking-wider">Company Introduction</div>
+              <div className="text-xs font-extrabold uppercase text-[#c59b27] tracking-wider">COMPANY (회사소개)</div>
               <Link href="/about" onClick={() => setMobileMenuOpen(false)} className="block text-xs text-stone-300 hover:text-white pl-2">
                 🏢 회사 소개 &amp; 브랜드 스토리
               </Link>
@@ -225,10 +214,6 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
               <Link href="/global" onClick={() => setMobileMenuOpen(false)} className="block text-xs text-stone-300 hover:text-white pl-2">
                 🌐 글로벌 유통 파트너십
               </Link>
-            </div>
-
-            <div className="border-b border-emerald-900/30 pb-3 space-y-3">
-              <div className="text-xs font-extrabold uppercase text-[#c59b27] tracking-wider">Media Lab (미디어랩)</div>
               <Link href="/news-events" onClick={() => setMobileMenuOpen(false)} className="block text-xs text-stone-300 hover:text-white pl-2">
                 📰 뉴스&amp;이벤트 (News &amp; Events)
               </Link>
