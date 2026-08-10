@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ProductItem } from '@/lib/types';
+import { getStoredProductsOverride } from '@/lib/products-sync';
 import { useCart } from '@/context/CartContext';
 import { ShoppingBag, Star, Award, ChevronRight } from 'lucide-react';
 
@@ -16,10 +17,26 @@ export default function BestSellers({ products }: BestSellersProps) {
 
   const categories = ['전체', 'K-냉동식품', 'K-전통식품', 'K-간편식/HMR', 'K-주류 & 전통주', 'K-소스/조미료'];
 
+  const [currentProducts, setCurrentProducts] = useState<ProductItem[]>(products);
+
+  useEffect(() => {
+    function syncProducts() {
+      const override = getStoredProductsOverride();
+      if (override) {
+        setCurrentProducts(override);
+      } else {
+        setCurrentProducts(products);
+      }
+    }
+    syncProducts();
+    window.addEventListener('songfood_products_updated', syncProducts);
+    return () => window.removeEventListener('songfood_products_updated', syncProducts);
+  }, [products]);
+
   // Filter products by admin is_best_seller selection
-  const bestSellerPool = products.filter((p) => p.is_best_seller === true).length > 0
-    ? products.filter((p) => p.is_best_seller === true)
-    : products;
+  const bestSellerPool = currentProducts.filter((p) => p.is_best_seller === true).length > 0
+    ? currentProducts.filter((p) => p.is_best_seller === true)
+    : currentProducts;
 
   const filteredProducts = activeCategory === '전체'
     ? bestSellerPool

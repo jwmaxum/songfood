@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ProductItem } from '@/lib/types';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { saveStoredProductsOverride } from '@/lib/products-sync';
 import {
   Shield,
   Plus,
@@ -522,11 +523,14 @@ export default function ProductManager() {
       sku: editingProduct?.sku || `KFD-${Date.now().toString().slice(-4)}`,
     };
 
+    let updatedList: ProductItem[];
     if (editingProduct) {
-      setProducts((prev) => prev.map((p) => (p.id === editingProduct.id ? newOrUpdated : p)));
+      updatedList = products.map((p) => (p.id === editingProduct.id ? newOrUpdated : p));
     } else {
-      setProducts((prev) => [newOrUpdated, ...prev]);
+      updatedList = [newOrUpdated, ...products];
     }
+    setProducts(updatedList);
+    saveStoredProductsOverride(updatedList);
 
     try {
       await fetch('/api/products', {
@@ -702,8 +706,18 @@ export default function ProductManager() {
                       type="button"
                       onClick={async () => {
                         const updated = { ...p, is_best_seller: !p.is_best_seller };
-                        setProducts((prev) => prev.map((item) => (item.id === p.id ? updated : item)));
+                        const updatedList = products.map((item) => (item.id === p.id ? updated : item));
+                        setProducts(updatedList);
+                        saveStoredProductsOverride(updatedList);
+                        try {
+                          await fetch('/api/products', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(updated),
+                          });
+                        } catch (e) {}
                         if (isSupabaseConfigured()) await supabase.from('products').upsert(updated);
+                        showToast(updated.is_best_seller ? '베스트셀러로 지정되었습니다.' : '베스트셀러 지정이 해제되었습니다.');
                       }}
                       className={`px-2.5 py-1 rounded text-[10px] font-bold border transition-colors ${
                         p.is_best_seller
@@ -718,8 +732,18 @@ export default function ProductManager() {
                       type="button"
                       onClick={async () => {
                         const updated = { ...p, is_todays_deal: !p.is_todays_deal };
-                        setProducts((prev) => prev.map((item) => (item.id === p.id ? updated : item)));
+                        const updatedList = products.map((item) => (item.id === p.id ? updated : item));
+                        setProducts(updatedList);
+                        saveStoredProductsOverride(updatedList);
+                        try {
+                          await fetch('/api/products', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(updated),
+                          });
+                        } catch (e) {}
                         if (isSupabaseConfigured()) await supabase.from('products').upsert(updated);
+                        showToast(updated.is_todays_deal ? '오늘의 특가로 지정되었습니다.' : '오늘의 특가 지정이 해제되었습니다.');
                       }}
                       className={`px-2.5 py-1 rounded text-[10px] font-bold border transition-colors ${
                         p.is_todays_deal

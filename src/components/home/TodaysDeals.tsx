@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ProductItem } from '@/lib/types';
+import { getStoredProductsOverride } from '@/lib/products-sync';
 import { useCart } from '@/context/CartContext';
 import { Clock, ShoppingBag, Star, Zap } from 'lucide-react';
 
@@ -27,10 +28,26 @@ export default function TodaysDeals({ products }: TodaysDealsProps) {
     return () => clearInterval(timer);
   }, []);
 
+  const [currentProducts, setCurrentProducts] = useState<ProductItem[]>(products);
+
+  useEffect(() => {
+    function syncProducts() {
+      const override = getStoredProductsOverride();
+      if (override) {
+        setCurrentProducts(override);
+      } else {
+        setCurrentProducts(products);
+      }
+    }
+    syncProducts();
+    window.addEventListener('songfood_products_updated', syncProducts);
+    return () => window.removeEventListener('songfood_products_updated', syncProducts);
+  }, [products]);
+
   // Filter products that are designated as Today's Deals by Admin or fallback to discounted items
-  const dealProducts = products.filter((p) => p.is_todays_deal === true).length > 0
-    ? products.filter((p) => p.is_todays_deal === true)
-    : products.filter((p) => p.original_price && p.original_price > (p.price || 0));
+  const dealProducts = currentProducts.filter((p) => p.is_todays_deal === true).length > 0
+    ? currentProducts.filter((p) => p.is_todays_deal === true)
+    : currentProducts.filter((p) => p.original_price && p.original_price > (p.price || 0));
 
   if (dealProducts.length === 0) return null;
 

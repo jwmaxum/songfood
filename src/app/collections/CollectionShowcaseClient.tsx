@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ProductItem } from '@/lib/types';
+import { getStoredProductsOverride } from '@/lib/products-sync';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useCart } from '@/context/CartContext';
 import {
@@ -90,9 +91,25 @@ export default function CollectionShowcaseClient({
   // Mobile Filter Drawer Toggle
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
+  const [currentProducts, setCurrentProducts] = useState<ProductItem[]>(initialProducts);
+
+  useEffect(() => {
+    function syncProducts() {
+      const override = getStoredProductsOverride();
+      if (override) {
+        setCurrentProducts(override);
+      } else {
+        setCurrentProducts(initialProducts);
+      }
+    }
+    syncProducts();
+    window.addEventListener('songfood_products_updated', syncProducts);
+    return () => window.removeEventListener('songfood_products_updated', syncProducts);
+  }, [initialProducts]);
+
   // Client-side Interactive Filter logic
   const filteredProducts = useMemo(() => {
-    return initialProducts.filter((product) => {
+    return currentProducts.filter((product) => {
       // catParam === 'deals' special filter
       if (catParam?.toLowerCase() === 'deals' && !product.is_todays_deal && !product.is_featured) {
         return false;
