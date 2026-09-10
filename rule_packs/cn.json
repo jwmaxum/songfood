@@ -1,0 +1,92 @@
+{
+  "jurisdiction": {
+    "country": "CN",
+    "authorities": [
+      "SAMR (State Administration for Market Regulation)",
+      "GACC (General Administration of Customs of China)"
+    ]
+  },
+  "rulePackVersion": "2.0.0",
+  "effectiveDate": "2025-01-01",
+  "rules": [
+    {
+      "id": "CN-CRIT-GACC-MISSING",
+      "category": "registration",
+      "severity": "CRITICAL",
+      "title": "해관총서 제248호 해외제조업체 18자리 GACC 등록번호 필수",
+      "condition": {
+        "field": "registrationNumbers.gaccRegNo",
+        "op": "regex_match",
+        "pattern": "^[A-Za-z0-9]{18}$"
+      },
+      "action": {
+        "type": "BLOCK_IMPORT_IF_MISSING",
+        "solution": "중국 해관총서 '수입식품 해외생산기업 등록관리규정(제248호)'에 따라 승인받은 18자리 공식 등록코드(예: CKOR24012301010001)를 라벨 내외포장에 정확히 인쇄하십시오."
+      },
+      "evidence": {
+        "regulation": "GACC Decree No. 248",
+        "article": "Article 15 (Labeling of Overseas Manufacturing Registration)",
+        "source": "http://www.customs.gov.cn/customs/302249/248014/index.html"
+      }
+    },
+    {
+      "id": "CN-CRIT-NO-ADDITIVE-CLAIM",
+      "category": "claims",
+      "severity": "CRITICAL",
+      "title": "GB 7718-2025 개정안 '零添加(첨가물 제로)', '不添加' 클레임 전면 금지",
+      "condition": {
+        "field": "claims",
+        "op": "prohibited_keywords",
+        "keywords": ["零添加", "不添加", "无添加", "零色素", "无防腐剂", "무첨가"]
+      },
+      "action": {
+        "type": "PROHIBIT_MARKETING_CLAIM",
+        "solution": "중국 국가위생건강위원회 및 시장감독관리총국 GB 7718 개정안에 따라 '첨가물 제로(零添加)' 표현은 소비자를 오도하는 불법 표기입니다. 모든 패키지 및 마케팅 문구에서 즉시 삭제하십시오."
+      },
+      "evidence": {
+        "regulation": "GB 7718-2025 (식품안전국가표준 사전포장식품 라벨통칙)",
+        "article": "Article 4.8 Prohibited Claims",
+        "source": "http://www.nhc.gov.cn"
+      }
+    },
+    {
+      "id": "CN-CRIT-ENERGY-KJ",
+      "category": "nutrition",
+      "severity": "CRITICAL",
+      "title": "GB 28050-2025 에너지 단위 kJ(킬로줄) 및 5대 의무 영양소 NRV% 표기",
+      "condition": {
+        "field": "nutrition.energyKj",
+        "op": "required_and_scale",
+        "standardDailyEnergy": 8400
+      },
+      "action": {
+        "type": "REQUIRE_KJ_ENERGY_AND_NRV",
+        "solution": "중국 영양표시는 100g당 에너지(kJ), 단백질, 지방, 탄수화물, 나트륨 5대 필수 항목과 8,400kJ 기준 NRV%를 고정 그리드로 표기해야 합니다."
+      },
+      "evidence": {
+        "regulation": "GB 28050-2025 (사전포장식품 영양라벨통칙)",
+        "article": "Section 4.1 & Table 1 NRV Reference Values",
+        "source": "http://www.nhc.gov.cn"
+      }
+    },
+    {
+      "id": "CN-CRIT-LANGUAGE-SIMPLIFIED",
+      "category": "language",
+      "severity": "CRITICAL",
+      "title": "중국 표준 간체자(Simplified Chinese) 의무 표기",
+      "condition": {
+        "field": "productNameTarget",
+        "op": "contains_simplified_chinese"
+      },
+      "action": {
+        "type": "REQUIRE_SIMPLIFIED_CHINESE",
+        "solution": "원문 상표와 병기하되, 법적 제품명 및 주요 표시사항은 중화인민공화국 표준 한어병음/간체자로 반드시 인쇄해야 합니다."
+      },
+      "evidence": {
+        "regulation": "중화인민공화국 식품안전법 제97조",
+        "article": "Article 97 (Imported Food Labeling)",
+        "source": "http://www.samr.gov.cn"
+      }
+    }
+  ]
+}

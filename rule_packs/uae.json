@@ -1,0 +1,111 @@
+{
+  "jurisdiction": {
+    "country": "UAE",
+    "authorities": [
+      "MoIAT (Ministry of Industry and Advanced Technology)",
+      "GSO (GCC Standardization Organization)"
+    ]
+  },
+  "rulePackVersion": "2.0.0",
+  "effectiveDate": "2023-01-01",
+  "rules": [
+    {
+      "id": "UAE-CRIT-ALCOHOL-LIMIT",
+      "category": "sharia_compliance",
+      "severity": "CRITICAL",
+      "title": "UAE 법정 잔류 알코올(주정) 허용 한도(0.05%) 초과 차단",
+      "condition": {
+        "field": "alcoholPercentage",
+        "op": "lte",
+        "threshold": 0.05
+      },
+      "action": {
+        "type": "BLOCK_IMPORT_IF_EXCEEDED",
+        "solution": "UAE 및 GCC 표준에 따라 일반 식품 내 발효 주정/잔류 알코올은 0.05%를 초과할 수 없습니다. 맛술, 청주 등 알코올성 조미료 배합을 0.05% 이하로 엄격히 관리하십시오."
+      },
+      "evidence": {
+        "regulation": "UAE.S GSO 2055-1 / UAE.S 9",
+        "article": "General Requirements for Halal Food (Clause 4.1.3)",
+        "source": "https://www.moiat.gov.ae"
+      }
+    },
+    {
+      "id": "UAE-CRIT-HARAM-INGREDIENT",
+      "category": "sharia_compliance",
+      "severity": "CRITICAL",
+      "title": "이슬람 샤리아 법률에 따른 돼지고기 및 돈지 유래 하람(Haram) 성분 원천 차단",
+      "condition": {
+        "field": "ingredients",
+        "op": "prohibit_haram_ingredients",
+        "keywords": ["pork", "pig", "돼지고기", "돈육", "돈지", "lard", "bacon", "ham"]
+      },
+      "action": {
+        "type": "BLOCK_IMPORT_PERMANENT",
+        "solution": "돼지고기 및 돼지 유래 파생 원료(돈지, 젤라틴 등)는 UAE 전역에서 일반 유통 및 통관이 영구 금지됩니다. 100% 식물성 또는 할랄 인증 육류/유화제로 대체하십시오."
+      },
+      "evidence": {
+        "regulation": "UAE Federal Law No. 10 of 2015 on Food Safety",
+        "article": "Article 6 Prohibited Imports",
+        "source": "https://www.moiat.gov.ae"
+      }
+    },
+    {
+      "id": "UAE-CRIT-HALAL-CERT-MISSING",
+      "category": "registration",
+      "severity": "CRITICAL",
+      "title": "육류 및 동물성 원료 함유 시 MoIAT 공인 할랄(Halal) 인증 필수",
+      "condition": {
+        "field": "registrationNumbers.halalCertNo",
+        "op": "required_if_animal_product"
+      },
+      "action": {
+        "type": "REQUIRE_HALAL_CERTIFICATE",
+        "solution": "소고기, 가금류 등 동물성 원료가 포함된 가공식품은 MoIAT/ESMA 상호인정 할랄 인증기관(예: KMF 등)의 인증번호를 라벨에 명시해야 합니다."
+      },
+      "evidence": {
+        "regulation": "Cabinet Resolution No. 10 of 2014 on UAE Halal Control System",
+        "article": "Article 4 Halal Certification Mandate",
+        "source": "https://www.moiat.gov.ae"
+      }
+    },
+    {
+      "id": "UAE-CRIT-LANGUAGE-ARABIC",
+      "category": "language",
+      "severity": "CRITICAL",
+      "title": "아랍어(العربية) 공용 필수 표기 및 일자 포맷 (DD/MM/YYYY)",
+      "condition": {
+        "field": "labelLanguage",
+        "op": "must_include_arabic"
+      },
+      "action": {
+        "type": "REQUIRE_ARABIC_AND_DDMMYYYY",
+        "solution": "라벨의 제품명, 원재료, 보관방법은 아랍어로 필수 표기되어야 하며, 일자는 일/월/년(DD/MM/YYYY) 순서를 따라야 합니다."
+      },
+      "evidence": {
+        "regulation": "UAE.S GSO 9:2013",
+        "article": "Clause 4.1 Language & Clause 4.8 Date Marking",
+        "source": "https://www.gso.org.sa"
+      }
+    },
+    {
+      "id": "UAE-WARN-TRAFFIC-LIGHT",
+      "category": "nutrition",
+      "severity": "WARNING",
+      "title": "UAE 4대 영양 신호등 라벨링 시스템 (Traffic Light System) 가이드",
+      "condition": {
+        "field": "nutrition",
+        "op": "traffic_light_4_indicators",
+        "indicators": ["fat", "saturatedFat", "sugars", "salt"]
+      },
+      "action": {
+        "type": "EVALUATE_TRAFFIC_LIGHT_COLOR",
+        "solution": "100g당 지방, 포화지방, 당류, 나트륨 함량을 녹색(Low), 황색(Medium), 적색(High) 신호등 뱃지로 시각화하십시오."
+      },
+      "evidence": {
+        "regulation": "National Nutrition Strategy / MoIAT Traffic Light Scheme",
+        "article": "Standardized Front-of-Pack Labeling",
+        "source": "https://www.moiat.gov.ae"
+      }
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "jurisdiction": {
+    "country": "JP",
+    "authorities": [
+      "CAA (소비자청, Consumer Affairs Agency)",
+      "MHLW (후생노동성, Ministry of Health, Labour and Welfare)"
+    ]
+  },
+  "rulePackVersion": "2.0.0",
+  "effectiveDate": "2024-04-01",
+  "rules": [
+    {
+      "id": "JP-CRIT-SALT-EQUIVALENT",
+      "category": "nutrition",
+      "severity": "CRITICAL",
+      "title": "일본 식품표시기준 나트륨 대신 식염상당량(g) 의무 표기",
+      "condition": {
+        "field": "nutrition.saltEquivalentG",
+        "op": "required_salt_formula",
+        "formula": "sodiumMg * 2.54 / 1000"
+      },
+      "action": {
+        "type": "REQUIRE_SALT_EQUIVALENT",
+        "solution": "나트륨(mg) 표기를 폐지하고 '식염상당량: X.Xg'으로 의무 환산하여 표기하십시오."
+      },
+      "evidence": {
+        "regulation": "일본 식품표시기준 (Food Labeling Standards)",
+        "article": "제3조 제1항 영양성분표시 기준 (소비자청 부령 제10호)",
+        "source": "https://www.caa.go.jp/policies/policy/food_labeling/"
+      }
+    },
+    {
+      "id": "JP-CRIT-POSSIBLE-ALLERGEN",
+      "category": "allergen",
+      "severity": "CRITICAL",
+      "title": "알레르겐 추정성 문구(들어있을지도 모름) 표기 전면 금지",
+      "condition": {
+        "field": "containsAllergensStatement",
+        "op": "prohibited_vague_phrases",
+        "phrases": [
+          "入っているかもしれない",
+          "微量に含まれる可能性",
+          "混入している可能性",
+          "may contain",
+          "might contain"
+        ]
+      },
+      "action": {
+        "type": "PROHIBIT_VAGUE_ALLERGEN_CLAIM",
+        "solution": "소비자청 Q&A에 따라 모호한 추정 표현은 금지되며, 제조라인 혼입 가능성은 '본 제품 제조시설에서는 XX를 사용한 제품도 제조하고 있습니다'의 라인 주의환기 문구만 허용됩니다."
+      },
+      "evidence": {
+        "regulation": "소비자청 알레르겐 표시 Q&A",
+        "article": "식품표시기준 Q&A 알레르기 관련 항목 질의 3-1",
+        "source": "https://www.caa.go.jp/policies/policy/food_labeling/food_sanitation/allergy/"
+      }
+    },
+    {
+      "id": "JP-CRIT-SPECIFIC-ALLERGENS",
+      "category": "allergen",
+      "severity": "CRITICAL",
+      "title": "8대 특정원재료(호두 포함) 및 2025년 의무 승격 캐슈넛 감지",
+      "condition": {
+        "field": "ingredients",
+        "op": "check_specific_materials",
+        "mandatory8": ["shrimp", "crab", "walnut", "wheat", "buckwheat", "egg", "milk", "peanut"],
+        "newMandatory2025": ["cashew_nut"]
+      },
+      "action": {
+        "type": "REQUIRE_SPECIFIC_RAW_MATERIALS_BOX",
+        "solution": "특정원재료 8종 및 2025년 의무화 품목인 캐슈넛(カシューナッツ)을 개별 원재료 뒤 또는 일괄 표시란에 정확히 기재하십시오."
+      },
+      "evidence": {
+        "regulation": "소비자청 식품표시기준 일부개정안 (내각부령 제28호)",
+        "article": "별표 제14 특정원재료 목록",
+        "source": "https://www.caa.go.jp"
+      }
+    },
+    {
+      "id": "JP-WARN-NUTRIENT-ORDER",
+      "category": "nutrition",
+      "severity": "WARNING",
+      "title": "소비자청 5대 의무 영양성분 고정 순서 준수",
+      "condition": {
+        "field": "nutrition",
+        "op": "fixed_order_5",
+        "order": ["energy", "protein", "fat", "carbohydrate", "salt_equivalent"]
+      },
+      "action": {
+        "type": "ENFORCE_DISPLAY_ORDER",
+        "solution": "영양성분은 반드시 '열량 ➔ 단백질 ➔ 지질 ➔ 탄수화물 ➔ 식염상당량' 순서대로 배치해야 합니다."
+      },
+      "evidence": {
+        "regulation": "식품표시기준 제3조 영양성분 표시 순서 규정",
+        "article": "별기 양식 제1",
+        "source": "https://www.caa.go.jp"
+      }
+    }
+  ]
+}

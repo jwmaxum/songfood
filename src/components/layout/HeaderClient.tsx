@@ -127,6 +127,10 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
                 <Link href="/why-kfood" className="block px-4 py-2.5 hover:bg-[#FAFAF8] text-xs font-bold text-stone-700 hover:text-[#14532D] transition-colors">
                   🏆 Why K-Food &amp; 품질인증
                 </Link>
+                <Link href="/labeling" className="block px-4 py-2.5 hover:bg-[#FAFAF8] text-xs font-bold text-[#14532D] hover:bg-emerald-50 transition-colors flex items-center justify-between">
+                  <span>🏷️ 식품 라벨링 시스템 (Master Labeling)</span>
+                  <span className="text-[10px] bg-[#14532D] text-white px-1.5 py-0.5 rounded font-bold">5대국</span>
+                </Link>
                 <Link href="/rfq" className="block px-4 py-2.5 hover:bg-[#FAFAF8] text-xs font-bold text-stone-700 hover:text-[#14532D] transition-colors">
                   🌐 Overseas Buyer RFQ
                 </Link>
@@ -210,6 +214,10 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
               </Link>
               <Link href="/why-kfood" onClick={() => setMobileMenuOpen(false)} className="block text-xs text-stone-300 hover:text-white pl-2">
                 🏆 Why K-Food &amp; 품질인증
+              </Link>
+              <Link href="/labeling" onClick={() => setMobileMenuOpen(false)} className="block text-xs text-amber-300 font-bold hover:text-white pl-2 flex items-center justify-between pr-2">
+                <span>🏷️ 식품 라벨링 시스템 (Master Labeling)</span>
+                <span className="text-[10px] bg-[#EAB308] text-stone-900 px-1.5 py-0.5 rounded font-black">5대국</span>
               </Link>
               <Link href="/rfq" onClick={() => setMobileMenuOpen(false)} className="block text-xs text-stone-300 hover:text-white pl-2">
                 🌐 Overseas Buyer RFQ

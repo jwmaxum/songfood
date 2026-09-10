@@ -1,0 +1,356 @@
+[
+  {
+    "code": "ING-PORK",
+    "ko": "돼지고기",
+    "en": "Pork",
+    "cn": "猪肉",
+    "jp": "豚肉",
+    "ar": "لحم الخنزير (محظور)",
+    "category": "meat",
+    "isAllergenIn": ["KR", "JP"],
+    "bannedIn": ["UAE"],
+    "warningNote": "Strictly prohibited (Haram) in UAE and GCC Halal market standards."
+  },
+  {
+    "code": "ING-BEEF",
+    "ko": "소고기",
+    "en": "Beef",
+    "cn": "牛肉",
+    "jp": "牛肉",
+    "ar": "لحم بقري حلال",
+    "category": "meat",
+    "isAllergenIn": ["KR", "JP"]
+  },
+  {
+    "code": "ING-CHICKEN",
+    "ko": "닭고기",
+    "en": "Chicken",
+    "cn": "鸡肉",
+    "jp": "鶏肉",
+    "ar": "لحم دجاج حلال",
+    "category": "meat",
+    "isAllergenIn": ["KR", "JP"]
+  },
+  {
+    "code": "ING-WHEAT-FLOUR",
+    "ko": "밀가루",
+    "en": "Wheat Flour",
+    "cn": "小麦粉",
+    "jp": "小麦粉",
+    "ar": "دقيق القمح",
+    "category": "grain",
+    "isAllergenIn": ["US", "CN", "JP", "EU", "UAE"]
+  },
+  {
+    "code": "ING-SOYBEAN",
+    "ko": "대두",
+    "en": "Soybean",
+    "cn": "大豆",
+    "jp": "大豆",
+    "ar": "فول الصويا",
+    "category": "grain",
+    "isAllergenIn": ["US", "CN", "JP", "EU", "UAE"]
+  },
+  {
+    "code": "ING-LEEK",
+    "ko": "부추",
+    "en": "Leek",
+    "cn": "韭菜",
+    "jp": "ニラ",
+    "ar": "كراث",
+    "category": "vegetable",
+    "isAllergenIn": []
+  },
+  {
+    "code": "ING-GLASS-NOODLES",
+    "ko": "당면",
+    "en": "Glass Noodles (Sweet Potato Starch)",
+    "cn": "红薯粉条",
+    "jp": "春雨 (さつまいも澱粉)",
+    "ar": "نودلز النشا",
+    "category": "grain",
+    "isAllergenIn": []
+  },
+  {
+    "code": "ING-ONION",
+    "ko": "양파",
+    "en": "Onion",
+    "cn": "洋葱",
+    "jp": "玉ねぎ",
+    "ar": "بصل",
+    "category": "vegetable",
+    "isAllergenIn": []
+  },
+  {
+    "code": "ING-GREEN-ONION",
+    "ko": "대파",
+    "en": "Green Onion",
+    "cn": "大葱",
+    "jp": "長ネギ",
+    "ar": "بصل أخضر",
+    "category": "vegetable",
+    "isAllergenIn": []
+  },
+  {
+    "code": "ING-GARLIC",
+    "ko": "마늘",
+    "en": "Garlic",
+    "cn": "大蒜",
+    "jp": "にんにく",
+    "ar": "ثوم",
+    "category": "vegetable",
+    "isAllergenIn": []
+  },
+  {
+    "code": "ING-GINGER",
+    "ko": "생강",
+    "en": "Ginger",
+    "cn": "生姜",
+    "jp": "生姜",
+    "ar": "زنجبيل",
+    "category": "vegetable",
+    "isAllergenIn": []
+  },
+  {
+    "code": "ING-SESAME-OIL",
+    "ko": "참기름",
+    "en": "Sesame Oil",
+    "cn": "芝麻油",
+    "jp": "ごま油",
+    "ar": "زيت السمسم",
+    "category": "seasoning",
+    "isAllergenIn": ["US", "EU", "JP", "UAE"]
+  },
+  {
+    "code": "ING-SESAME",
+    "ko": "참깨",
+    "en": "Sesame Seeds",
+    "cn": "芝麻",
+    "jp": "ごま",
+    "ar": "بذور السمسم",
+    "category": "seasoning",
+    "isAllergenIn": ["US", "EU", "JP", "UAE"]
+  },
+  {
+    "code": "ING-SALT",
+    "ko": "정제소금",
+    "en": "Refined Salt",
+    "cn": "精制食用盐",
+    "jp": "食塩",
+    "ar": "ملح طعام مكرر",
+    "category": "seasoning",
+    "isAllergenIn": []
+  },
+  {
+    "code": "ING-BLACK-PEPPER",
+    "ko": "후추",
+    "en": "Black Pepper",
+    "cn": "黑胡椒",
+    "jp": "黒コショウ",
+    "ar": "فلفل أسود",
+    "category": "seasoning",
+    "isAllergenIn": []
+  },
+  {
+    "code": "ING-RED-PEPPER-POWDER",
+    "ko": "고춧가루",
+    "en": "Red Pepper Powder (Gochugaru)",
+    "cn": "辣椒粉",
+    "jp": "唐辛子粉",
+    "ar": "مسحوق الفلفل الأحمر",
+    "category": "seasoning",
+    "isAllergenIn": []
+  },
+  {
+    "code": "ING-CABBAGE",
+    "ko": "양배추",
+    "en": "Cabbage",
+    "cn": "圆白菜",
+    "jp": "キャベツ",
+    "ar": "ملفوف",
+    "category": "vegetable",
+    "isAllergenIn": []
+  },
+  {
+    "code": "ING-TOFU",
+    "ko": "두부",
+    "en": "Tofu (Soybean Curd)",
+    "cn": "豆腐",
+    "jp": "豆腐",
+    "ar": "توفو (خثارة الصويا)",
+    "category": "grain",
+    "isAllergenIn": ["US", "CN", "JP", "EU", "UAE"]
+  },
+  {
+    "code": "ING-SHRIMP",
+    "ko": "새우",
+    "en": "Shrimp (Crustacean)",
+    "cn": "虾仁",
+    "jp": "えび",
+    "ar": "روبيان",
+    "category": "seafood",
+    "isAllergenIn": ["US", "CN", "JP", "EU", "UAE"]
+  },
+  {
+    "code": "ING-CRAB",
+    "ko": "게",
+    "en": "Crab (Crustacean)",
+    "cn": "螃蟹",
+    "jp": "かに",
+    "ar": "سلطعون",
+    "category": "seafood",
+    "isAllergenIn": ["US", "CN", "JP", "EU", "UAE"]
+  },
+  {
+    "code": "ING-SQUID",
+    "ko": "오징어",
+    "en": "Squid",
+    "cn": "鱿鱼",
+    "jp": "いか",
+    "ar": "حبار",
+    "category": "seafood",
+    "isAllergenIn": ["KR", "JP", "EU"]
+  },
+  {
+    "code": "ING-KIMCHI",
+    "ko": "배추김치",
+    "en": "Napa Cabbage Kimchi",
+    "cn": "辣白菜泡菜",
+    "jp": "白菜キムチ",
+    "ar": "كيمتشي الكرنب الكوري",
+    "category": "vegetable",
+    "isAllergenIn": []
+  },
+  {
+    "code": "ING-RICE",
+    "ko": "쌀",
+    "en": "Rice",
+    "cn": "大米",
+    "jp": "米",
+    "ar": "أرز",
+    "category": "grain",
+    "isAllergenIn": []
+  },
+  {
+    "code": "ING-GLUTINOUS-RICE",
+    "ko": "찹쌀",
+    "en": "Glutinous Rice",
+    "cn": "糯米",
+    "jp": "もち米",
+    "ar": "أرز دبق",
+    "category": "grain",
+    "isAllergenIn": []
+  },
+  {
+    "code": "ING-CORN-SYRUP",
+    "ko": "물엿",
+    "en": "Corn Syrup",
+    "cn": "玉米糖浆",
+    "jp": "水あめ",
+    "ar": "شراب الذرة",
+    "category": "seasoning",
+    "isAllergenIn": []
+  },
+  {
+    "code": "ING-SUGAR",
+    "ko": "설탕",
+    "en": "Sugar",
+    "cn": "白砂糖",
+    "jp": "砂糖",
+    "ar": "سكر",
+    "category": "seasoning",
+    "isAllergenIn": []
+  },
+  {
+    "code": "ING-SOY-SAUCE",
+    "ko": "양조간장",
+    "en": "Brewed Soy Sauce",
+    "cn": "酿造酱油",
+    "jp": "本醸造しょうゆ",
+    "ar": "صلصة الصويا المخمرة",
+    "category": "seasoning",
+    "isAllergenIn": ["US", "CN", "JP", "EU", "UAE"]
+  },
+  {
+    "code": "ING-GOCHUJANG",
+    "ko": "고추장",
+    "en": "Korean Fermented Red Chili Paste (Gochujang)",
+    "cn": "韩式辣椒酱",
+    "jp": "コチュジャン",
+    "ar": "معجون الفلفل الكوري الحار",
+    "category": "seasoning",
+    "isAllergenIn": ["US", "EU", "JP"]
+  },
+  {
+    "code": "ING-DOENJANG",
+    "ko": "된장",
+    "en": "Korean Fermented Soybean Paste (Doenjang)",
+    "cn": "韩式大酱",
+    "jp": "テンジャン (韓国味噌)",
+    "ar": "معجون فول الصويا الكوري",
+    "category": "seasoning",
+    "isAllergenIn": ["US", "CN", "JP", "EU", "UAE"]
+  },
+  {
+    "code": "ING-WALNUT",
+    "ko": "호두",
+    "en": "Walnut",
+    "cn": "核桃",
+    "jp": "くるみ",
+    "ar": "جوز",
+    "category": "grain",
+    "isAllergenIn": ["US", "JP", "EU", "UAE"]
+  },
+  {
+    "code": "ING-PEANUT",
+    "ko": "땅콩",
+    "en": "Peanut",
+    "cn": "花生",
+    "jp": "落花生 (ピーナッツ)",
+    "ar": "فول سوداني",
+    "category": "grain",
+    "isAllergenIn": ["US", "CN", "JP", "EU", "UAE"]
+  },
+  {
+    "code": "ING-EGG",
+    "ko": "계란",
+    "en": "Egg",
+    "cn": "鸡蛋",
+    "jp": "鶏卵",
+    "ar": "بيض",
+    "category": "meat",
+    "isAllergenIn": ["US", "CN", "JP", "EU", "UAE"]
+  },
+  {
+    "code": "ING-MILK",
+    "ko": "우유",
+    "en": "Milk",
+    "cn": "牛奶",
+    "jp": "牛乳",
+    "ar": "حليب",
+    "category": "meat",
+    "isAllergenIn": ["US", "CN", "JP", "EU", "UAE"]
+  },
+  {
+    "code": "ING-ALCOHOL",
+    "ko": "주정",
+    "en": "Fermented Ethyl Alcohol",
+    "cn": "食用酒精",
+    "jp": "酒精 (醸造アルコール)",
+    "ar": "كحول إيثيلي مخمر (محظور)",
+    "category": "seasoning",
+    "bannedIn": ["UAE"],
+    "warningNote": "Alcohol content > 0.05% strictly violates UAE / Halal standards."
+  },
+  {
+    "code": "ING-MIRIN",
+    "ko": "맛술",
+    "en": "Cooking Wine (Mirin)",
+    "cn": "料酒 (味醂)",
+    "jp": "みりん (発酵調味料)",
+    "ar": "نبيذ الطهي ميرين (محظور)",
+    "category": "seasoning",
+    "bannedIn": ["UAE"],
+    "warningNote": "Alcoholic cooking seasoning violates UAE / Halal compliance."
+  }
+]

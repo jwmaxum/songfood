@@ -1,0 +1,594 @@
+[
+  {
+    "id": "label-mandu-us",
+    "productId": "prod-1",
+    "country": "US",
+    "version": 1,
+    "status": "compliant",
+    "hsCode": "1902.20-1000",
+    "productNameLocal": "Premium Vegetable & Shrimp Mandu Dumplings",
+    "productNameEn": "Bibigo Premium Vegetable & Seafood Dumplings (Pork-Free)",
+    "productCategoryLocal": "Frozen Filled Dumplings (Non-Meat)",
+    "netWeightG": 480,
+    "netWeightOz": 16.9,
+    "packageAreaCm2": 320,
+    "isShelfStable": false,
+    "claimsBadges": ["USDA-Exempt (Pork-Free)", "Non-GMO", "No Added MSG", "Crispy & Juicy"],
+    "servingSuggestion": "Pan fry with 1 tbsp vegetable oil for 7 minutes until golden brown.",
+    "storageInstructions": "Keep frozen at 0°F (-18°C) or colder. Do not refreeze once thawed.",
+    "cookingInstructions": "Cook thoroughly to an internal temperature of 165°F before consuming.",
+    "manufacturerInfo": {
+      "name": "송영민푸드(주)",
+      "nameEn": "Song Youngmin Food Co., Ltd.",
+      "address": "서울특별시 강남구 테헤란로 123",
+      "addressEn": "123 Teheran-ro, Gangnam-gu, Seoul, Republic of Korea",
+      "country": "Republic of Korea",
+      "tel": "+82-2-1588-0000"
+    },
+    "importerInfo": {
+      "name": "Pacific K-Food Importers LLC",
+      "address": "456 Pacific Blvd, Los Angeles, CA 90021, USA",
+      "licenseNumber": "FDA-REG-987654321",
+      "buyerToFill": false
+    },
+    "registrationNumbers": {
+      "fdaFce": "FCE-192837465"
+    },
+    "alcoholPercentage": 0.0,
+    "dateMarkingType": "MM/DD/YYYY",
+    "dateMarkingText": "Best If Used By: Printed on bottom flap",
+    "shelfLifeMonths": 12,
+    "barcodeType": "UPC-A",
+    "barcodeNumber": "880123456789",
+    "packagingMaterial": "Plastic (Polypropylene - PP)",
+    "recyclingSymbols": ["Recycle-Class-5-PP"],
+    "ingredients": [
+      {
+        "ingredientNameKo": "밀가루",
+        "ingredientNameTarget": "Wheat Flour",
+        "ratio": 32.5,
+        "isAllergen": true,
+        "allergenCategory": "Wheat",
+        "displayOrder": 1
+      },
+      {
+        "ingredientNameKo": "양배추",
+        "ingredientNameTarget": "Cabbage",
+        "ratio": 22.0,
+        "isAllergen": false,
+        "displayOrder": 2
+      },
+      {
+        "ingredientNameKo": "두부",
+        "ingredientNameTarget": "Tofu (Water, Soybeans, Calcium Sulfate)",
+        "ratio": 16.5,
+        "isAllergen": true,
+        "allergenCategory": "Soybeans",
+        "displayOrder": 3
+      },
+      {
+        "ingredientNameKo": "새우",
+        "ingredientNameTarget": "Shrimp",
+        "ratio": 12.0,
+        "isAllergen": true,
+        "allergenCategory": "Crustacean Shellfish",
+        "displayOrder": 4
+      },
+      {
+        "ingredientNameKo": "대파",
+        "ingredientNameTarget": "Green Onion",
+        "ratio": 6.5,
+        "isAllergen": false,
+        "displayOrder": 5
+      },
+      {
+        "ingredientNameKo": "참기름",
+        "ingredientNameTarget": "Sesame Oil",
+        "ratio": 4.5,
+        "isAllergen": true,
+        "allergenCategory": "Sesame",
+        "displayOrder": 6
+      },
+      {
+        "ingredientNameKo": "정제소금 및 양념",
+        "ingredientNameTarget": "Salt, Garlic, Ginger, Black Pepper",
+        "ratio": 6.0,
+        "isAllergen": false,
+        "displayOrder": 7
+      }
+    ],
+    "nutrition": {
+      "servingSizeG": 120,
+      "servingSizeHousehold": "4 pieces (120g)",
+      "servingsPerContainer": 4,
+      "isDualColumn": false,
+      "caloriesKcal": 220,
+      "caloriesKj": 920,
+      "totalFatG": 6.0,
+      "saturatedFatG": 1.0,
+      "transFatG": 0.0,
+      "cholesterolMg": 15,
+      "sodiumMg": 460,
+      "saltEquivalentG": 1.17,
+      "totalCarbohydrateG": 32.0,
+      "dietaryFiberG": 2.0,
+      "totalSugarsG": 3.0,
+      "addedSugarsG": 1.0,
+      "proteinG": 9.0,
+      "vitaminDMcg": 0.0,
+      "calciumMg": 40.0,
+      "ironMg": 1.8,
+      "potassiumMg": 180.0
+    },
+    "compliance": {
+      "jurisdiction": "FDA",
+      "isCompliant": true,
+      "score": 100,
+      "criticalErrors": [],
+      "warnings": [
+        {
+          "code": "WARN-FALCPA-SESAME",
+          "field": "ingredients",
+          "severity": "warning",
+          "message": "2023 FASTER Act에 따라 참깨(Sesame) 성분이 'Contains' 박스에 명확히 표기되었습니다.",
+          "solution": "CONTAINS: WHEAT, SOYBEANS, CRUSTACEAN SHELLFISH (SHRIMP), SESAME."
+        }
+      ],
+      "checkedAt": "2026-09-10T15:30:00Z"
+    }
+  },
+  {
+    "id": "label-mandu-uae",
+    "productId": "prod-1",
+    "country": "UAE",
+    "version": 1,
+    "status": "compliant",
+    "hsCode": "1902.20-1000",
+    "productNameLocal": "فطائر كورية فاخرة بالخضار والروبيان (حلال)",
+    "productNameEn": "Bibigo Premium Vegetable & Seafood Dumplings (Halal)",
+    "productCategoryLocal": "فطائر مجمدة محشوة",
+    "netWeightG": 480,
+    "netWeightOz": 16.9,
+    "packageAreaCm2": 320,
+    "isShelfStable": false,
+    "claimsBadges": ["Halal Certified (GSO)", "100% Pork-Free", "Zero Alcohol", "IQF Fresh"],
+    "servingSuggestion": "يُطهى في المقلاة مع ملعقة كبيرة من الزيت النباتي لمدة 7 دقائق حتى يصبح ذهبياً ومقرمشاً.",
+    "storageInstructions": "يحفظ مجمداً عند -18 درجة مئوية أو أقل. لا تعيد تجميده بعد الذوبان.",
+    "cookingInstructions": "يُطهى جيداً حتى تصل درجة الحرارة الداخلية إلى 74 درجة مئوية.",
+    "manufacturerInfo": {
+      "name": "송영민푸드(주)",
+      "nameEn": "Song Youngmin Food Co., Ltd.",
+      "address": "서울특별시 강남구 테헤란로 123",
+      "addressEn": "123 Teheran-ro, Gangnam-gu, Seoul, Republic of Korea",
+      "country": "Republic of Korea",
+      "tel": "+82-2-1588-0000"
+    },
+    "importerInfo": {
+      "name": "Al-Madina Gourmet Importers LLC",
+      "address": "Sheikh Zayed Road, Dubai, United Arab Emirates",
+      "licenseNumber": "GSO-HALAL-998811",
+      "buyerToFill": false
+    },
+    "registrationNumbers": {
+      "halalCertNo": "UAE.S 2055-1 / KMF-HALAL-2026-0911"
+    },
+    "alcoholPercentage": 0.0,
+    "dateMarkingType": "DD/MM/YYYY",
+    "dateMarkingText": "تاريخ الإنتاج وتاريخ الانتهاء مطبوعان أسفل العبوة",
+    "shelfLifeMonths": 12,
+    "barcodeType": "EAN-13",
+    "barcodeNumber": "8809123456789",
+    "packagingMaterial": "بولي بروبيلين (PP)",
+    "recyclingSymbols": ["Recycle-Class-5-PP"],
+    "ingredients": [
+      {
+        "ingredientNameKo": "밀가루",
+        "ingredientNameTarget": "دقيق القمح",
+        "ratio": 32.5,
+        "isAllergen": true,
+        "allergenCategory": "قمح",
+        "displayOrder": 1
+      },
+      {
+        "ingredientNameKo": "양배추",
+        "ingredientNameTarget": "ملفوف طازج",
+        "ratio": 22.0,
+        "isAllergen": false,
+        "displayOrder": 2
+      },
+      {
+        "ingredientNameKo": "두부",
+        "ingredientNameTarget": "توفو صويا نقي (حلال)",
+        "ratio": 16.5,
+        "isAllergen": true,
+        "allergenCategory": "صويا",
+        "displayOrder": 3
+      },
+      {
+        "ingredientNameKo": "새우",
+        "ingredientNameTarget": "روبيان بحري طازج",
+        "ratio": 12.0,
+        "isAllergen": true,
+        "allergenCategory": "قشريات",
+        "displayOrder": 4
+      },
+      {
+        "ingredientNameKo": "참기름",
+        "ingredientNameTarget": "زيت سمسم محمص",
+        "ratio": 4.5,
+        "isAllergen": true,
+        "allergenCategory": "سمسم",
+        "displayOrder": 5
+      }
+    ],
+    "nutrition": {
+      "servingSizeG": 100,
+      "servingSizeHousehold": "100g",
+      "servingsPerContainer": 4.8,
+      "caloriesKcal": 183,
+      "caloriesKj": 765,
+      "totalFatG": 5.0,
+      "saturatedFatG": 0.8,
+      "cholesterolMg": 12,
+      "sodiumMg": 383,
+      "saltEquivalentG": 0.97,
+      "totalCarbohydrateG": 26.6,
+      "dietaryFiberG": 1.7,
+      "totalSugarsG": 2.5,
+      "proteinG": 7.5,
+      "trafficLightRatings": {
+        "fat": "green",
+        "saturatedFat": "green",
+        "sugars": "green",
+        "salt": "amber"
+      }
+    },
+    "compliance": {
+      "jurisdiction": "MoIAT",
+      "isCompliant": true,
+      "score": 100,
+      "criticalErrors": [],
+      "warnings": [],
+      "checkedAt": "2026-09-10T15:30:00Z"
+    }
+  },
+  {
+    "id": "label-mandu-cn",
+    "productId": "prod-1",
+    "country": "CN",
+    "version": 1,
+    "status": "compliant",
+    "hsCode": "1902.20-1000",
+    "productNameLocal": "韩式鲜蔬虾仁王水饺（速冻生制品）",
+    "productNameEn": "Bibigo Premium Vegetable & Seafood Dumplings",
+    "productCategoryLocal": "速冻面米制品（生制品）",
+    "netWeightG": 480,
+    "packageAreaCm2": 320,
+    "isShelfStable": false,
+    "claimsBadges": ["GACC注册工厂生产", "不添加防腐剂", "急速冷冻锁鲜"],
+    "servingSuggestion": "沸水煮约5-6分钟，或煎锅少许油煎至底部金黄即可食用。",
+    "storageInstructions": "请于-18℃以下冷冻保存。解冻后请勿再次冷冻。",
+    "cookingInstructions": "必须充分加热熟透后食用。",
+    "manufacturerInfo": {
+      "name": "송영민푸드(주)",
+      "nameEn": "Song Youngmin Food Co., Ltd.",
+      "address": "서울특별시 강남구 테헤란로 123",
+      "addressEn": "123 Teheran-ro, Gangnam-gu, Seoul, Republic of Korea",
+      "country": "韩国",
+      "tel": "+82-2-1588-0000"
+    },
+    "importerInfo": {
+      "name": "上海韩味通国际贸易有限公司",
+      "address": "中国（上海）自由贸易试验区环科路999号",
+      "licenseNumber": "CN-SH-IMPORT-2026",
+      "buyerToFill": false
+    },
+    "registrationNumbers": {
+      "gaccCode": "CKOR24092601009988"
+    },
+    "alcoholPercentage": 0.0,
+    "dateMarkingType": "YYYY/MM/DD",
+    "dateMarkingText": "生产日期及保质期至：见包装背面喷码",
+    "shelfLifeMonths": 12,
+    "barcodeType": "EAN-13",
+    "barcodeNumber": "8809123456789",
+    "packagingMaterial": "食品接触用塑料复合膜（PP）",
+    "recyclingSymbols": ["Recycle-Class-5-PP"],
+    "ingredients": [
+      {
+        "ingredientNameKo": "밀가루",
+        "ingredientNameTarget": "小麦粉",
+        "ratio": 32.5,
+        "isAllergen": true,
+        "allergenCategory": "含有麸质的谷物及其制品",
+        "displayOrder": 1
+      },
+      {
+        "ingredientNameKo": "양배추",
+        "ingredientNameTarget": "卷心菜",
+        "ratio": 22.0,
+        "isAllergen": false,
+        "displayOrder": 2
+      },
+      {
+        "ingredientNameKo": "두부",
+        "ingredientNameTarget": "豆腐（水、大豆、食品添加剂（氯化钙））",
+        "ratio": 16.5,
+        "isAllergen": true,
+        "allergenCategory": "大豆及其制品",
+        "displayOrder": 3
+      },
+      {
+        "ingredientNameKo": "새우",
+        "ingredientNameTarget": "虾仁",
+        "ratio": 12.0,
+        "isAllergen": true,
+        "allergenCategory": "甲壳纲类动物及其制品",
+        "displayOrder": 4
+      },
+      {
+        "ingredientNameKo": "참기름",
+        "ingredientNameTarget": "芝麻油",
+        "ratio": 4.5,
+        "isAllergen": true,
+        "allergenCategory": "芝麻及其制品",
+        "displayOrder": 5
+      }
+    ],
+    "nutrition": {
+      "servingSizeG": 100,
+      "servingSizeHousehold": "100克",
+      "servingsPerContainer": 4.8,
+      "caloriesKcal": 183,
+      "caloriesKj": 766,
+      "totalFatG": 5.0,
+      "saturatedFatG": 0.8,
+      "cholesterolMg": 12,
+      "sodiumMg": 383,
+      "totalCarbohydrateG": 26.6,
+      "totalSugarsG": 2.5,
+      "proteinG": 7.5,
+      "nrvPercentages": {
+        "energy": 9,
+        "protein": 13,
+        "fat": 8,
+        "carbohydrate": 9,
+        "sodium": 19
+      }
+    },
+    "compliance": {
+      "jurisdiction": "GACC",
+      "isCompliant": true,
+      "score": 100,
+      "criticalErrors": [],
+      "warnings": [],
+      "checkedAt": "2026-09-10T15:30:00Z"
+    }
+  },
+  {
+    "id": "label-mandu-jp",
+    "productId": "prod-1",
+    "country": "JP",
+    "version": 1,
+    "status": "compliant",
+    "hsCode": "1902.20-1000",
+    "productNameLocal": "韓食プレミアム 野菜＆海老 王餃子 (冷凍ギョーザ)",
+    "productNameEn": "Bibigo Premium Vegetable & Seafood Dumplings",
+    "productCategoryLocal": "冷凍ぎょうざ（加熱調理用）",
+    "netWeightG": 480,
+    "packageAreaCm2": 320,
+    "isShelfStable": false,
+    "claimsBadges": ["急速冷凍IQF", "厳選韓国ごま油使用", "本格手包み食感"],
+    "servingSuggestion": "フライパンに油大さじ1を引き、中火で約7分間焼き色がつくまで焼いてください。",
+    "storageInstructions": "-18℃以下で保存してください。一度解凍したものを再凍結しないでください。",
+    "cookingInstructions": "中心部まで十分に加熱してお召し上がりください。",
+    "manufacturerInfo": {
+      "name": "송영민푸드(주)",
+      "nameEn": "Song Youngmin Food Co., Ltd.",
+      "address": "서울특별시 강남구 테헤란로 123",
+      "addressEn": "123 Teheran-ro, Gangnam-gu, Seoul, Republic of Korea",
+      "country": "大韓民国",
+      "tel": "+82-2-1588-0000"
+    },
+    "importerInfo": {
+      "name": "東京Kフードトレード株式会社",
+      "address": "東京都港区新橋1-2-3 Kビル4F",
+      "licenseNumber": "JP-FOOD-NOTICE-2026",
+      "buyerToFill": false
+    },
+    "registrationNumbers": {
+      "japanImportNoticeNo": "JP-FOOD-2026-7890"
+    },
+    "alcoholPercentage": 0.0,
+    "dateMarkingType": "YYYY/MM/DD",
+    "dateMarkingText": "賞味期限：枠外裏面下部に記載",
+    "shelfLifeMonths": 12,
+    "barcodeType": "EAN-13",
+    "barcodeNumber": "8809123456789",
+    "packagingMaterial": "プラ (外袋：PP, PE)",
+    "recyclingSymbols": ["Recycle-Class-Plastic"],
+    "ingredients": [
+      {
+        "ingredientNameKo": "밀가루",
+        "ingredientNameTarget": "小麦粉（国内製造）",
+        "ratio": 32.5,
+        "isAllergen": true,
+        "allergenCategory": "小麦",
+        "displayOrder": 1
+      },
+      {
+        "ingredientNameKo": "양배추",
+        "ingredientNameTarget": "キャベツ",
+        "ratio": 22.0,
+        "isAllergen": false,
+        "displayOrder": 2
+      },
+      {
+        "ingredientNameKo": "두부",
+        "ingredientNameTarget": "豆腐（大豆を含む）",
+        "ratio": 16.5,
+        "isAllergen": true,
+        "allergenCategory": "大豆",
+        "displayOrder": 3
+      },
+      {
+        "ingredientNameKo": "새우",
+        "ingredientNameTarget": "えび",
+        "ratio": 12.0,
+        "isAllergen": true,
+        "allergenCategory": "えび（特定原材料8品目）",
+        "displayOrder": 4
+      },
+      {
+        "ingredientNameKo": "참기름",
+        "ingredientNameTarget": "ごま油",
+        "ratio": 4.5,
+        "isAllergen": true,
+        "allergenCategory": "ごま",
+        "displayOrder": 5
+      }
+    ],
+    "nutrition": {
+      "servingSizeG": 100,
+      "servingSizeHousehold": "100g当たり",
+      "servingsPerContainer": 4.8,
+      "caloriesKcal": 183,
+      "caloriesKj": 766,
+      "proteinG": 7.5,
+      "totalFatG": 5.0,
+      "totalCarbohydrateG": 26.6,
+      "sodiumMg": 383,
+      "saltEquivalentG": 0.97
+    },
+    "compliance": {
+      "jurisdiction": "CAA",
+      "isCompliant": true,
+      "score": 100,
+      "criticalErrors": [],
+      "warnings": [
+        {
+          "code": "WARN-CAA-ALLERGEN",
+          "field": "allergens",
+          "severity": "warning",
+          "message": "特定原材料8品目（えび、小麦）および推奨品目（大豆、ごま）の表示が正確に分離・記載されています。",
+          "solution": "一部に小麦・えび・大豆・ごまを含む"
+        }
+      ],
+      "checkedAt": "2026-09-10T15:30:00Z"
+    }
+  },
+  {
+    "id": "label-mandu-eu",
+    "productId": "prod-1",
+    "country": "EU",
+    "version": 1,
+    "status": "compliant",
+    "hsCode": "1902.20-1000",
+    "productNameLocal": "Koreanische Teigtaschen mit Gemüse und Garnelen (Tiefgefroren)",
+    "productNameEn": "Bibigo Premium Vegetable & Seafood Mandu Dumplings",
+    "productCategoryLocal": "Deep-Frozen Filled Dumplings (Composite Product)",
+    "netWeightG": 480,
+    "packageAreaCm2": 320,
+    "isShelfStable": false,
+    "claimsBadges": ["EU Regulation 1169/2011 Compliant", "Pork-Free Recipe", "No Titanium Dioxide (E171 Free)"],
+    "servingSuggestion": "Pan-fry with 1 tbsp cooking oil for 7 minutes on medium heat until golden and crispy.",
+    "storageInstructions": "Store deep frozen at -18°C or colder. Do not refreeze after thawing.",
+    "cookingInstructions": "Cook thoroughly before consumption.",
+    "manufacturerInfo": {
+      "name": "송영민푸드(주)",
+      "nameEn": "Song Youngmin Food Co., Ltd.",
+      "address": "서울특별시 강남구 테헤란로 123",
+      "addressEn": "123 Teheran-ro, Gangnam-gu, Seoul, Republic of Korea",
+      "country": "Republic of Korea",
+      "tel": "+82-2-1588-0000"
+    },
+    "importerInfo": {
+      "name": "Hamburg Asian Supermarket Import GmbH",
+      "address": "Kirchenallee 25, 20099 Hamburg, Germany",
+      "licenseNumber": "DE-HH-IMPORT-4455",
+      "buyerToFill": false
+    },
+    "registrationNumbers": {
+      "euEstablishmentNo": "KR-COMPOSITE-EU-2026-1122"
+    },
+    "alcoholPercentage": 0.0,
+    "dateMarkingType": "DD/MM/YYYY",
+    "dateMarkingText": "Best before: see date printed on reverse",
+    "shelfLifeMonths": 12,
+    "barcodeType": "EAN-13",
+    "barcodeNumber": "8809123456789",
+    "packagingMaterial": "Plastic (PP)",
+    "recyclingSymbols": ["Recycle-Class-5-PP", "Green-Dot"],
+    "ingredients": [
+      {
+        "ingredientNameKo": "밀가루",
+        "ingredientNameTarget": "Wheat flour",
+        "ratio": 32.5,
+        "isAllergen": true,
+        "allergenCategory": "Gluten / Wheat",
+        "displayOrder": 1
+      },
+      {
+        "ingredientNameKo": "양배추",
+        "ingredientNameTarget": "Cabbage",
+        "ratio": 22.0,
+        "isAllergen": false,
+        "displayOrder": 2
+      },
+      {
+        "ingredientNameKo": "두부",
+        "ingredientNameTarget": "Tofu (water, soya beans, firming agent: calcium chloride)",
+        "ratio": 16.5,
+        "isAllergen": true,
+        "allergenCategory": "Soya",
+        "displayOrder": 3
+      },
+      {
+        "ingredientNameKo": "새우",
+        "ingredientNameTarget": "Shrimp (Crustaceans)",
+        "ratio": 12.0,
+        "isAllergen": true,
+        "allergenCategory": "Crustaceans",
+        "displayOrder": 4
+      },
+      {
+        "ingredientNameKo": "참기름",
+        "ingredientNameTarget": "Sesame oil",
+        "ratio": 4.5,
+        "isAllergen": true,
+        "allergenCategory": "Sesame seeds",
+        "displayOrder": 5
+      }
+    ],
+    "nutrition": {
+      "servingSizeG": 100,
+      "servingSizeHousehold": "per 100g",
+      "servingsPerContainer": 4.8,
+      "caloriesKcal": 183,
+      "caloriesKj": 766,
+      "totalFatG": 5.0,
+      "saturatedFatG": 0.8,
+      "totalCarbohydrateG": 26.6,
+      "totalSugarsG": 2.5,
+      "proteinG": 7.5,
+      "saltEquivalentG": 0.97,
+      "sodiumMg": 383
+    },
+    "compliance": {
+      "jurisdiction": "EFSA",
+      "isCompliant": true,
+      "score": 100,
+      "criticalErrors": [],
+      "warnings": [
+        {
+          "code": "WARN-EU-HIGHLIGHT",
+          "field": "ingredients",
+          "severity": "warning",
+          "message": "EU FIC 1169/2011에 따라 알레르겐 원재료(Wheat, Soya, Crustaceans, Sesame seeds)가 볼드체로 시각적 강조되었습니다.",
+          "solution": "Allergen advice: See ingredients in BOLD."
+        }
+      ],
+      "checkedAt": "2026-09-10T15:30:00Z"
+    }
+  }
+]

@@ -1,0 +1,115 @@
+{
+  "jurisdiction": {
+    "country": "US",
+    "authorities": [
+      "FDA (Food and Drug Administration)",
+      "USDA-FSIS (Food Safety and Inspection Service)"
+    ]
+  },
+  "rulePackVersion": "2.0.0",
+  "effectiveDate": "2024-01-01",
+  "rules": [
+    {
+      "id": "US-CRIT-USDA-MEAT",
+      "category": "jurisdiction",
+      "severity": "CRITICAL",
+      "title": "육류 배합비 2% 초과 시 USDA-FSIS 관할 인허가 필수",
+      "condition": {
+        "field": "ingredients",
+        "op": "meat_ratio_gte",
+        "threshold": 2.0
+      },
+      "action": {
+        "type": "BLOCK_IMPORT_IF_UNAPPROVED",
+        "authority": "USDA-FSIS",
+        "solution": "육류 함량을 2% 미만으로 조정하거나 한국-미국 위생협정 체결 시설을 통과한 수산물/식물성 비건 라인업으로 대체하십시오."
+      },
+      "evidence": {
+        "regulation": "USDA 9 CFR 317 / FMIA (Federal Meat Inspection Act)",
+        "article": "Section 317.2 / FDA-USDA Jurisdictional Boundary",
+        "source": "https://www.fsis.usda.gov/guidelines/2016-0004"
+      }
+    },
+    {
+      "id": "US-CRIT-ALLERGEN-CONTAINS",
+      "category": "allergen",
+      "severity": "CRITICAL",
+      "title": "미 9대 주요 알레르겐(참깨 Sesame 포함) CONTAINS 박스 필수",
+      "condition": {
+        "field": "allergensDeclared",
+        "op": "contains_statement_required",
+        "majorAllergens": [
+          "milk", "egg", "fish", "crustacean_shellfish", "tree_nuts", "wheat", "peanut", "soybean", "sesame"
+        ]
+      },
+      "action": {
+        "type": "REQUIRE_CONTAINS_BOX",
+        "solution": "원재료 목록 바로 뒤 또는 근접 위치에 'CONTAINS: [ALLERGENS]' 박스를 명확히 배치하십시오. 2023 FASTER Act에 따라 참깨(Sesame)는 필수 표기 대상입니다."
+      },
+      "evidence": {
+        "regulation": "FALCPA 2004 / FASTER Act of 2021 (Public Law 117-11)",
+        "article": "21 U.S.C. 343(w)",
+        "source": "https://www.fda.gov/food/food-allergensgluten-free-guidance-documents-regulatory-information/food-allergen-labeling-and-consumer-protection-act-2004-falcpa"
+      }
+    },
+    {
+      "id": "US-CRIT-NUTRITION-MANDATORY",
+      "category": "nutrition",
+      "severity": "CRITICAL",
+      "title": "미 FDA 2016 규격 첨가당(Added Sugars), 비타민D, 칼륨 표기",
+      "condition": {
+        "field": "nutrition",
+        "op": "required_fda_nutrients",
+        "mandatoryFields": ["addedSugarsG", "vitaminDMcg", "potassiumMg", "caloriesKcal"]
+      },
+      "action": {
+        "type": "REQUIRE_NUTRITION_FACTS_PANEL",
+        "solution": "FDA 2016 표준 영양성분표에 첨가당(Includes Xg Added Sugars), 비타민D, 칼륨 함량 및 %DV를 명시하십시오."
+      },
+      "evidence": {
+        "regulation": "21 CFR 101.9",
+        "article": "Final Rule on Nutrition Facts Label (81 FR 33742)",
+        "source": "https://www.fda.gov/food/nutrition-facts-label/changes-nutrition-facts-label"
+      }
+    },
+    {
+      "id": "US-WARN-NET-WEIGHT-OZ",
+      "category": "net_quantity",
+      "severity": "WARNING",
+      "title": "미국향 순중량 온스(oz) 및 파운드(lb) 병기 필수",
+      "condition": {
+        "field": "netWeightCustom",
+        "op": "must_include_oz"
+      },
+      "action": {
+        "type": "REQUIRE_CUSTOM_NET_WEIGHT",
+        "solution": "PDP 하단 30% 영역에 'NET WT. XX oz (X.XX lbs) XXXg' 형식으로 oz 단위를 미터법(g)과 병기하십시오."
+      },
+      "evidence": {
+        "regulation": "Fair Packaging and Labeling Act (FPLA) / 21 CFR 101.105",
+        "article": "21 CFR 101.105(b)",
+        "source": "https://www.fda.gov/regulatory-information/search-fda-guidance-documents/guidance-industry-food-labeling-guide"
+      }
+    },
+    {
+      "id": "US-WARN-DATE-FORMAT",
+      "category": "dating",
+      "severity": "WARNING",
+      "title": "미국식 날짜 표기(월/일/년 MM/DD/YYYY) 권장",
+      "condition": {
+        "field": "dateFormat",
+        "op": "equals",
+        "value": "MM/DD/YYYY"
+      },
+      "action": {
+        "type": "RECOMMEND_DATE_FORMAT",
+        "solution": "미국 소비자와 유통망 혼동 방지를 위해 'Best Before: MM/DD/YYYY' 형식 사용을 준수하십시오."
+      },
+      "evidence": {
+        "regulation": "FDA Food Labeling Guide / USDA Food Product Dating",
+        "article": "Guidance on Open Dating",
+        "source": "https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/food-safety-basics/food-product-dating"
+      }
+    }
+  ]
+}

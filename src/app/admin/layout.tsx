@@ -136,6 +136,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navLinks = [
     { href: '/admin', label: '실시간 KPI 대시보드', icon: LayoutDashboard },
+    { href: '/admin/labels', label: '🏷️ 수출 라벨링 스튜디오 [5대국]', icon: Layers },
     { href: '/admin/orders', label: '🚚 주문 & 택배 운송장 관리', icon: Truck },
     { href: '/admin/crm', label: '🏢 해외 바이어 RFQ & PFI CRM', icon: Shield },
     { href: '/admin/payments', label: '💳 토스 결제 승인 연동', icon: Lock },

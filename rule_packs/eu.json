@@ -1,0 +1,113 @@
+{
+  "jurisdiction": {
+    "country": "EU",
+    "authorities": [
+      "European Commission (EC)",
+      "EFSA (European Food Safety Authority)"
+    ]
+  },
+  "rulePackVersion": "2.0.0",
+  "effectiveDate": "2022-08-07",
+  "rules": [
+    {
+      "id": "EU-CRIT-BANNED-E171",
+      "category": "additives",
+      "severity": "CRITICAL",
+      "title": "EU 역내 사용 금지 식품첨가물 감지: E171 (이산화티타늄 Titanium Dioxide)",
+      "condition": {
+        "field": "ingredients",
+        "op": "contains_banned_e_number",
+        "banned": ["E171", "171", "titanium dioxide", "이산화티타늄"]
+      },
+      "action": {
+        "type": "BLOCK_IMPORT_IF_PRESENT",
+        "solution": "EC Regulation 2022/63에 따라 E171은 유전독성 우려로 EU 전역에서 식품 첨가가 전면 금지되었습니다. 배합 레시피에서 완전히 배제하고 대체 천연 원료를 적용하십시오."
+      },
+      "evidence": {
+        "regulation": "Commission Regulation (EU) 2022/63",
+        "article": "Annex II & III to Regulation (EC) No 1333/2008",
+        "source": "https://eur-lex.europa.eu/eli/reg/2022/63/oj"
+      }
+    },
+    {
+      "id": "EU-CRIT-ENERGY-DUAL",
+      "category": "nutrition",
+      "severity": "CRITICAL",
+      "title": "Regulation (EU) No 1169/2011 에너지 kJ 및 kcal 동시 듀얼 표기 필수",
+      "condition": {
+        "field": "nutrition",
+        "op": "requires_dual_energy_units"
+      },
+      "action": {
+        "type": "REQUIRE_DUAL_ENERGY",
+        "solution": "영양성분표 첫 줄에 'Energy: XXXX kJ / XXX kcal' 형식으로 킬로줄(kJ)을 칼로리(kcal)와 반드시 병기해야 합니다."
+      },
+      "evidence": {
+        "regulation": "Regulation (EU) No 1169/2011 (FIC)",
+        "article": "Article 30(1) & Annex XIII Part A",
+        "source": "https://eur-lex.europa.eu/eli/reg/2011/1169/oj"
+      }
+    },
+    {
+      "id": "EU-CRIT-ALLERGEN-EMPHASIS",
+      "category": "allergen",
+      "severity": "CRITICAL",
+      "title": "EU 14대 법정 알레르겐 원재료 목록 내 시각적 강조(볼드/폰트 변경) 필수",
+      "condition": {
+        "field": "ingredients",
+        "op": "allergen_emphasis_check",
+        "allergens14": [
+          "gluten_cereals", "crustaceans", "eggs", "fish", "peanuts", "soybeans", "milk", "nuts",
+          "celery", "mustard", "sesame", "sulphur_dioxide_sulphites", "lupin", "molluscs"
+        ]
+      },
+      "action": {
+        "type": "REQUIRE_VISUAL_EMPHASIS",
+        "solution": "원재료 목록에서 14대 알레르겐 성분명은 주변 글자체와 확연히 구별되도록 **볼드체(Bold)**, 밑줄, 또는 배경색으로 강조해야 합니다."
+      },
+      "evidence": {
+        "regulation": "Regulation (EU) No 1169/2011",
+        "article": "Article 21(1)(b) & Annex II",
+        "source": "https://eur-lex.europa.eu/eli/reg/2011/1169/oj"
+      }
+    },
+    {
+      "id": "EU-WARN-QUID-PERCENTAGE",
+      "category": "ingredients",
+      "severity": "WARNING",
+      "title": "QUID (정량적 원재료 표시) 강조 성분 비율(%) 표기 의무",
+      "condition": {
+        "field": "ingredients",
+        "op": "quid_ratio_required"
+      },
+      "action": {
+        "type": "REQUIRE_QUID_PERCENTAGE",
+        "solution": "제품명에 포함되거나('Pork Dumpling'), 전면에서 그림이나 문구로 강조된 원료는 원재료명 바로 뒤에 배합 비율(%)을 명시해야 합니다."
+      },
+      "evidence": {
+        "regulation": "Regulation (EU) No 1169/2011",
+        "article": "Article 22 Quantitative Indication of Ingredients",
+        "source": "https://eur-lex.europa.eu"
+      }
+    },
+    {
+      "id": "EU-INFO-FONT-SIZE-XHEIGHT",
+      "category": "packaging",
+      "severity": "INFO",
+      "title": "라벨 표면적에 따른 최소 폰트 크기(x-height 1.2mm / 0.9mm) 규정",
+      "condition": {
+        "field": "packageAreaCm2",
+        "op": "evaluate_font_size"
+      },
+      "action": {
+        "type": "ENFORCE_MIN_FONT_SIZE",
+        "solution": "가장 큰 표면적이 80cm² 이상인 경우 소문자 'x' 높이 기준 최소 1.2mm 이상, 80cm² 미만인 경우 최소 0.9mm 이상을 준수해야 합니다."
+      },
+      "evidence": {
+        "regulation": "Regulation (EU) No 1169/2011",
+        "article": "Article 13 Legibility & Annex IV",
+        "source": "https://eur-lex.europa.eu"
+      }
+    }
+  ]
+}

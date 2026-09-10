@@ -1,0 +1,92 @@
+{
+  "storage": {
+    "frozen": {
+      "US": "Keep frozen at or below 0°F (-18°C). Do not refreeze once thawed.",
+      "CN": "请于-18℃以下冷冻保存。解冻后请勿再次冷冻。",
+      "JP": "-18℃以下で保存してください。一度解凍したものは再凍結しないでください。",
+      "EU": "Store frozen at -18°C or colder. Do not refreeze after thawing.",
+      "UAE": "يحفظ مجمداً عند -18 درجة مئوية أو أقل. لا تعيد تجميده بعد الذوبان."
+    },
+    "refrigerated": {
+      "US": "Keep refrigerated at or below 40°F (4°C). Consume promptly after opening.",
+      "CN": "请于0℃-4℃冷藏保存。开封后请尽快食用。",
+      "JP": "要冷蔵(10℃以下)で保存してください。開封後は早めにお召し上がりください。",
+      "EU": "Keep refrigerated between 0°C and 4°C. Consume within 3 days of opening.",
+      "UAE": "يحفظ مبرداً بين 0 و 4 درجات مئوية. يستهلك فوراً بعد الفتح."
+    },
+    "ambient": {
+      "US": "Store in a cool, dry place away from direct sunlight.",
+      "CN": "请置于阴凉干燥处，避免阳光直射。",
+      "JP": "直射日光、高温多湿を避けて常温で保存してください。",
+      "EU": "Store in a cool, dry place away from direct sunlight.",
+      "UAE": "يحفظ في مكان بارد وجاف بعيداً عن أشعة الشمس المباشرة."
+    }
+  },
+  "allergenHeader": {
+    "US": "CONTAINS: {allergens}.",
+    "CN": "致敏原信息：含有{allergens}。",
+    "JP": "原材料の一部に{allergens}を含みます。",
+    "EU": "Allergy Advice: For allergens, see ingredients in bold.",
+    "UAE": "تحذير الحساسية: يحتوي على {allergens}."
+  },
+  "allergenCrossContact": {
+    "US": "May contain traces of {traces}.",
+    "CN": "此生产线亦加工含有{traces}的制品。",
+    "JP": "本品製造工場では、{traces}を含む製品を生産しています。",
+    "EU": "May contain traces of {traces}.",
+    "UAE": "قد يحتوي على آثار من {traces}."
+  },
+  "cookingInstructions": {
+    "microwave": {
+      "US": "Microwave (1000W): Peel corner of film, heat on high for 3-4 minutes. Let stand for 1 minute before serving. Cook thoroughly to an internal temperature of 165°F.",
+      "CN": "微波炉加热(1000W)：撕开密封膜一角，高火加热3-4分钟。静置1分钟后食用。食用前请充分加热。",
+      "JP": "電子レンジ(500W/600W)：フィルムの端を少し開け、約3〜4分温めてください。加熱後はお熱くなりますのでご注意ください。",
+      "EU": "Microwave (800W): Pierce film lid in several places. Heat on full power for 3-4 minutes. Allow to stand for 1 minute. Cook thoroughly before consumption.",
+      "UAE": "الميكروويف (1000 واط): انزع زاوية الغطاء وسخن لمدة 3-4 دقائق على حرارة عالية. دعه يرتاح دقيقة قبل التقديم. يُطهى جيداً."
+    },
+    "panFry": {
+      "US": "Pan Fry: Heat 1-2 tbsp of cooking oil in a non-stick pan over medium heat. Place thawed product and cook for 5-7 minutes, turning occasionally until golden brown and internal temperature reaches 165°F.",
+      "CN": "平底锅煎制：在平底锅中加入1-2汤匙食用油，中火预热。放入解冻产品，煎制5-7分钟并不时翻面，至金黄熟透。",
+      "JP": "フライパン調理：熱したフライパンに油大さじ1〜2をひき、中火で両面がきつね色になるまで約5〜7分十分に加熱してください。",
+      "EU": "Pan Fry: Heat 1-2 tbsp of vegetable oil in a frying pan over medium heat. Fry for 5-7 minutes turning occasionally until thoroughly heated and piping hot.",
+      "UAE": "القلي في المقلاة: سخن 1-2 ملعقة زيت طهي على نار متوسطة. اطه المنتج لمدة 5-7 دقائق مع التقليب حتى ينضج تماماً."
+    },
+    "boil": {
+      "US": "Boil: Bring 500ml of water to a rolling boil. Add product and cook for 4-5 minutes stirring occasionally. Serve hot.",
+      "CN": "沸水煮制：将500ml水烧开，加入产品煮4-5分钟并不时搅拌。趁热食用。",
+      "JP": "お湯で加熱：沸騰したお湯(約500ml)に本品を入れ、時々かき混ぜながら約4〜5分間十分に茹でてください。",
+      "EU": "Boil: Add product to 500ml of boiling water and simmer for 4-5 minutes, stirring occasionally. Drain and serve hot.",
+      "UAE": "الغليان: اغلي 500 مل من الماء وأضف المنتج واطه لمدة 4-5 دقائق مع التحريك المستمر. يقدم ساخناً."
+    }
+  },
+  "datingPrefix": {
+    "bestBefore": {
+      "US": "BEST IF USED BY: ",
+      "CN": "保质期至：",
+      "JP": "賞味期限：",
+      "EU": "BEST BEFORE: ",
+      "UAE": "يفضل استخدامه قبل: "
+    },
+    "useBy": {
+      "US": "USE BY: ",
+      "CN": "过期日：",
+      "JP": "消費期限：",
+      "EU": "USE BY: ",
+      "UAE": "تاريخ الانتهاء: "
+    },
+    "mfgDate": {
+      "US": "MFG DATE: ",
+      "CN": "生产日期：",
+      "JP": "製造日：",
+      "EU": "PRODUCTION DATE: ",
+      "UAE": "تاريخ الإنتاج: "
+    }
+  },
+  "regulatoryDisclaimers": {
+    "US": "Distributed by Song Young Min Food Corp. Manufactured in South Korea under FDA / USDA regulatory compliance.",
+    "CN": "原产国：韩国。符合中华人民共和国食品安全国家标准(GB 7718 & GB 28050)。",
+    "JP": "原産国名：大韓民国。日本の食品表示基準に基づき適切に表示しています。",
+    "EU": "Country of Origin: Republic of Korea. In compliance with Regulation (EU) No 1169/2011 (FIC).",
+    "UAE": "بلد المنشأ: جمهورية كوريا الجنوبية. حلال 100% ومعتمد من هيئة الإمارات للمواصفات والمقاييس (MoIAT)."
+  }
+}
