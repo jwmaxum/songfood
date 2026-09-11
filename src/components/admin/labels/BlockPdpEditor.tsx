@@ -121,9 +121,40 @@ export default function BlockPdpEditor({
 
       {/* 전면 클레임 / 소구 포인트 태그 */}
       <div>
-        <label className="block text-xs text-stone-300 font-semibold mb-1">
-          전면 소구 포인트 (Highlights & Claims) - <span className="text-stone-400 font-normal">입력 후 Enter</span>
-        </label>
+        <div className="flex items-center justify-between mb-1">
+          <label className="block text-xs text-stone-300 font-semibold">
+            전면 소구 포인트 (Highlights & Claims) - <span className="text-stone-400 font-normal">입력 후 Enter</span>
+          </label>
+          <span className="text-[10px] text-amber-400/90 font-mono">21 CFR 101 / GB 7718 규정 검증</span>
+        </div>
+
+        {/* 법정 영양강조 클레임 원클릭 프리셋 */}
+        <div className="flex flex-wrap items-center gap-1.5 mb-2">
+          <span className="text-[10px] text-stone-400 mr-1">추천 클레임:</span>
+          {[
+            'Sugar-Free',
+            'Fat-Free',
+            'Low-Fat',
+            'Low-Sodium',
+            'High-Protein',
+            '100% Plant-Based',
+            'Non-GMO',
+          ].map((preset) => (
+            <button
+              type="button"
+              key={preset}
+              onClick={() => {
+                if (!claimHighlights.includes(preset)) {
+                  onChange('claimHighlights', [...claimHighlights, preset]);
+                }
+              }}
+              className="px-2 py-0.5 bg-stone-900 hover:bg-stone-800 text-[10px] text-stone-300 border border-stone-800 rounded font-mono transition-colors"
+            >
+              +{preset}
+            </button>
+          ))}
+        </div>
+
         <div className="flex flex-wrap items-center gap-1.5 mb-2">
           {claimHighlights.map((claim, idx) => (
             <span
@@ -144,12 +175,12 @@ export default function BlockPdpEditor({
         <input
           type="text"
           onKeyDown={handleAddClaim}
-          placeholder="예: 100% Korean Pork, Quick Deep-Frozen, No Artificial Flavor (입력 후 Enter)"
+          placeholder="예: 100% Korean Pork, Quick Deep-Frozen, Sugar-Free (입력 후 Enter)"
           className="w-full px-3 py-2 bg-stone-900 border border-stone-800 focus:border-[#c5a880] rounded text-xs text-white focus:outline-none"
         />
-        {country === 'CN' && claimHighlights.some((c) => c.includes('零添加') || c.includes('不添加') || c.includes('무첨가')) && (
+        {country === 'CN' && claimHighlights.some((c) => c.includes('零添加') || c.includes('不添加') || c.includes('무첨가') || c.includes('0添加')) && (
           <p className="text-[10px] text-rose-400 mt-1 font-semibold">
-            🚨 중국 GB 7718-2025 규정 위반: '零添加', '不添加(무첨가)' 클레임은 전면 금지되어 통관 거부 대상입니다.
+            🚨 중국 GB 7718-2025 규정 위반: '零添加', '不添加(무첨가)', '0添加' 클레임은 전면 금지되어 통관 거부 대상입니다.
           </p>
         )}
       </div>

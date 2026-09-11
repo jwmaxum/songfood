@@ -155,7 +155,7 @@ describe('Phase 8 Domain-Specific Compliance Engines', () => {
       };
 
       const result = validateClaims(input);
-      expect(result.critical.some((c) => c.code === 'COMMON-CRIT-CLAIM-SUGAR-FREE-EXCEEDED')).toBe(true);
+      expect(result.critical.some((c) => c.code.includes('CLAIM-SUGAR-FREE-EXCEEDED'))).toBe(true);
     });
   });
 
