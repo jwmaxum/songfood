@@ -13,6 +13,7 @@ import BlockDatingEditor from './BlockDatingEditor';
 import BlockBarcodeEditor from './BlockBarcodeEditor';
 import LiveLabelPreview from './LiveLabelPreview';
 import ComplianceAlertBox from './ComplianceAlertBox';
+import ArtworkInspectorModal from './ArtworkInspectorModal';
 import { validateLabel } from '@/lib/label-compliance';
 
 interface LabelStudioClientProps {
@@ -29,6 +30,7 @@ export default function LabelStudioClient({
   const [activeBlock, setActiveBlock] = useState<number | null>(1);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [isArtworkModalOpen, setIsArtworkModalOpen] = useState(false);
 
   // 현재 국가의 라벨 데이터 및 안전 기본값 보정
   const currentLabel = labels[selectedCountry] || ({} as FoodLabel);
@@ -240,6 +242,14 @@ export default function LabelStudioClient({
               <span>라벨 저장 완료!</span>
             </span>
           )}
+          <button
+            type="button"
+            onClick={() => setIsArtworkModalOpen(true)}
+            className="px-3.5 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold text-xs rounded-lg transition-colors flex items-center space-x-1.5"
+            title="공장 인쇄용 라벨 시안(PDF/이미지)을 업로드하여 오타, 활자 크기(x-height mm), 알레르겐 표기를 사전 실측합니다."
+          >
+            <span>📷 인쇄 시안 비전 검사</span>
+          </button>
           <Link
             href={`/admin/labels/${product.id}/spec`}
             className="px-3.5 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 font-bold text-xs rounded-lg transition-colors flex items-center space-x-1.5"
@@ -507,6 +517,22 @@ export default function LabelStudioClient({
           />
         </div>
       </div>
+
+      {/* 라벨 인쇄 시안 비전 검사기 모달 */}
+      <ArtworkInspectorModal
+        isOpen={isArtworkModalOpen}
+        onClose={() => setIsArtworkModalOpen(false)}
+        label={{
+          ...currentLabel,
+          header,
+          pdp,
+          informationPanel,
+          nutrition,
+          datingLot,
+          barcodeMarking,
+          ingredients,
+        }}
+      />
     </div>
   );
 }
