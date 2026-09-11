@@ -158,6 +158,8 @@ export function validateLabel(input: ValidationInput): ValidationResult {
     warnings,
     infoNotes: info,
     subEngineReports: domainOutput.reports,
+    allergenSources: domainOutput.allergenSources,
+    allergenAudit: domainOutput.allergenAudit,
     checkedAt: new Date().toISOString()
   };
 }

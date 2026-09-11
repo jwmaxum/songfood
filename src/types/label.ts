@@ -6,6 +6,8 @@
 export type ExportCountry = 'US' | 'CN' | 'JP' | 'EU' | 'UAE';
 export type TargetCountry = ExportCountry;
 
+export * from './allergen';
+
 export type LabelStatus = 'draft' | 'review_pending' | 'warning' | 'compliant' | 'rejected';
 
 export type BarcodeType = 'EAN-13' | 'UPC-A' | 'QR-Code' | 'GS1-128' | 'QR';

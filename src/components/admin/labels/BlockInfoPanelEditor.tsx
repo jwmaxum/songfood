@@ -304,35 +304,70 @@ export default function BlockInfoPanelEditor({
         </button>
       </div>
 
-      {/* 알레르겐 안내 문구 */}
-      <div className="space-y-2">
-        <label className="block text-xs text-stone-300 font-semibold">
-          알레르겐 의무 고지 (Contains Allergens Statement)
-        </label>
-        <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-          {COMMON_ALLERGENS.map((alg) => (
-            <button
-              type="button"
-              key={alg}
-              onClick={() => handleToggleAllergenTag(alg.split(' ')[0])}
-              className="px-2 py-0.5 bg-stone-900 hover:bg-stone-800 text-[11px] text-stone-300 rounded border border-stone-800 transition-colors"
-            >
-              +{alg}
-            </button>
-          ))}
+      {/* 알레르겐 의무 고지 (Contains) vs 교차오염 주의문구 (May Contain) */}
+      <div className="space-y-4 p-3 bg-stone-900/50 rounded-xl border border-stone-800">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="block text-xs text-amber-300 font-bold">
+              1. 법정 의무 알레르겐 선언 (Contains Allergens Statement)
+            </label>
+            <span className="text-[10px] text-stone-400 font-mono">원재료 배합 성분 필수</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+            {COMMON_ALLERGENS.map((alg) => (
+              <button
+                type="button"
+                key={alg}
+                onClick={() => handleToggleAllergenTag(alg.split(' ')[0])}
+                className="px-2 py-0.5 bg-stone-900 hover:bg-stone-800 text-[11px] text-stone-300 rounded border border-stone-700 transition-colors"
+              >
+                +{alg}
+              </button>
+            ))}
+            {country === 'JP' && (
+              <button
+                type="button"
+                onClick={() => handleToggleAllergenTag('カシューナッツ')}
+                className="px-2 py-0.5 bg-red-950/60 text-red-300 border border-red-700/60 rounded text-[11px] font-bold"
+                title="일본 2025년 법정 특정원재료 의무화 품목"
+              >
+                +2025의무: カシューナッツ (캐슈넛)
+              </button>
+            )}
+          </div>
+          <input
+            type="text"
+            value={containsAllergensStatement || ''}
+            onChange={(e) => onChange('containsAllergensStatement', e.target.value)}
+            placeholder="예: CONTAINS: WHEAT, SOYBEAN, PORK. (참깨 Sesame 2023 필수)"
+            className="w-full px-3 py-2 bg-stone-900 border border-stone-800 focus:border-[#c5a880] rounded text-xs text-white focus:outline-none"
+          />
+          {country === 'US' && !containsAllergensStatement && (
+            <p className="text-[10px] text-rose-400 mt-1 font-semibold">
+              🚨 미 FDA FALCPA 규정 위반: 9대 알레르겐 함유 시 'CONTAINS:' 박스는 법적 강제 규정입니다.
+            </p>
+          )}
         </div>
-        <input
-          type="text"
-          value={containsAllergensStatement || ''}
-          onChange={(e) => onChange('containsAllergensStatement', e.target.value)}
-          placeholder="예: CONTAINS: WHEAT, SOYBEAN, PORK. (참깨 Sesame 2023 필수)"
-          className="w-full px-3 py-2 bg-stone-900 border border-stone-800 focus:border-[#c5a880] rounded text-xs text-white focus:outline-none"
-        />
-        {country === 'US' && !containsAllergensStatement && (
-          <p className="text-[10px] text-rose-400 mt-1 font-semibold">
-            🚨 미 FDA FALCPA 규정 위반: 9대 알레르겐 함유 시 'CONTAINS:' 박스는 법적 강제 규정입니다.
+
+        {/* 2. 교차오염 주의환기 문구 (May Contain / Advisory) */}
+        <div className="space-y-1.5 pt-2 border-t border-stone-800/80">
+          <div className="flex items-center justify-between">
+            <label className="block text-xs text-stone-300 font-semibold">
+              2. 제조시설 교차오염 주의문구 (Facility Advisory / May Contain)
+            </label>
+            <span className="text-[10px] text-rose-400 font-medium">⚠️ 배합 원료 대체 표기 절대 금지</span>
+          </div>
+          <input
+            type="text"
+            value={mayContainStatement || ''}
+            onChange={(e) => onChange('mayContainStatement', e.target.value)}
+            placeholder="예: Manufactured in a facility that also processes peanut and milk."
+            className="w-full px-3 py-2 bg-stone-900 border border-stone-800 focus:border-stone-600 rounded text-xs text-stone-300 focus:outline-none"
+          />
+          <p className="text-[10px] text-stone-500">
+            * FDA / EU 규정: 실제 레시피에 배합된 원재료는 교차오염 문구(May Contain)로 축소 표기할 수 없으며, 반드시 1번 법정 선언(CONTAINS)에 기재해야 합니다.
           </p>
-        )}
+        </div>
       </div>
 
       {/* 보관 방법 & 제조원/수입자 */}

@@ -4,12 +4,16 @@ import { validateQuid } from './quid-engine';
 import { validateAdditives } from './additive-engine';
 import { validateNetQuantity } from './net-quantity-engine';
 import { validateClaims } from './claim-engine';
+import { validateAllergenSourcesEngine } from './allergen-source-engine';
+import { AllergenSourceItem, AllergenDeclarationAudit } from '@/types/allergen';
 
 export interface DomainEnginesOutput {
   criticalErrors: RedFlagItem[];
   warnings: RedFlagItem[];
   infoNotes: RedFlagItem[];
   reports: SubEngineReport[];
+  allergenSources?: AllergenSourceItem[];
+  allergenAudit?: AllergenDeclarationAudit;
 }
 
 /**
@@ -20,6 +24,8 @@ export function run14DomainEngines(input: ValidationInput): DomainEnginesOutput 
   const warnings: RedFlagItem[] = [];
   const infoNotes: RedFlagItem[] = [];
   const reports: SubEngineReport[] = [];
+  let detectedSources: AllergenSourceItem[] = [];
+  let detectedAudit: AllergenDeclarationAudit | undefined = undefined;
 
   function recordIssues(
     engineId: string,
@@ -140,9 +146,13 @@ export function run14DomainEngines(input: ValidationInput): DomainEnginesOutput 
 
   // 4. Allergen Sources Engine
   {
-    const crit: RedFlagItem[] = [];
-    const warn: RedFlagItem[] = [];
-    const inf: RedFlagItem[] = [];
+    const allergenResult = validateAllergenSourcesEngine(input);
+    detectedSources = allergenResult.sources;
+    detectedAudit = allergenResult.audit;
+
+    const crit: RedFlagItem[] = [...allergenResult.critical];
+    const warn: RedFlagItem[] = [...allergenResult.warnings];
+    const inf: RedFlagItem[] = [...allergenResult.info];
 
     const rawLower = (input.rawText || '').toLowerCase();
     const hasContainsBox = rawLower.includes('contains:') || rawLower.includes('allergens:');
@@ -371,5 +381,12 @@ export function run14DomainEngines(input: ValidationInput): DomainEnginesOutput 
     recordIssues('engine-14-barcode', '14. Barcode & Marking Engine', { critical: crit, warnings: warn, info: inf });
   }
 
-  return { criticalErrors, warnings, infoNotes, reports };
+  return {
+    criticalErrors,
+    warnings,
+    infoNotes,
+    reports,
+    allergenSources: detectedSources,
+    allergenAudit: detectedAudit,
+  };
 }

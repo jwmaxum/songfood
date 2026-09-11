@@ -1,4 +1,4 @@
-import { ExportCountry, FoodLabel, LabelIngredient, LabelNutrition } from '@/types/label';
+import { ExportCountry, FoodLabel, LabelIngredient, LabelNutrition, AllergenSourceItem, AllergenDeclarationAudit } from '@/types/label';
 import type { JurisdictionResolution } from './jurisdiction-resolver';
 
 export type RuleSeverity = 'critical' | 'warning' | 'info';
@@ -73,6 +73,8 @@ export interface ValidationResult {
   warnings: RedFlagItem[];
   infoNotes: RedFlagItem[];
   subEngineReports?: SubEngineReport[];
+  allergenSources?: AllergenSourceItem[];
+  allergenAudit?: AllergenDeclarationAudit;
   checkedAt: string;
 }
 
