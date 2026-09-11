@@ -31,6 +31,13 @@ export default async function AdminLabelsPage() {
 
         <div className="flex items-center space-x-2.5">
           <a
+            href="/admin/labels/audit"
+            className="px-3.5 py-2 bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-800/80 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 shadow-sm"
+          >
+            <span>🛡️ QA/RA 감사 & 통관 리스크</span>
+            <span>&rarr;</span>
+          </a>
+          <a
             href="/labeling"
             target="_blank"
             className="px-3 py-2 bg-stone-900 hover:bg-stone-800 text-stone-300 border border-stone-800 rounded-lg text-xs font-semibold transition-colors flex items-center space-x-1.5"

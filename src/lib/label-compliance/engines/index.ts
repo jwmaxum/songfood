@@ -4,4 +4,8 @@ export * from './net-quantity-engine';
 export * from './claim-engine';
 export * from './allergen-source-engine';
 export * from './barcode-engine';
+export * from './audit-diff-engine';
+export * from './regulatory-alert-engine';
+export * from './refusal-risk-engine';
 export * from './domain-engines';
+
