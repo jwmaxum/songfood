@@ -9,6 +9,8 @@ import {
   getStorageStatement,
   StorageType,
 } from '@/lib/label-i18n';
+import { lookupAdditive } from '@/lib/label-compliance/engines/additive-authorization-engine';
+
 
 interface BlockInfoPanelEditorProps {
   country: ExportCountry;
@@ -234,53 +236,97 @@ export default function BlockInfoPanelEditor({
                 <th className="p-2 w-12 text-center">순위</th>
                 <th className="p-2">원재료명 (국문)</th>
                 <th className="p-2">수출국 현지어 명칭</th>
+                <th className="p-2 w-24">첨가물/INS</th>
                 <th className="p-2 w-24">배합비(%)</th>
+                <th className="p-2 w-36">인가 규격 & PPM</th>
                 <th className="p-2 w-16 text-center">알레르겐</th>
                 <th className="p-2 w-12 text-center">삭제</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-800/80 bg-stone-950/40">
-              {ingredients.map((ing, idx) => (
-                <tr key={idx} className="hover:bg-stone-900/40">
-                  <td className="p-2 text-center font-mono text-stone-400">{idx + 1}</td>
-                  <td className="p-2">
-                    <input
-                      type="text"
-                      value={ing.ingredientNameKo || ''}
-                      onChange={(e) => handleUpdateIngredient(idx, 'ingredientNameKo', e.target.value)}
-                      placeholder="예: 돼지고기"
-                      className="w-full px-2 py-1 bg-stone-900 border border-stone-800 rounded text-xs text-white focus:outline-none"
-                    />
-                  </td>
-                  <td className="p-2">
-                    <input
-                      type="text"
-                      value={ing.ingredientNameTarget || ''}
-                      onChange={(e) => handleUpdateIngredient(idx, 'ingredientNameTarget', e.target.value)}
-                      placeholder="예: Pork / 豚肉"
-                      className="w-full px-2 py-1 bg-stone-900 border border-stone-800 rounded text-xs text-white focus:outline-none"
-                    />
-                  </td>
-                  <td className="p-2">
-                    <input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="100"
-                      value={ing.ratio || 0}
-                      onChange={(e) => handleUpdateIngredient(idx, 'ratio', parseFloat(e.target.value) || 0)}
-                      className="w-full px-2 py-1 bg-stone-900 border border-stone-800 rounded text-xs text-white focus:outline-none font-mono"
-                    />
-                  </td>
-                  <td className="p-2 text-center">
-                    <input
-                      type="checkbox"
-                      checked={ing.isAllergen || false}
-                      onChange={(e) => handleUpdateIngredient(idx, 'isAllergen', e.target.checked)}
-                      className="rounded border-stone-700 text-[#c5a880] focus:ring-0"
-                    />
-                  </td>
-                  <td className="p-2 text-center">
+              {ingredients.map((ing, idx) => {
+                const additive = lookupAdditive(ing.insOrENumber || ing.ingredientNameKo || '', country);
+                const ppm = (Number(ing.ratio) || 0) * 10000;
+                const isExceeded =
+                  additive &&
+                  !additive.isQuantumSatis &&
+                  additive.maxLevelPpm > 0 &&
+                  ppm > additive.maxLevelPpm;
+
+                return (
+                  <tr key={idx} className="hover:bg-stone-900/40">
+                    <td className="p-2 text-center font-mono text-stone-400">{idx + 1}</td>
+                    <td className="p-2">
+                      <input
+                        type="text"
+                        value={ing.ingredientNameKo || ''}
+                        onChange={(e) => handleUpdateIngredient(idx, 'ingredientNameKo', e.target.value)}
+                        placeholder="예: 돼지고기"
+                        className="w-full px-2 py-1 bg-stone-900 border border-stone-800 rounded text-xs text-white focus:outline-none"
+                      />
+                    </td>
+                    <td className="p-2">
+                      <input
+                        type="text"
+                        value={ing.ingredientNameTarget || ''}
+                        onChange={(e) => handleUpdateIngredient(idx, 'ingredientNameTarget', e.target.value)}
+                        placeholder="예: Pork / 豚肉"
+                        className="w-full px-2 py-1 bg-stone-900 border border-stone-800 rounded text-xs text-white focus:outline-none"
+                      />
+                    </td>
+                    <td className="p-2">
+                      <input
+                        type="text"
+                        value={ing.insOrENumber || ''}
+                        onChange={(e) => handleUpdateIngredient(idx, 'insOrENumber', e.target.value)}
+                        placeholder="예: E202"
+                        className="w-full px-2 py-1 bg-stone-900 border border-stone-800 rounded text-xs text-amber-300 font-mono focus:outline-none"
+                        title="식품첨가물 E-Number 또는 INS 번호"
+                      />
+                    </td>
+                    <td className="p-2">
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        value={ing.ratio || 0}
+                        onChange={(e) => handleUpdateIngredient(idx, 'ratio', parseFloat(e.target.value) || 0)}
+                        className="w-full px-2 py-1 bg-stone-900 border border-stone-800 rounded text-xs text-white focus:outline-none font-mono"
+                      />
+                    </td>
+                    <td className="p-2 text-center text-[11px] font-mono">
+                      {additive ? (
+                        additive.status === 'PROHIBITED' ? (
+                          <span className="px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 font-bold block" title={additive.regulationSource}>
+                            🔴 금지({additive.insOrENumber})
+                          </span>
+                        ) : isExceeded ? (
+                          <span className="px-1.5 py-0.5 rounded bg-rose-950/80 text-rose-300 border border-rose-800 block text-[10px]" title={`최대 허용치: ${additive.maxLevelPpm}ppm`}>
+                            ⚠️ {ppm}ppm (한도초과)
+                          </span>
+                        ) : additive.isQuantumSatis ? (
+                          <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 block" title="적정량 사용 규격 (Quantum Satis)">
+                            🟢 QS (적정량)
+                          </span>
+                        ) : (
+                          <span className="px-1.5 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800 block text-[10px]" title={`최대 한도: ${additive.maxLevelPpm}ppm`}>
+                            🟢 인가 ({ppm}/{additive.maxLevelPpm}ppm)
+                          </span>
+                        )
+                      ) : (
+                        <span className="text-stone-500 text-[10px] font-sans">-</span>
+                      )}
+                    </td>
+                    <td className="p-2 text-center">
+                      <input
+                        type="checkbox"
+                        checked={ing.isAllergen || false}
+                        onChange={(e) => handleUpdateIngredient(idx, 'isAllergen', e.target.checked)}
+                        className="rounded border-stone-700 text-[#c5a880] focus:ring-0"
+                      />
+                    </td>
+                    <td className="p-2 text-center">
                     <button
                       type="button"
                       onClick={() => handleRemoveIngredient(idx)}
@@ -290,7 +336,8 @@ export default function BlockInfoPanelEditor({
                     </button>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

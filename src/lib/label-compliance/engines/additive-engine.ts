@@ -1,4 +1,5 @@
 import { ValidationInput, RedFlagItem } from '../types';
+import { validateAdditiveAuthorization } from './additive-authorization-engine';
 
 /**
  * Additive & E-Number Compliance Engine
@@ -131,5 +132,37 @@ export function validateAdditives(input: ValidationInput): {
     }
   }
 
+  // 4. Detailed Additive Authorization Matrix & Max Level Checks (Phase 13)
+  try {
+    const authFlags = validateAdditiveAuthorization({
+      id: 'temp',
+      productId: 'temp',
+      country: input.country,
+      version: 1,
+      status: 'draft',
+      productCategoryLocal: input.productCategory,
+      ingredients: input.ingredients.map((ing) => ({
+        ingredientNameKo: ing.ingredientNameKo || '',
+        ingredientNameTarget: ing.ingredientNameEn || ing.ingredientNameKo || '',
+        ratio: (ing as any).ratio ?? (ing as any).percentage ?? 0,
+        isAllergen: false,
+        insOrENumber: ing.eNumber,
+      })),
+    });
+
+    for (const flag of authFlags) {
+      if (flag.severity === 'critical') {
+        critical.push(flag);
+      } else if (flag.severity === 'warning') {
+        warnings.push(flag);
+      } else {
+        info.push(flag);
+      }
+    }
+  } catch (err) {
+    // Non-blocking fallback
+  }
+
   return { critical, warnings, info };
 }
+
