@@ -9,5 +9,7 @@ export * from './regulatory-alert-engine';
 export * from './refusal-risk-engine';
 export * from './additive-authorization-engine';
 export * from './ingredient-intelligence-engine';
+export * from './auto-fix-engine';
+export * from './batch-reevaluation-engine';
 export * from './domain-engines';
 

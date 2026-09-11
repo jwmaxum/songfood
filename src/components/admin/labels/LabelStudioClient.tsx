@@ -14,6 +14,7 @@ import BlockBarcodeEditor from './BlockBarcodeEditor';
 import LiveLabelPreview from './LiveLabelPreview';
 import ComplianceAlertBox from './ComplianceAlertBox';
 import ArtworkInspectorModal from './ArtworkInspectorModal';
+import AutoFixPatchModal from './AutoFixPatchModal';
 import { validateLabel } from '@/lib/label-compliance';
 
 interface LabelStudioClientProps {
@@ -31,6 +32,7 @@ export default function LabelStudioClient({
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isArtworkModalOpen, setIsArtworkModalOpen] = useState(false);
+  const [isAutoFixModalOpen, setIsAutoFixModalOpen] = useState(false);
 
   // 현재 국가의 라벨 데이터 및 안전 기본값 보정
   const currentLabel = labels[selectedCountry] || ({} as FoodLabel);
@@ -241,6 +243,16 @@ export default function LabelStudioClient({
               <span>✓</span>
               <span>라벨 저장 완료!</span>
             </span>
+          )}
+          {validationResult.criticalErrors.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setIsAutoFixModalOpen(true)}
+              className="px-3.5 py-2 bg-gradient-to-r from-amber-500/30 to-orange-500/30 hover:from-amber-500/40 hover:to-orange-500/40 text-amber-300 border border-amber-500/50 font-bold text-xs rounded-lg transition-all flex items-center space-x-1.5 shadow-lg shadow-amber-950/20 animate-pulse"
+              title="검출된 법규 위반을 1-Click으로 자동 교정하는 패치 모달을 엽니다."
+            >
+              <span>⚡ 원클릭 자동 수정 패치</span>
+            </button>
           )}
           <button
             type="button"
@@ -531,6 +543,27 @@ export default function LabelStudioClient({
           datingLot,
           barcodeMarking,
           ingredients,
+        }}
+      />
+
+      {/* 1-Click 자동 수정 패치 모달 */}
+      <AutoFixPatchModal
+        isOpen={isAutoFixModalOpen}
+        onClose={() => setIsAutoFixModalOpen(false)}
+        label={{
+          ...currentLabel,
+          header,
+          pdp,
+          informationPanel,
+          nutrition,
+          datingLot,
+          barcodeMarking,
+          ingredients,
+        }}
+        redFlags={[...validationResult.criticalErrors, ...validationResult.warnings]}
+        onApplyPatches={(patchedLabel, count) => {
+          updateCurrentLabel(() => patchedLabel);
+          alert(`[${selectedCountry}] ${count}건의 자동 수정 패치가 성공적으로 적용되었습니다!`);
         }}
       />
     </div>
