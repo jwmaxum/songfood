@@ -236,8 +236,9 @@ export default function BlockInfoPanelEditor({
                 <th className="p-2 w-12 text-center">순위</th>
                 <th className="p-2">원재료명 (국문)</th>
                 <th className="p-2">수출국 현지어 명칭</th>
-                <th className="p-2 w-24">첨가물/INS</th>
-                <th className="p-2 w-24">배합비(%)</th>
+                <th className="p-2 w-28">원산지(Origin)</th>
+                <th className="p-2 w-20">첨가물/INS</th>
+                <th className="p-2 w-20">배합비(%)</th>
                 <th className="p-2 w-36">인가 규격 & PPM</th>
                 <th className="p-2 w-16 text-center">알레르겐</th>
                 <th className="p-2 w-12 text-center">삭제</th>
@@ -252,10 +253,20 @@ export default function BlockInfoPanelEditor({
                   !additive.isQuantumSatis &&
                   additive.maxLevelPpm > 0 &&
                   ppm > additive.maxLevelPpm;
+                const isPrimary = idx === 0 && (ing.ratio || 0) > 0;
 
                 return (
                   <tr key={idx} className="hover:bg-stone-900/40">
-                    <td className="p-2 text-center font-mono text-stone-400">{idx + 1}</td>
+                    <td className="p-2 text-center font-mono text-stone-400">
+                      <div className="flex flex-col items-center">
+                        <span>{idx + 1}</span>
+                        {isPrimary && (
+                          <span className="text-[9px] font-bold text-amber-400 bg-amber-950/60 px-1 rounded border border-amber-800" title="배합비 1위 주원재료 (일본/EU 원산지 표시 의무 대상)">
+                            1위
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className="p-2">
                       <input
                         type="text"
@@ -272,6 +283,20 @@ export default function BlockInfoPanelEditor({
                         onChange={(e) => handleUpdateIngredient(idx, 'ingredientNameTarget', e.target.value)}
                         placeholder="예: Pork / 豚肉"
                         className="w-full px-2 py-1 bg-stone-900 border border-stone-800 rounded text-xs text-white focus:outline-none"
+                      />
+                    </td>
+                    <td className="p-2">
+                      <input
+                        type="text"
+                        value={(ing as any).originCountry || ''}
+                        onChange={(e) => handleUpdateIngredient(idx, 'originCountry' as any, e.target.value)}
+                        placeholder={country === 'JP' ? '예: 国産 / 韓国' : '예: KR / USA'}
+                        className={`w-full px-2 py-1 bg-stone-900 border rounded text-xs text-white focus:outline-none ${
+                          isPrimary && country === 'JP' && !(ing as any).originCountry
+                            ? 'border-amber-600 animate-pulse placeholder:text-amber-500'
+                            : 'border-stone-800'
+                        }`}
+                        title={isPrimary && country === 'JP' ? '일본 식품표시법상 1위 원료 원산지 의무' : '원재료 원산지 국가'}
                       />
                     </td>
                     <td className="p-2">
@@ -327,15 +352,15 @@ export default function BlockInfoPanelEditor({
                       />
                     </td>
                     <td className="p-2 text-center">
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveIngredient(idx)}
-                      className="text-stone-500 hover:text-rose-400 text-sm font-bold"
-                    >
-                      &times;
-                    </button>
-                  </td>
-                </tr>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveIngredient(idx)}
+                        className="text-stone-500 hover:text-rose-400 text-sm font-bold"
+                      >
+                        &times;
+                      </button>
+                    </td>
+                  </tr>
                 );
               })}
             </tbody>

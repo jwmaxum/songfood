@@ -6,7 +6,13 @@ import { validateNetQuantity } from './net-quantity-engine';
 import { validateClaims } from './claim-engine';
 import { validateAllergenSourcesEngine } from './allergen-source-engine';
 import { validateBarcodeAndMarking } from './barcode-engine';
+import {
+  validateCompoundIngredients,
+  validateProcessingAids,
+  validateCountryOfOrigin,
+} from './ingredient-intelligence-engine';
 import { AllergenSourceItem, AllergenDeclarationAudit } from '@/types/allergen';
+import { FoodLabel } from '@/types/label';
 
 export interface DomainEnginesOutput {
   criticalErrors: RedFlagItem[];
@@ -141,6 +147,40 @@ export function run14DomainEngines(input: ValidationInput): DomainEnginesOutput 
     crit.push(...quidRes.critical);
     warn.push(...quidRes.warnings);
     inf.push(...quidRes.info);
+
+    // Run Compound Ingredients 5% Rule & Processing Aids checks (Phase 14)
+    try {
+      const dummyLabel: FoodLabel = {
+        id: 'temp',
+        productId: 'temp',
+        country: input.country,
+        version: 1,
+        status: 'draft',
+        ingredients: input.ingredients.map((ing) => ({
+          ingredientNameKo: ing.ingredientNameKo,
+          ingredientNameTarget: ing.ingredientNameEn || ing.ingredientNameKo,
+          ratio: ing.ratio ?? 0,
+          isAllergen: false,
+          insOrENumber: ing.eNumber,
+        })),
+      };
+
+      const compoundFlags = validateCompoundIngredients(dummyLabel, input.ingredients as any);
+      for (const f of compoundFlags) {
+        if (f.severity === 'critical') crit.push(f);
+        else if (f.severity === 'warning') warn.push(f);
+        else inf.push(f);
+      }
+
+      const procFlags = validateProcessingAids(dummyLabel, input.ingredients as any);
+      for (const f of procFlags) {
+        if (f.severity === 'critical') crit.push(f);
+        else if (f.severity === 'warning') warn.push(f);
+        else inf.push(f);
+      }
+    } catch (err) {
+      // Non-blocking fallback
+    }
 
     recordIssues('engine-3-ingredient-quid', '3. Ingredient & QUID Engine', { critical: crit, warnings: warn, info: inf });
   }
@@ -309,6 +349,40 @@ export function run14DomainEngines(input: ValidationInput): DomainEnginesOutput 
         howToFix: '라벨 하단에 "Product of Korea" 영문 표기를 명시하십시오.',
         authority: 'Customs Authorities'
       });
+    }
+
+    // Run Detailed Country of Origin (COOL) Engine (Phase 14)
+    try {
+      const hasOriginInfo =
+        input.ingredients.some((ing: any) => ing.originCountry !== undefined || ing.origin !== undefined) ||
+        Boolean(input.rawText && /産地|원산지|原料原産地|国産|韓国産/i.test(input.rawText));
+
+      if (hasOriginInfo) {
+        const dummyLabel: FoodLabel = {
+          id: 'temp',
+          productId: 'temp',
+          country: input.country,
+          version: 1,
+          status: 'draft',
+          ingredients: input.ingredients.map((ing: any) => ({
+            ingredientNameKo: ing.ingredientNameKo,
+            ingredientNameTarget: ing.ingredientNameEn || ing.ingredientNameKo,
+            ratio: ing.ratio ?? 0,
+            originCountry: ing.originCountry || ing.origin,
+            isAllergen: false,
+            insOrENumber: ing.eNumber,
+          })),
+        };
+
+        const coolFlags = validateCountryOfOrigin(dummyLabel, input.ingredients as any);
+        for (const f of coolFlags) {
+          if (f.severity === 'critical') crit.push(f);
+          else if (f.severity === 'warning') warn.push(f);
+          else inf.push(f);
+        }
+      }
+    } catch (err) {
+      // Non-blocking fallback
     }
 
     recordIssues('engine-10-origin', '10. Origin & Traceability Engine', { critical: crit, warnings: warn, info: inf });
