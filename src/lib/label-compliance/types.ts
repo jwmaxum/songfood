@@ -24,11 +24,13 @@ export interface ValidationInput {
   isShelfStable?: boolean;
   claimsBadges?: string[];
   storageInstructions?: string;
-  ingredients: LabelIngredient[];
-  nutrition?: LabelNutrition;
+  ingredients: Array<Partial<LabelIngredient> & { ingredientNameKo: string }>;
+  nutrition?: Partial<LabelNutrition>;
   registrationNumbers?: {
     gaccCode?: string;
+    gaccRegNo?: string;
     fdaFce?: string;
+    fdaFacilityNo?: string;
     halalCertNo?: string;
     euEstablishmentNo?: string;
     japanImportNoticeNo?: string;

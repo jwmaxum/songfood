@@ -33,7 +33,7 @@ export function validateEURules(input: ValidationInput): { critical: RedFlagItem
         severity: 'critical',
         title: 'EU 영양선언 kJ / kcal 듀얼 표기 누락',
         message: 'EU FIC Regulation No 1169/2011에 따라 에너지는 kJ과 kcal 두 단위를 반드시 나란히 병기해야 합니다.',
-        solution: `열량 ${input.nutrition.caloriesKcal} kcal와 함께 ${Math.round(input.nutrition.caloriesKcal * 4.184)} kJ을 동시 표기하십시오.`,
+        solution: `열량 ${input.nutrition.caloriesKcal || 0} kcal와 함께 ${Math.round((input.nutrition.caloriesKcal || 0) * 4.184)} kJ을 동시 표기하십시오.`,
         lawReference: 'Regulation (EU) No 1169/2011 Annex XIII'
       });
     }

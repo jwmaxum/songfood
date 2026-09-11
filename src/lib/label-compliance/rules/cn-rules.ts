@@ -76,7 +76,7 @@ export function validateCNRules(input: ValidationInput): { critical: RedFlagItem
         severity: 'critical',
         title: '중국 영양성분표 에너지 단위(kJ) 누락',
         message: '중국 GB 28050 규정상 영양성분표의 에너지는 kcal가 아닌 kJ(킬로줄)을 기본 단위로 표기해야 합니다.',
-        solution: `열량 ${input.nutrition.caloriesKcal} kcal에 대해 약 ${Math.round(input.nutrition.caloriesKcal * 4.184)} kJ로 자동 환산하여 표기하십시오.`,
+        solution: `열량 ${input.nutrition.caloriesKcal || 0} kcal에 대해 약 ${Math.round((input.nutrition.caloriesKcal || 0) * 4.184)} kJ로 자동 환산하여 표기하십시오.`,
         lawReference: 'GB 28050-2011 식품안전국가표준 예포장식품영양표시통칙'
       });
     }

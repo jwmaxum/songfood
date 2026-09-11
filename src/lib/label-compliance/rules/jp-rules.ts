@@ -8,7 +8,7 @@ export function validateJPRules(input: ValidationInput): { critical: RedFlagItem
   // 1. [CRITICAL] 식염상당량(食塩相当量) 환산 표기 검증
   if (input.nutrition) {
     if (input.nutrition.saltEquivalentG === undefined || input.nutrition.saltEquivalentG === null) {
-      const calculated = Number(((input.nutrition.sodiumMg * 2.54) / 1000).toFixed(2));
+      const calculated = Number((((input.nutrition.sodiumMg || 0) * 2.54) / 1000).toFixed(2));
       critical.push({
         code: 'JP-CRIT-SALT-EQUIVALENT',
         field: 'nutrition.saltEquivalentG',

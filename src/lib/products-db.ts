@@ -631,3 +631,7 @@ export async function deleteProduct(id: string): Promise<boolean> {
 
   return products.length < initLen;
 }
+
+export type { ProductItem } from './types';
+export type Product = ProductItem;
+
