@@ -1259,6 +1259,71 @@ export default function LabelingShowcaseClient({ initialLabels }: Props) {
                   </div>
                 </div>
 
+                {/* Phase 8: Jurisdiction Resolver Diagnostic Summary */}
+                {simResult.jurisdictionInfo && (
+                  <div className="bg-stone-950/80 rounded-xl p-4 border border-stone-800 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-[11px] font-mono uppercase bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded font-bold">
+                          Jurisdiction Resolver
+                        </span>
+                        <span className="text-xs font-bold text-stone-200">
+                          관할: <strong className="text-white">{simResult.jurisdictionInfo.primaryAuthority}</strong>
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-[11px]">
+                        {simResult.jurisdictionInfo.requiresPreApproval && (
+                          <span className="bg-red-900/50 text-red-300 border border-red-700/50 px-2 py-0.5 rounded font-bold">
+                            사전 인허가 승인 필수
+                          </span>
+                        )}
+                        {simResult.jurisdictionInfo.isExportRestricted && (
+                          <span className="bg-red-500 text-white font-black px-2 py-0.5 rounded animate-pulse">
+                            수출 원천 차단 대상
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {simResult.jurisdictionInfo.applicableLaws.map((law, lIdx) => (
+                        <span key={lIdx} className="text-[10px] font-mono bg-stone-800/90 text-stone-300 px-2 py-0.5 rounded border border-stone-700/50">
+                          ⚖️ {law}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Phase 8: 14 Domain Sub-Engines Audit Grid */}
+                {simResult.subEngineReports && simResult.subEngineReports.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="text-xs font-black text-stone-400 flex items-center justify-between uppercase tracking-wider">
+                      <span>14대 엔터프라이즈 도메인 엔진 감사 현황</span>
+                      <span className="text-[10px] font-mono text-emerald-400">
+                        {simResult.subEngineReports.filter((r) => r.passed).length} / 14 Passed
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1.5">
+                      {simResult.subEngineReports.map((report) => (
+                        <div
+                          key={report.engineId}
+                          className={`p-2 rounded-lg border text-center transition-all ${
+                            report.passed
+                              ? 'bg-emerald-950/30 border-emerald-800/40 text-emerald-300'
+                              : 'bg-red-950/50 border-red-800/70 text-red-300 ring-1 ring-red-500/30'
+                          }`}
+                        >
+                          <div className="text-[9px] font-bold truncate">{report.engineName}</div>
+                          <div className="text-[10px] font-mono font-black mt-0.5">
+                            {report.passed ? 'PASS ✓' : `FAIL (${report.issuesCount})`}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Critical Errors List */}
                 {simResult.criticalErrors.length > 0 && (
                   <div className="space-y-3">
@@ -1272,9 +1337,14 @@ export default function LabelingShowcaseClient({ initialLabels }: Props) {
                         <div key={idx} className="bg-red-950/40 border border-red-800/60 rounded-xl p-4 space-y-2">
                           <div className="flex items-start justify-between gap-2">
                             <div className="space-y-0.5">
-                              <span className="text-[10px] font-mono bg-red-900/60 text-red-300 px-2 py-0.5 rounded font-bold">
-                                {err.code}
+                              <span className="text-[10px] font-mono bg-red-900/60 text-red-300 px-2 py-0.5 rounded font-bold mr-1.5">
+                                {err.ruleId || err.code}
                               </span>
+                              {err.authority && (
+                                <span className="text-[10px] font-mono bg-stone-800 text-stone-300 px-2 py-0.5 rounded">
+                                  {err.authority}
+                                </span>
+                              )}
                               <h4 className="text-sm font-black text-red-200 mt-1">{err.title}</h4>
                             </div>
                             {err.lawReference && (
@@ -1286,9 +1356,15 @@ export default function LabelingShowcaseClient({ initialLabels }: Props) {
 
                           <p className="text-xs text-stone-300 leading-relaxed">{err.message}</p>
 
+                          {err.whyProblem && err.whyProblem !== err.message && (
+                            <div className="text-[11px] text-red-300/80 bg-red-950/30 p-2 rounded border border-red-900/40">
+                              <strong className="text-red-200">🔍 왜 문제인가:</strong> {err.whyProblem}
+                            </div>
+                          )}
+
                           <div className="bg-emerald-950/60 border border-emerald-800/40 rounded-lg p-2.5 text-xs text-emerald-300 flex items-start space-x-2 mt-2">
-                            <span className="font-bold whitespace-nowrap text-emerald-400">💡 권장 솔루션:</span>
-                            <span>{err.solution}</span>
+                            <span className="font-bold whitespace-nowrap text-emerald-400">💡 구체적 해결책(How):</span>
+                            <span>{err.howToFix || err.solution}</span>
                           </div>
                         </div>
                       ))}
@@ -1309,10 +1385,10 @@ export default function LabelingShowcaseClient({ initialLabels }: Props) {
                         <div key={idx} className="bg-amber-950/30 border border-amber-800/50 rounded-xl p-3.5 space-y-1.5">
                           <div className="flex items-center justify-between">
                             <span className="text-xs font-bold text-amber-300">{warn.title}</span>
-                            <span className="text-[10px] font-mono text-amber-400">{warn.code}</span>
+                            <span className="text-[10px] font-mono text-amber-400">{warn.ruleId || warn.code}</span>
                           </div>
                           <p className="text-xs text-stone-300">{warn.message}</p>
-                          <div className="text-[11px] text-amber-200/90 font-medium">👉 {warn.solution}</div>
+                          <div className="text-[11px] text-amber-200/90 font-medium">👉 {warn.howToFix || warn.solution}</div>
                         </div>
                       ))}
                     </div>

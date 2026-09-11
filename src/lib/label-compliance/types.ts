@@ -1,4 +1,5 @@
 import { ExportCountry, FoodLabel, LabelIngredient, LabelNutrition } from '@/types/label';
+import type { JurisdictionResolution } from './jurisdiction-resolver';
 
 export type RuleSeverity = 'critical' | 'warning' | 'info';
 
@@ -10,6 +11,11 @@ export interface RedFlagItem {
   message: string;
   solution: string;
   lawReference?: string;
+  // Phase 8 Enterprise Sub-Engine Properties
+  ruleId?: string;
+  whyProblem?: string;
+  howToFix?: string;
+  authority?: string;
 }
 
 export interface ValidationInput {
@@ -21,10 +27,16 @@ export interface ValidationInput {
   netWeightG: number;
   netWeightOz?: number;
   packageAreaCm2?: number;
+  fontXHeightMm?: number;
   isShelfStable?: boolean;
   claimsBadges?: string[];
   storageInstructions?: string;
-  ingredients: Array<Partial<LabelIngredient> & { ingredientNameKo: string }>;
+  ingredients: Array<Partial<LabelIngredient> & {
+    ingredientNameKo: string;
+    ingredientNameEn?: string;
+    ratio?: number;
+    eNumber?: string;
+  }>;
   nutrition?: Partial<LabelNutrition>;
   registrationNumbers?: {
     gaccCode?: string;
@@ -44,13 +56,23 @@ export interface ValidationInput {
   rawText?: string; // 소구 문구 또는 라벨 전문
 }
 
+export interface SubEngineReport {
+  engineId: string;
+  engineName: string;
+  passed: boolean;
+  issuesCount: number;
+}
+
 export interface ValidationResult {
   country: ExportCountry;
   jurisdiction: string;
+  jurisdictionInfo?: JurisdictionResolution;
   isCompliant: boolean;
   score: number; // 0 ~ 100
   criticalErrors: RedFlagItem[];
   warnings: RedFlagItem[];
   infoNotes: RedFlagItem[];
+  subEngineReports?: SubEngineReport[];
   checkedAt: string;
 }
+
