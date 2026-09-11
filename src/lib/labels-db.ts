@@ -37,6 +37,137 @@ function writeLocalLabels(labels: FoodLabel[]): void {
 }
 
 /**
+ * Supabase DB의 snake_case Row를 camelCase FoodLabel로 변환
+ */
+export function mapRowToFoodLabel(row: any): FoodLabel {
+  if (!row) return row;
+  // 이미 camelCase인 경우 (로컬 JSON fallback 등)
+  if (row.productId && !row.product_id) return row as FoodLabel;
+
+  const nutritionRow = Array.isArray(row.nutrition) ? row.nutrition[0] : row.nutrition;
+  const complianceRow = Array.isArray(row.compliance) ? row.compliance[0] : row.compliance;
+
+  const ingredients = (row.ingredients || []).map((ing: any) => ({
+    id: ing.id,
+    labelId: ing.label_id || ing.labelId,
+    ingredientNameKo: ing.ingredient_name_ko || ing.ingredientNameKo,
+    ingredientNameTarget: ing.ingredient_name_target || ing.ingredientNameTarget,
+    ratio: Number(ing.ratio ?? 0),
+    subIngredients: ing.sub_ingredients || ing.subIngredients,
+    insOrENumber: ing.ins_or_e_number || ing.insOrENumber,
+    isAllergen: Boolean(ing.is_allergen ?? ing.isAllergen),
+    allergenCategory: ing.allergen_category || ing.allergenCategory,
+    allergenOrigin: ing.allergen_origin || ing.allergenOrigin,
+    isHighlyRefinedOil: Boolean(ing.is_highly_refined_oil ?? ing.isHighlyRefinedOil),
+    displayOrder: ing.display_order ?? ing.displayOrder ?? 0,
+  }));
+
+  const nutrition = nutritionRow ? {
+    id: nutritionRow.id,
+    labelId: nutritionRow.label_id || nutritionRow.labelId,
+    servingSizeG: Number(nutritionRow.serving_size_g ?? nutritionRow.servingSizeG ?? 100),
+    servingSizeUnit: nutritionRow.serving_size_unit || nutritionRow.servingSizeUnit || 'g',
+    servingSizeHousehold: nutritionRow.serving_size_household || nutritionRow.servingSizeHousehold,
+    servingsPerContainer: Number(nutritionRow.servings_per_container ?? nutritionRow.servingsPerContainer ?? 1),
+    isDualColumn: Boolean(nutritionRow.is_dual_column ?? nutritionRow.isDualColumn),
+    caloriesKcal: Number(nutritionRow.calories_kcal ?? nutritionRow.caloriesKcal ?? 0),
+    caloriesKj: nutritionRow.calories_kj ?? nutritionRow.caloriesKj,
+    totalFatG: Number(nutritionRow.total_fat_g ?? nutritionRow.totalFatG ?? 0),
+    saturatedFatG: Number(nutritionRow.saturated_fat_g ?? nutritionRow.saturatedFatG ?? 0),
+    transFatG: Number(nutritionRow.trans_fat_g ?? nutritionRow.transFatG ?? 0),
+    cholesterolMg: Number(nutritionRow.cholesterol_mg ?? nutritionRow.cholesterolMg ?? 0),
+    sodiumMg: Number(nutritionRow.sodium_mg ?? nutritionRow.sodiumMg ?? 0),
+    saltEquivalentG: Number(nutritionRow.salt_equivalent_g ?? nutritionRow.saltEquivalentG ?? 0),
+    totalCarbohydrateG: Number(nutritionRow.total_carbohydrate_g ?? nutritionRow.totalCarbohydrateG ?? 0),
+    dietaryFiberG: Number(nutritionRow.dietary_fiber_g ?? nutritionRow.dietaryFiberG ?? 0),
+    totalSugarsG: Number(nutritionRow.total_sugars_g ?? nutritionRow.totalSugarsG ?? 0),
+    addedSugarsG: Number(nutritionRow.added_sugars_g ?? nutritionRow.addedSugarsG ?? 0),
+    proteinG: Number(nutritionRow.protein_g ?? nutritionRow.proteinG ?? 0),
+    vitaminDMcg: Number(nutritionRow.vitamin_d_mcg ?? nutritionRow.vitaminDMcg ?? 0),
+    calciumMg: Number(nutritionRow.calcium_mg ?? nutritionRow.calciumMg ?? 0),
+    ironMg: Number(nutritionRow.iron_mg ?? nutritionRow.ironMg ?? 0),
+    potassiumMg: Number(nutritionRow.potassium_mg ?? nutritionRow.potassiumMg ?? 0),
+    nrvPercentages: nutritionRow.nrv_percentages || nutritionRow.nrvPercentages,
+    trafficLightRatings: nutritionRow.traffic_light_ratings || nutritionRow.trafficLightRatings,
+  } : undefined;
+
+  const compliance = complianceRow ? {
+    id: complianceRow.id,
+    labelId: complianceRow.label_id || complianceRow.labelId,
+    jurisdiction: complianceRow.jurisdiction,
+    isCompliant: Boolean(complianceRow.is_compliant ?? complianceRow.isCompliant),
+    score: Number(complianceRow.score ?? 100),
+    criticalErrors: complianceRow.critical_errors || complianceRow.criticalErrors || [],
+    warnings: complianceRow.warnings || complianceRow.warnings || [],
+    checkedAt: complianceRow.checked_at || complianceRow.checkedAt,
+  } : undefined;
+
+  const netWeightG = Number(row.net_weight_g ?? row.netWeightG ?? 500);
+  const netWeightOz = Number(row.net_weight_oz ?? row.netWeightOz ?? (netWeightG / 28.3495).toFixed(1));
+
+  return {
+    id: row.id,
+    productId: row.product_id || row.productId,
+    country: row.country,
+    version: row.version ?? 1,
+    status: row.status ?? 'compliant',
+    hsCode: row.hs_code || row.hsCode,
+    productNameLocal: row.product_name_local || row.productNameLocal,
+    productNameEn: row.product_name_en || row.productNameEn,
+    productCategoryLocal: row.product_category_local || row.productCategoryLocal,
+    netWeightG,
+    netWeightOz,
+    packageAreaCm2: Number(row.package_area_cm2 ?? row.packageAreaCm2 ?? 120),
+    isShelfStable: Boolean(row.is_shelf_stable ?? row.isShelfStable ?? true),
+    claimsBadges: row.claims_badges || row.claimsBadges || [],
+    servingSuggestion: row.serving_suggestion || row.servingSuggestion,
+    storageInstructions: row.storage_instructions || row.storageInstructions || 'Keep in cool, dry place',
+    cookingInstructions: row.cooking_instructions || row.cookingInstructions,
+    manufacturerInfo: row.manufacturer_info || row.manufacturerInfo,
+    importerInfo: row.importer_info || row.importerInfo,
+    registrationNumbers: row.registration_numbers || row.registrationNumbers,
+    alcoholPercentage: Number(row.alcohol_percentage ?? row.alcoholPercentage ?? 0),
+    dateMarkingType: row.date_marking_type || row.dateMarkingType || 'YYYY/MM/DD',
+    dateMarkingText: row.date_marking_text || row.dateMarkingText,
+    shelfLifeMonths: Number(row.shelf_life_months ?? row.shelfLifeMonths ?? 12),
+    barcodeType: row.barcode_type || row.barcodeType || 'EAN-13',
+    barcodeNumber: row.barcode_number || row.barcodeNumber,
+    packagingMaterial: row.packaging_material || row.packagingMaterial,
+    recyclingSymbols: row.recycling_symbols || row.recyclingSymbols || [],
+    header: {
+      hsCode: row.hs_code || row.hsCode,
+      productNameKo: row.product_name_en || row.productNameEn,
+      productNameEn: row.product_name_en || row.productNameEn,
+      productNameTarget: row.product_name_local || row.productNameLocal,
+      legalProductType: row.product_category_local || row.productCategoryLocal,
+    },
+    pdp: {
+      netWeightG,
+      claimHighlights: row.claims_badges || row.claimsBadges || [],
+      certifications: row.claims_badges || row.claimsBadges || [],
+    },
+    informationPanel: {
+      storageConditionKo: row.storage_instructions || row.storageInstructions,
+      storageConditionTarget: row.storage_instructions || row.storageInstructions,
+      manufacturerName: row.manufacturer_info?.name || row.manufacturerInfo?.name,
+    },
+    datingLot: {
+      shelfLifeDays: (row.shelf_life_months ?? row.shelfLifeMonths ?? 12) * 30,
+    },
+    barcodeMarking: {
+      barcodeType: row.barcode_type || row.barcodeType,
+      barcodeNumber: row.barcode_number || row.barcodeNumber,
+      recyclingMarks: row.recycling_symbols || row.recyclingSymbols,
+    },
+    ingredients,
+    nutrition,
+    compliance,
+    createdAt: row.created_at || row.createdAt,
+    updatedAt: row.updated_at || row.updatedAt,
+  };
+}
+
+/**
  * 모든 식품 라벨 목록 조회 (국가 필터 선택 가능)
  */
 export async function getAllFoodLabels(country?: ExportCountry): Promise<FoodLabel[]> {
@@ -57,7 +188,7 @@ export async function getAllFoodLabels(country?: ExportCountry): Promise<FoodLab
 
       const { data, error } = await query;
       if (!error && data && data.length > 0) {
-        return data as FoodLabel[];
+        return data.map(mapRowToFoodLabel);
       }
     } catch (err) {
       console.warn('[labels-db] Supabase query failed, falling back to local JSON:', err);
@@ -65,7 +196,7 @@ export async function getAllFoodLabels(country?: ExportCountry): Promise<FoodLab
   }
 
   // Fallback: Local JSON
-  const localLabels = readLocalLabels();
+  const localLabels = readLocalLabels().map(mapRowToFoodLabel);
   if (country) {
     return localLabels.filter((l) => l.country === country);
   }

@@ -20,9 +20,15 @@ import {
   Check,
   Building2,
   Clock,
-  Printer
+  Printer,
+  Search,
+  Filter,
+  Package,
+  Tag,
+  CheckCheck
 } from 'lucide-react';
 import { FoodLabel, ExportCountry } from '@/types/label';
+import { ProductItem } from '@/lib/types';
 import { validateLabel, ValidationResult, ValidationInput } from '@/lib/label-compliance';
 import {
   calculateGlobalNutrition,
@@ -40,6 +46,7 @@ import {
 
 interface Props {
   initialLabels: FoodLabel[];
+  products?: ProductItem[];
 }
 
 const COUNTRIES: { code: ExportCountry; name: string; flag: string; authority: string; primaryLang: string }[] = [
@@ -256,27 +263,82 @@ const SIMULATION_PRESETS: { id: string; name: string; country: ExportCountry; fl
   }
 ];
 
-export default function LabelingShowcaseClient({ initialLabels }: Props) {
+export default function LabelingShowcaseClient({ initialLabels, products = [] }: Props) {
   const [selectedCountry, setSelectedCountry] = useState<ExportCountry>('US');
   const [activeTab, setActiveTab] = useState<'matrix' | 'live_preview' | 'compliance' | 'nutrition_calc'>('live_preview');
+
+  // 상품 선택 및 검색 상태
+  const productList = products.length > 0 ? products : initialLabels.map((l) => ({
+    id: l.productId,
+    name: l.productNameEn || l.productNameLocal || l.productId,
+    name_en: l.productNameEn || l.productId,
+    category: l.productCategoryLocal || 'K-Food',
+    collection: 'K-Food',
+    price: 15000,
+    sku: l.productId,
+    format: `${l.netWeightG || 500}g`,
+    image_url: '/images/products/coming-soon.png',
+    description: l.productNameLocal || '',
+    origin: '대한민국',
+    hs_code: l.hsCode || '2106.90',
+    shelf_life: `${l.shelfLifeMonths || 12}개월`,
+    storage: l.storageInstructions || '실온보관',
+    stock: 100,
+    rating: 5,
+    reviews_count: 10,
+    finish: '정밀가공',
+    color: '자연색',
+    look: '수출규격',
+    thickness: `${l.netWeightG || 500}g`
+  }));
+
+  const [selectedProductId, setSelectedProductId] = useState<string>(() => {
+    return productList[0]?.id || initialLabels[0]?.productId || 'prod-kmc-poggi-5k';
+  });
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('전체');
+
+  // 카테고리 목록 추출
+  const categories = ['전체', ...Array.from(new Set(productList.map((p) => p.category || p.collection || '기타'))).filter(Boolean)];
+
+  // 검색 및 카테고리 필터링된 상품 목록
+  const filteredProducts = productList.filter((p) => {
+    const matchesCategory = selectedCategory === '전체' || (p.category === selectedCategory || p.collection === selectedCategory);
+    const q = searchQuery.toLowerCase().trim();
+    const matchesQuery = !q || (
+      (p.name && p.name.toLowerCase().includes(q)) ||
+      (p.name_en && p.name_en.toLowerCase().includes(q)) ||
+      (p.id && p.id.toLowerCase().includes(q)) ||
+      (p.category && p.category.toLowerCase().includes(q)) ||
+      (p.hs_code && p.hs_code.toLowerCase().includes(q))
+    );
+    return matchesCategory && matchesQuery;
+  });
+
+  const activeProduct = productList.find((p) => p.id === selectedProductId) || productList[0];
+
+  // 현재 선택된 상품 및 국가의 라벨 데이터
+  const activeLabel = initialLabels.find((l) => l.productId === selectedProductId && l.country === selectedCountry)
+    || initialLabels.find((l) => l.country === selectedCountry)
+    || initialLabels[0];
 
   // 인터랙티브 컴플라이언스 시뮬레이터 상태
   const [activePresetId, setActivePresetId] = useState<string>('us_fail');
   const [simResult, setSimResult] = useState<ValidationResult>(() => validateLabel(SIMULATION_PRESETS[0].input));
 
-  // 인터랙티브 영양성분 듀얼 변환기 상태
-  const [nutritionServingG, setNutritionServingG] = useState<number>(120);
-  const [nutritionCalories, setNutritionCalories] = useState<number>(183);
-  const [nutritionSodium, setNutritionSodium] = useState<number>(383);
-  const [nutritionFat, setNutritionFat] = useState<number>(5.0);
-  const [nutritionCarb, setNutritionCarb] = useState<number>(26.6);
-  const [nutritionProtein, setNutritionProtein] = useState<number>(7.5);
+  // 인터랙티브 영양성분 듀얼 변환기 상태 (선택된 라벨의 영양성분으로 동기화)
+  const [nutritionServingG, setNutritionServingG] = useState<number>(activeLabel?.nutrition?.servingSizeG || 100);
+  const [nutritionCalories, setNutritionCalories] = useState<number>(activeLabel?.nutrition?.caloriesKcal || 150);
+  const [nutritionSodium, setNutritionSodium] = useState<number>(activeLabel?.nutrition?.sodiumMg || 400);
+  const [nutritionFat, setNutritionFat] = useState<number>(activeLabel?.nutrition?.totalFatG || 3.0);
+  const [nutritionCarb, setNutritionCarb] = useState<number>(activeLabel?.nutrition?.totalCarbohydrateG || 25.0);
+  const [nutritionProtein, setNutritionProtein] = useState<number>(activeLabel?.nutrition?.proteinG || 5.0);
 
   const currentNutritionResult: GlobalNutritionResult = calculateGlobalNutrition({
     baseWeightG: 100,
     servingSizeG: nutritionServingG,
-    servingsPerContainer: Math.max(1, Math.round(480 / nutritionServingG)),
-    servingSizeHousehold: `${Math.round(nutritionServingG / 30)} pieces (${nutritionServingG}g)`,
+    servingsPerContainer: Math.max(1, Math.round((activeLabel?.netWeightG || 480) / nutritionServingG)),
+    servingSizeHousehold: `${Math.round(nutritionServingG / 25)} pieces (${nutritionServingG}g)`,
     caloriesKcal: nutritionCalories,
     totalFatG: nutritionFat,
     saturatedFatG: Number((nutritionFat * 0.16).toFixed(1)),
@@ -294,8 +356,6 @@ export default function LabelingShowcaseClient({ initialLabels }: Props) {
     potassiumMg: 160,
   });
 
-  // 현재 선택된 국가의 라벨 데이터
-  const activeLabel = initialLabels.find((l) => l.country === selectedCountry) || initialLabels[0];
   const reg = REGULATION_SUMMARIES[selectedCountry];
 
   return (
@@ -434,26 +494,127 @@ export default function LabelingShowcaseClient({ initialLabels }: Props) {
         {/* TAB 1: LIVE 6-BLOCK PREVIEW */}
         {activeTab === 'live_preview' && (
           <div className="space-y-8 animate-in fade-in duration-300">
-            {/* Top Bar: Product & Country Overview */}
-            <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-              <div className="space-y-1">
-                <div className="inline-flex items-center space-x-2 text-xs font-bold text-[#14532D]">
-                  <span>대표 표준 규격 샘플:</span>
-                  <span className="bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded font-mono">
-                    {activeLabel.productId} ({activeLabel.hsCode || 'HS 1902.20'})
-                  </span>
+            {/* 0. Product Selector & Search Bar */}
+            <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-stone-100 pb-4">
+                <div>
+                  <div className="flex items-center space-x-2 text-xs font-bold text-[#14532D] uppercase tracking-wider mb-1">
+                    <Package size={14} />
+                    <span>K-Food 마스터 품목 라인업 ({productList.length}개 SKUs 준비완료)</span>
+                  </div>
+                  <h3 className="text-lg font-black text-stone-900">
+                    수출 품목 선택 및 실시간 마스터 라벨 조회
+                  </h3>
+                  <p className="text-xs text-stone-500">
+                    카테고리별 품목을 선택하거나 검색창에서 원하는 상품을 찾아 5대국 라벨 스펙을 즉시 검토할 수 있습니다.
+                  </p>
                 </div>
-                <h2 className="text-xl sm:text-2xl font-black text-stone-900">
-                  {activeLabel.productNameLocal}
-                </h2>
-                <p className="text-xs sm:text-sm text-stone-500 font-medium">
-                  {activeLabel.productNameEn} · 법적 식품유형: <span className="text-stone-800 font-bold">{activeLabel.productCategoryLocal}</span>
-                </p>
+
+                {/* Search Box */}
+                <div className="relative w-full md:w-80">
+                  <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="품목명, 영문명, HS Code 검색..."
+                    className="w-full pl-9 pr-4 py-2 text-xs bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all text-stone-800 placeholder-stone-400 font-medium"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 text-xs"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
               </div>
 
-              <div className="flex items-center space-x-3">
+              {/* Category Filter Chips */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-bold">
+                <span className="text-stone-400 mr-1 flex items-center shrink-0">
+                  <Filter size={12} className="mr-1" /> 분류:
+                </span>
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-all ${
+                      selectedCategory === cat
+                        ? 'bg-[#14532D] text-white shadow-sm'
+                        : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              {/* Product Select Dropdown & Quick Carousel */}
+              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div className="flex-1">
+                  <label className="block text-[11px] font-bold text-stone-500 mb-1">
+                    선택 품목 ({filteredProducts.length}개 검색됨):
+                  </label>
+                  <select
+                    value={selectedProductId}
+                    onChange={(e) => setSelectedProductId(e.target.value)}
+                    className="w-full px-3 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs sm:text-sm font-bold text-stone-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all cursor-pointer"
+                  >
+                    {filteredProducts.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        [{p.category || p.collection}] {p.name} ({p.name_en})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Top Bar: Product & Country Overview */}
+            <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div className="flex items-center space-x-5">
+                {/* Coming Soon Product Image */}
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-xl overflow-hidden border border-stone-200 bg-stone-900 shadow-inner">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={activeProduct?.image_url || '/images/products/coming-soon.png'}
+                    alt={activeProduct?.name || 'K-Food Product'}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute bottom-0 inset-x-0 bg-black/70 text-[9px] text-amber-300 text-center font-bold py-0.5 backdrop-blur-[1px]">
+                    EXPORT READY
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="inline-flex items-center space-x-2 text-xs font-bold text-[#14532D]">
+                    <span className="bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded font-mono">
+                      {activeLabel.productId} · HS {activeLabel.hsCode || activeProduct?.hs_code || '2106.90'}
+                    </span>
+                    <span className="text-stone-400">|</span>
+                    <span className="text-stone-600 font-semibold">{activeProduct?.category || activeProduct?.collection}</span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black text-stone-900">
+                    {activeLabel.productNameLocal || activeProduct?.name}
+                  </h2>
+                  <p className="text-xs sm:text-sm text-stone-500 font-medium">
+                    {activeLabel.productNameEn || activeProduct?.name_en} · 현지 식품유형: <span className="text-stone-800 font-bold">{activeLabel.productCategoryLocal}</span>
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] text-stone-500">
+                    <span>중량: <b className="text-stone-700">{activeLabel.netWeightG}g ({activeLabel.netWeightOz} oz)</b></span>
+                    <span>·</span>
+                    <span>유통기한: <b className="text-stone-700">{activeLabel.shelfLifeMonths || 12}개월</b></span>
+                    <span>·</span>
+                    <span>보관: <b className="text-stone-700">{activeLabel.isShelfStable ? '실온보관' : '냉동/냉장'}</b></span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-3 shrink-0">
                 <div className="text-right">
-                  <div className="text-xs text-stone-400 font-bold">규제 승인 상태</div>
+                  <div className="text-xs text-stone-400 font-bold">라벨 규제 상태</div>
                   <div className="inline-flex items-center space-x-1 text-xs font-black text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">
                     <CheckCircle2 size={13} />
                     <span>100% {activeLabel.status.toUpperCase()}</span>
@@ -565,20 +726,65 @@ export default function LabelingShowcaseClient({ initialLabels }: Props) {
                     </span>
                   </div>
 
-                  {/* Ingredients Table */}
-                  <div className="space-y-2">
-                    <div className="text-xs font-bold text-stone-700">원재료명 (Ingredients List):</div>
-                    <div className="bg-stone-50 p-3 rounded-xl text-xs text-stone-800 leading-relaxed font-sans">
-                      {activeLabel.ingredients?.map((ing, i) => (
-                        <span key={i}>
-                          <span className={ing.isAllergen ? 'font-bold text-red-700 underline decoration-red-400' : ''}>
-                            {ing.ingredientNameTarget}
-                          </span>
-                          {ing.ratio ? ` (${ing.ratio}%)` : ''}
-                          {i < (activeLabel.ingredients?.length ?? 0) - 1 ? ', ' : '.'}
-                        </span>
-                      ))}
+                  {/* Ingredients Table & List */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-xs font-bold text-stone-700">
+                      <span>현지어 원재료 표시문 (Ingredients Statement):</span>
+                      <span className="text-[11px] text-stone-400 font-normal">
+                        총 {activeLabel.ingredients?.length || 0}개 성분 배합
+                      </span>
                     </div>
+                    <div className="bg-stone-50 p-3.5 rounded-xl text-xs text-stone-800 leading-relaxed font-sans border border-stone-100">
+                      {activeLabel.ingredients && activeLabel.ingredients.length > 0 ? (
+                        activeLabel.ingredients.map((ing, i) => (
+                          <span key={i}>
+                            <span className={ing.isAllergen ? 'font-bold text-red-700 underline decoration-red-400' : ''}>
+                              {ing.ingredientNameTarget}
+                            </span>
+                            {ing.ratio ? ` (${ing.ratio}%)` : ''}
+                            {i < (activeLabel.ingredients?.length ?? 0) - 1 ? ', ' : '.'}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-stone-400">등록된 원재료 정보가 없습니다.</span>
+                      )}
+                    </div>
+
+                    {/* Detailed Ingredients Ratio Table */}
+                    {activeLabel.ingredients && activeLabel.ingredients.length > 0 && (
+                      <div className="overflow-x-auto rounded-xl border border-stone-200 mt-2">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-stone-100 text-stone-600 font-bold border-b border-stone-200">
+                            <tr>
+                              <th className="px-3 py-2">순번</th>
+                              <th className="px-3 py-2">한국어 원재료명</th>
+                              <th className="px-3 py-2">수출국 현지 표기명</th>
+                              <th className="px-3 py-2 text-right">배합비 (%)</th>
+                              <th className="px-3 py-2 text-center">알레르겐</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-stone-100 bg-white">
+                            {activeLabel.ingredients.map((ing, idx) => (
+                              <tr key={idx} className={ing.isAllergen ? 'bg-red-50/40' : 'hover:bg-stone-50'}>
+                                <td className="px-3 py-2 text-stone-400 font-mono">{idx + 1}</td>
+                                <td className="px-3 py-2 font-bold text-stone-800">{ing.ingredientNameKo}</td>
+                                <td className="px-3 py-2 text-stone-700">{ing.ingredientNameTarget}</td>
+                                <td className="px-3 py-2 text-right font-mono font-bold text-stone-900">{ing.ratio}%</td>
+                                <td className="px-3 py-2 text-center">
+                                  {ing.isAllergen ? (
+                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black bg-red-100 text-red-700">
+                                      {ing.allergenCategory || '알레르겐'}
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] text-stone-400">-</span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
 
                   {/* Allergen Callout Box */}
@@ -588,11 +794,24 @@ export default function LabelingShowcaseClient({ initialLabels }: Props) {
                       <span>수출 대상국 법정 알레르겐 의무 표기문 (Allergen Advice)</span>
                     </div>
                     <p className="text-xs text-red-800 font-bold">
-                      {selectedCountry === 'US' && 'CONTAINS: WHEAT, SOYBEANS, CRUSTACEAN SHELLFISH (SHRIMP), SESAME.'}
-                      {selectedCountry === 'CN' && '致敏原信息：含有含有麸质的谷物及其制品（小麦）、大豆及其制品、甲壳纲动物及其制品（虾仁）、芝麻及其制品。'}
-                      {selectedCountry === 'JP' && '原材料の一部に小麦・えび・大豆・ごまを含みます。（特定原材料8品目および推奨品目を厳格表示）'}
-                      {selectedCountry === 'EU' && 'Allergy Advice: For allergens, including cereals containing gluten, see ingredients in BOLD.'}
-                      {selectedCountry === 'UAE' && 'تحذير الحساسية: يحتوي على القمح وفول الصويا والقشريات والسمسم. خالٍ تماماً من لحم الخنزير ومشتقاته.'}
+                      {(() => {
+                        const allergensList = (activeLabel.ingredients || [])
+                          .filter((i) => i.isAllergen)
+                          .map((i) => i.ingredientNameTarget);
+                        const allergenStr = allergensList.length > 0 ? allergensList.join(', ') : 'None';
+
+                        if (selectedCountry === 'US') {
+                          return `CONTAINS: ${allergenStr.toUpperCase()}.`;
+                        } else if (selectedCountry === 'CN') {
+                          return `致敏原信息：含有 ${allergenStr} 及其制品。`;
+                        } else if (selectedCountry === 'JP') {
+                          return `原材料の一部に ${allergenStr} を含みます。（特定原材料等8品目・20品目準拠）`;
+                        } else if (selectedCountry === 'EU') {
+                          return `Allergy Advice: For allergens, including cereals containing gluten, see ingredients in BOLD (${allergenStr}).`;
+                        } else {
+                          return `تحذير الحساسية: يحتوي على (${allergenStr}). خالٍ تماماً من لحم الخنزير ومشتقاته (حلال).`;
+                        }
+                      })()}
                     </p>
                   </div>
 
