@@ -5,6 +5,7 @@ import { validateAdditives } from './additive-engine';
 import { validateNetQuantity } from './net-quantity-engine';
 import { validateClaims } from './claim-engine';
 import { validateAllergenSourcesEngine } from './allergen-source-engine';
+import { validateBarcodeAndMarking } from './barcode-engine';
 import { AllergenSourceItem, AllergenDeclarationAudit } from '@/types/allergen';
 
 export interface DomainEnginesOutput {
@@ -355,30 +356,8 @@ export function run14DomainEngines(input: ValidationInput): DomainEnginesOutput 
 
   // 14. Barcode & Marking Engine
   {
-    const crit: RedFlagItem[] = [];
-    const warn: RedFlagItem[] = [];
-    const inf: RedFlagItem[] = [];
-
-    if (input.barcodeNumber) {
-      const len = input.barcodeNumber.trim().length;
-      if (input.country === 'US' && len !== 12 && len !== 13) {
-        warn.push({
-          code: 'ENG-BARCODE-US-UPC-MISMATCH',
-          field: 'barcodeNumber',
-          severity: 'warning',
-          title: '미국 바코드 규격 주의 (UPC-A 12자리 권장)',
-          message: `미국 유통망에서는 주로 12자리 UPC-A 바코드가 사용됩니다 (현재: ${len}자리).`,
-          solution: '미국 유통 바이어와의 협의에 따라 UPC-A 12자리 바코드를 발급받아 적용하십시오.',
-          lawReference: 'GS1 General Specifications',
-          ruleId: 'US-BARCODE-UPC',
-          whyProblem: '일부 미국 리테일 유통사 POS 시스템에서 13자리 EAN 인식 오류가 발생할 수 있습니다.',
-          howToFix: 'GS1 US 규격의 12자리 UPC 코드를 생성하십시오.',
-          authority: 'GS1'
-        });
-      }
-    }
-
-    recordIssues('engine-14-barcode', '14. Barcode & Marking Engine', { critical: crit, warnings: warn, info: inf });
+    const barcodeRes = validateBarcodeAndMarking(input);
+    recordIssues('engine-14-barcode', '14. Barcode & Marking Engine', barcodeRes);
   }
 
   return {
