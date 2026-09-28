@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ContentBlock } from '@/lib/types';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import {
   FileText,
   Plus,
@@ -14,45 +13,6 @@ import {
   Layout,
   Sparkles,
 } from 'lucide-react';
-
-const FALLBACK_BLOCKS: ContentBlock[] = [
-  {
-    id: 'block-1',
-    section_key: 'featured_categories',
-    page: 'home',
-    title: '송영민푸드 엄선 K-푸드 & 전통주',
-    subtitle: 'K-Food 카테고리',
-    description: '급속 냉동 수제 만두부터 옹기 숙성 원소주, 프레시 생막걸리와 K-스트리트 밀키트까지 대한민국 대표 미식을 직배송합니다.',
-    badge: '100% 품질 보증',
-    media_url: 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=1200&q=80',
-    media_type: 'image',
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'block-2',
-    section_key: 'brand_story',
-    page: 'home',
-    title: '송영민푸드, 글로벌 K-Food의 새로운 기준',
-    subtitle: '브랜드 스토어',
-    description: '송영민푸드(Song Youngmin Food)는 대한민국 엄선 식품 제조사 및 전통주 도가와의 정식 파트너십을 통해 K-Food, Korea Food, K-Fresh Food를 전 세계에 배송합니다.',
-    badge: '대한민국 브랜드 직송',
-    media_url: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?auto=format&fit=crop&w=1200&q=80',
-    media_type: 'image',
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'block-3',
-    section_key: 'banner_alert',
-    page: 'home',
-    title: '24시간 에어 프레시 배송 보증',
-    subtitle: '전국 및 글로벌 무료배송',
-    description: '모든 K-냉동식품 및 생막걸리는 드라이아이스 전용 에어 패킹으로 24시간 이내 최상의 신선함을 유지합니다.',
-    badge: '특가 혜택',
-    media_url: '',
-    media_type: 'image',
-    updated_at: new Date().toISOString(),
-  },
-];
 
 export default function ContentBlockManager() {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
@@ -77,7 +37,7 @@ export default function ContentBlockManager() {
       const res = await fetch('/api/content-blocks?mode=admin');
       if (res.ok) {
         const data = await res.json();
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+        if (data.success && Array.isArray(data.data)) {
           setBlocks(data.data);
           setLoading(false);
           return;
@@ -87,20 +47,8 @@ export default function ContentBlockManager() {
       // Fallback
     }
 
-    if (isSupabaseConfigured()) {
-      try {
-        const { data, error } = await supabase.from('content_blocks').select('*');
-        if (!error && data && data.length > 0) {
-          setBlocks(data as ContentBlock[]);
-          setLoading(false);
-          return;
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    setBlocks(FALLBACK_BLOCKS);
+    setBlocks([]);
+    setToastMessage('콘텐츠를 불러오지 못했습니다.');
     setLoading(false);
   };
 
@@ -149,15 +97,13 @@ export default function ContentBlockManager() {
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
       const data = await res.json();
       if (data.success) {
-        setMediaUrl(data.url);
+        setMediaUrl(data.data.url);
         showToast('Media uploaded!');
       } else {
         alert(data.error || 'Upload failed');
       }
     } catch {
-      const localUrl = URL.createObjectURL(file);
-      setMediaUrl(localUrl);
-      showToast('Media attached locally!');
+      showToast('업로드에 실패했습니다.');
     } finally {
       setUploading(false);
     }
@@ -167,8 +113,8 @@ export default function ContentBlockManager() {
     e.preventDefault();
     if (!sectionKey.trim() || !title.trim()) return alert('Section Key & Title are required');
 
-    const newOrUpdated: ContentBlock = {
-      id: editingBlock ? editingBlock.id : `block-${Date.now()}`,
+    const newOrUpdated: Partial<ContentBlock> = {
+      ...(editingBlock ? { id: editingBlock.id } : {}),
       section_key: sectionKey,
       page,
       title,
@@ -180,28 +126,20 @@ export default function ContentBlockManager() {
       updated_at: new Date().toISOString(),
     };
 
-    if (editingBlock) {
-      setBlocks((prev) => prev.map((b) => (b.id === editingBlock.id ? newOrUpdated : b)));
-    } else {
-      setBlocks((prev) => [...prev, newOrUpdated]);
-    }
-
     try {
-      await fetch('/api/content-blocks', {
+      const response = await fetch('/api/content-blocks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newOrUpdated),
       });
+      if (!response.ok) throw new Error('Save failed');
+      const saved = (await response.json()).data as ContentBlock;
+      setBlocks((prev) => editingBlock ? prev.map((item) => item.id === saved.id ? saved : item) : [...prev, saved]);
+      setIsModalOpen(false);
+      showToast(editingBlock ? 'Content block updated' : 'New block created');
     } catch {
-      // Ignore
+      showToast('콘텐츠 저장에 실패했습니다.');
     }
-
-    if (isSupabaseConfigured()) {
-      await supabase.from('content_blocks').upsert(newOrUpdated);
-    }
-
-    setIsModalOpen(false);
-    showToast(editingBlock ? 'Content block updated' : 'New block created');
   };
 
   return (

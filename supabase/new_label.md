@@ -1193,3 +1193,5 @@ Article / Section
 출처
 
 이렇게 만들어야 실제 기업에서 QA/RA팀이 사용할 수 있습니다.
+
+EU는 1169/2011의 mandatory information과 allergen/QUID/nutrition/origin 등을 하나의 FIC Rule Pack으로 묶고, 중국은 GB 7718-2025 + GB 28050-2025 + SAMR/GACC, UAE는 GSO 9 + Halal 규정을 별도의 버전 관리 가능한 Rule Pack으로 두는 방향이 좋습니다.

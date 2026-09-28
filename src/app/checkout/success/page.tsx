@@ -4,9 +4,11 @@ import React, { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { CheckCircle2, ShoppingBag, FileText, ShieldCheck } from 'lucide-react';
 
 function CheckoutSuccessContent() {
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId') || 'ORD-2026-8891';
   const paymentKey = searchParams.get('paymentKey') || 'toss_pk_2026_sample';
@@ -31,10 +33,10 @@ function CheckoutSuccessContent() {
           <span>Toss Payments 결제 승인 완료</span>
         </div>
         <h1 className="font-serif-luxury text-3xl font-light text-white">
-          주문이 정상적으로 접수되었습니다!
+          {t('success_order_received', '주문이 정상적으로 접수되었습니다!')}
         </h1>
         <p className="text-xs text-stone-300 font-light max-w-md mx-auto leading-relaxed">
-          고객님의 토스페이먼츠 결제가 성공적으로 승인되었습니다. 송영민푸드 전담 출고팀이 즉시 신선 냉동 포장하여 배송 준비를 진행합니다.
+          {t('success_order_desc', '고객님의 토스페이먼츠 결제가 성공적으로 승인되었습니다. 송영민푸드 전담 출고팀이 즉시 신선 냉동 포장하여 배송 준비를 진행합니다.')}
         </p>
       </div>
 
@@ -42,29 +44,29 @@ function CheckoutSuccessContent() {
       <div className="bg-[#18221b] border border-blue-500/30 rounded-xl p-5 text-left text-xs space-y-4 font-mono">
         <div className="flex justify-between items-center border-b border-stone-800 pb-3">
           <div>
-            <span className="text-stone-400 block text-[10px]">주문번호 (Order ID)</span>
+            <span className="text-stone-400 block text-[10px]">{t('order_id_label', '주문번호')} (Order ID)</span>
             <span className="text-[#c59b27] font-bold text-sm">{orderId}</span>
           </div>
           <div className="text-right">
-            <span className="text-stone-400 block text-[10px]">토스 승인키 (Payment Key)</span>
+            <span className="text-stone-400 block text-[10px]">{t('toss_key_label', '토스 승인키')} (Payment Key)</span>
             <span className="text-stone-300 text-[11px] font-mono">{paymentKey.slice(0, 16)}...</span>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div>
-            <span className="text-stone-400 block text-[10px]">결제 수단</span>
+            <span className="text-stone-400 block text-[10px]">{t('payment_method_label', '결제 수단')}</span>
             <span className="text-white font-bold">{method}</span>
           </div>
           <div className="text-right">
-            <span className="text-stone-400 block text-[10px]">배송 전담 택배사</span>
+            <span className="text-stone-400 block text-[10px]">{t('carrier_label', '배송 전담 택배사')}</span>
             <span className="text-emerald-400 font-bold">CJ대한통운 / 로젠택배</span>
           </div>
         </div>
 
         {currentOrder && currentOrder.items && (
           <div className="space-y-2 pt-2 border-t border-stone-800">
-            <span className="text-stone-400 text-[11px] font-sans font-semibold block">주문 제품 내역:</span>
+            <span className="text-stone-400 text-[11px] font-sans font-semibold block">{t('ordered_items_label', '주문 제품 내역:')}</span>
             <div className="divide-y divide-stone-800/40">
               {currentOrder.items.map((it, idx) => (
                 <div key={idx} className="py-2 flex justify-between items-center text-[11px]">
@@ -77,7 +79,7 @@ function CheckoutSuccessContent() {
         )}
 
         <div className="border-t border-stone-800 pt-3 flex justify-between items-center text-sm font-bold">
-          <span className="text-stone-300 font-sans">총 승인 결제 금액</span>
+          <span className="text-stone-300 font-sans">{t('total_paid_label', '총 승인 결제 금액')}</span>
           <span className="text-[#3182f6] text-base">₩{totalAmount.toLocaleString()}원</span>
         </div>
       </div>
@@ -89,14 +91,14 @@ function CheckoutSuccessContent() {
           className="flex-1 bg-stone-800 hover:bg-stone-700 text-stone-200 font-semibold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition-all border border-stone-700 flex items-center justify-center space-x-2"
         >
           <FileText size={15} />
-          <span>마이페이지 주문/배송 조회</span>
+          <span>{t('btn_view_orders', '마이페이지 주문/배송 조회')}</span>
         </Link>
         <Link
           href="/shop"
           className="flex-1 bg-[#c59b27] hover:bg-[#b08820] text-black font-semibold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2 shadow-lg"
         >
           <ShoppingBag size={15} />
-          <span>쇼핑 계속하기</span>
+          <span>{t('continue_shopping', '쇼핑 계속하기')}</span>
         </Link>
       </div>
     </div>

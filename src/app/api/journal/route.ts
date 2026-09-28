@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireStaff } from '@/lib/admin-auth';
 import {
   getJournalArticles,
   getJournalBySlug,
@@ -7,16 +8,24 @@ import {
   deleteJournalArticle,
 } from '@/lib/journal-db';
 
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const mode = searchParams.get('mode');
     const slug = searchParams.get('slug');
+    if (mode === 'admin') {
+      const denied = await requireStaff(req, ['admin', 'product_staff']);
+      if (denied) return denied;
+    }
 
     if (slug) {
       const article = await getJournalBySlug(slug);
+      if (article && !article.is_published) {
+        const denied = await requireStaff(req, ['admin', 'product_staff']);
+        if (denied) return denied;
+      }
       return NextResponse.json({ success: true, data: article });
     }
 
@@ -30,6 +39,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  const denied = await requireStaff(req, ['admin', 'product_staff']);
+  if (denied) return denied;
   try {
     const body = await req.json();
     const { id, is_published } = body;
@@ -47,6 +58,8 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await requireStaff(req, ['admin', 'product_staff']);
+  if (denied) return denied;
   try {
     const body = await req.json();
     const saved = await saveJournalArticle(body);
@@ -58,6 +71,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const denied = await requireStaff(req, ['admin', 'product_staff']);
+  if (denied) return denied;
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');

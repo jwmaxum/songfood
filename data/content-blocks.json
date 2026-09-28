@@ -3,22 +3,22 @@
     "id": "block-featured-cat",
     "section_key": "featured_categories",
     "page": "home",
-    "title": "Curated Fine Food Categories",
-    "subtitle": "Gourmet Selections",
-    "description": "From farm-fresh organic produce to aged artisan cheeses and rare pantry essentials, each item brings authentic culinary excellence to your table.",
-    "badge": "Product Showcase",
+    "title": "K-Food 제품군",
+    "subtitle": "상품 카탈로그",
+    "description": "냉동식품, 간편식, 김치·발효식품, 소스, 스낵, 음료와 전통주를 제품 종류별로 찾아볼 수 있습니다.",
+    "badge": "제품 탐색",
     "updated_at": "2026-07-31T00:00:00Z"
   },
   {
     "id": "block-brand-story",
     "section_key": "brand_story",
     "page": "home",
-    "title": "Farm to Table Excellence & Organic Craftsmanship.",
-    "subtitle": "Heritage & Quality",
-    "description": "Anatolia Gourmet stands at the pinnacle of global artisanal food sourcing. Guided by sustainable organic farming and direct partnerships with heritage producers across Italy, Spain, and Japan, we curate pure ingredients that redefine fine dining.",
-    "media_url": "https://images.unsplash.com/photo-1509358271058-acd02cc93898?w=800&h=600&auto=compress%2Cformat&fit=crop",
+    "title": "국내 도매와 해외 바이어를 위한 식자재 유통",
+    "subtitle": "송영민푸드 소개",
+    "description": "송영민푸드는 제품 정보를 한곳에서 관리하고 국내 도매 문의와 해외 바이어의 견적 요청을 연결합니다. OEM 제품 기획도 준비하고 있습니다.",
+    "media_url": "/images/products/coming-soon.png",
     "media_type": "image",
-    "badge": "Craftsmanship",
+    "badge": "K-Food",
     "updated_at": "2026-07-31T00:00:00Z"
   }
 ]

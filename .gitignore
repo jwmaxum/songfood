@@ -16,6 +16,11 @@
 # next.js
 /.next/
 /out/
+/.open-next/
+/.npm-cache/
+/.wrangler/
+/.dev.vars*
+/data/product-supabase-backup-*.json
 
 # production
 /build
@@ -44,4 +49,3 @@ next-env.d.ts
 # mcp & editor configs
 .mcp.json
 .vscode/
-

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireStaff } from '@/lib/admin-auth';
 import { getAllContentBlocks, getContentBlockByKey, saveContentBlock } from '@/lib/content-blocks-db';
 
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
@@ -22,6 +23,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await requireStaff(req, ['admin', 'product_staff']);
+  if (denied) return denied;
   try {
     const body = await req.json();
     const { section_key } = body;

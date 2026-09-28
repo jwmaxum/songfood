@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { HeroSlide } from '@/lib/types';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import {
   Film,
   Plus,
@@ -18,41 +17,6 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 
-const FALLBACK_HERO_SLIDES: HeroSlide[] = [
-  {
-    id: 'hero-1',
-    media_type: 'image',
-    media_url: 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=1920&q=80',
-    title: 'K-FOOD & K-LIQUOR PREMIUM MARKETPLACE',
-    subtitle: '대한민국 대표 프리미엄 K-냉동식품 & 원소주, 생막걸리 전통주 직송 컬렉션',
-    cta_label: 'K-냉동식품 구경하기',
-    cta_url: '/collections?cat=fresh',
-    sort_order: 1,
-    is_active: true,
-  },
-  {
-    id: 'hero-2',
-    media_type: 'image',
-    media_url: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?auto=format&fit=crop&w=1920&q=80',
-    title: '100% 쌀발효 옹기 숙성 원소주 & 느린마을 막걸리',
-    subtitle: '장인의 손길로 빚어낸 명품 전통주와 과일소주를 24시간 프레시 배송으로 만나보세요.',
-    cta_label: 'K-주류 & 전통주 보기',
-    cta_url: '/collections?cat=dairy',
-    sort_order: 2,
-    is_active: true,
-  },
-  {
-    id: 'hero-3',
-    media_type: 'image',
-    media_url: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=1920&q=80',
-    title: '에어프라이어 15분! K-수제 떡볶이 & 크리스피 치킨',
-    subtitle: '비비고 왕교자 만두부터 눈꽃 떡볶이 밀키트까지, 집에서 간편하게 즐기는 미식 파티.',
-    cta_label: '오늘의 특가 구경하기',
-    cta_url: '/collections?cat=deals',
-    sort_order: 3,
-    is_active: true,
-  },
-];
 
 export default function HeroManager() {
   const [slides, setSlides] = useState<HeroSlide[]>([]);
@@ -78,7 +42,7 @@ export default function HeroManager() {
       const res = await fetch('/api/hero?mode=admin');
       if (res.ok) {
         const data = await res.json();
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+        if (data.success && Array.isArray(data.data)) {
           setSlides(data.data);
           setLoading(false);
           return;
@@ -88,20 +52,8 @@ export default function HeroManager() {
       // Fallback
     }
 
-    if (isSupabaseConfigured()) {
-      try {
-        const { data, error } = await supabase.from('hero_slides').select('*').order('sort_order');
-        if (!error && data && data.length > 0) {
-          setSlides(data as HeroSlide[]);
-          setLoading(false);
-          return;
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    setSlides(FALLBACK_HERO_SLIDES);
+    setSlides([]);
+    setToastMessage('슬라이드를 불러오지 못했습니다.');
     setLoading(false);
   };
 
@@ -116,40 +68,30 @@ export default function HeroManager() {
 
   const handleToggleActive = async (id: string, currentActive: boolean) => {
     const nextStatus = !currentActive;
-    setSlides((prev) => prev.map((s) => (s.id === id ? { ...s, is_active: nextStatus } : s)));
-
     try {
-      await fetch('/api/hero', {
-        method: 'POST',
+      const response = await fetch('/api/hero', {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, is_active: nextStatus }),
       });
+      if (!response.ok || !(await response.json()).success) throw new Error('Update failed');
+      setSlides((prev) => prev.map((s) => (s.id === id ? { ...s, is_active: nextStatus } : s)));
+      showToast('Hero slide active status updated');
     } catch {
-      // Static mode
+      showToast('슬라이드 상태 변경에 실패했습니다.');
     }
-
-    if (isSupabaseConfigured()) {
-      await supabase.from('hero_slides').update({ is_active: nextStatus }).eq('id', id);
-    }
-
-    showToast('Hero slide active status updated');
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this hero slide?')) return;
-    setSlides((prev) => prev.filter((s) => s.id !== id));
-
     try {
-      await fetch(`/api/hero?id=${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/hero?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      if (!response.ok || !(await response.json()).success) throw new Error('Delete failed');
+      setSlides((prev) => prev.filter((s) => s.id !== id));
+      showToast('Slide deleted successfully');
     } catch {
-      // Ignore
+      showToast('슬라이드 삭제에 실패했습니다.');
     }
-
-    if (isSupabaseConfigured()) {
-      await supabase.from('hero_slides').delete().eq('id', id);
-    }
-
-    showToast('Slide deleted successfully');
   };
 
   const openCreateModal = () => {
@@ -193,15 +135,13 @@ export default function HeroManager() {
       });
       const data = await res.json();
       if (data.success) {
-        setMediaUrl(data.url);
+        setMediaUrl(data.data.url);
         showToast('Media uploaded!');
       } else {
         alert(data.error || 'Upload failed');
       }
     } catch {
-      const localUrl = URL.createObjectURL(file);
-      setMediaUrl(localUrl);
-      showToast('Media attached locally!');
+      showToast('미디어 업로드에 실패했습니다.');
     } finally {
       setUploading(false);
     }
@@ -211,8 +151,8 @@ export default function HeroManager() {
     e.preventDefault();
     if (!title.trim() || !mediaUrl.trim()) return alert('Title and Media URL are required');
 
-    const newOrUpdated: HeroSlide = {
-      id: editingSlide ? editingSlide.id : `hero-${Date.now()}`,
+    const newOrUpdated: Partial<HeroSlide> = {
+      ...(editingSlide ? { id: editingSlide.id } : {}),
       media_type: mediaType,
       media_url: mediaUrl,
       poster_url: posterUrl,
@@ -224,28 +164,20 @@ export default function HeroManager() {
       is_active: isActive,
     };
 
-    if (editingSlide) {
-      setSlides((prev) => prev.map((s) => (s.id === editingSlide.id ? newOrUpdated : s)));
-    } else {
-      setSlides((prev) => [...prev, newOrUpdated]);
-    }
-
     try {
-      await fetch('/api/hero', {
+      const response = await fetch('/api/hero', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newOrUpdated),
       });
+      if (!response.ok) throw new Error('Save failed');
+      const saved = (await response.json()).data as HeroSlide;
+      setSlides((prev) => editingSlide ? prev.map((item) => item.id === saved.id ? saved : item) : [...prev, saved]);
+      setIsModalOpen(false);
+      showToast(editingSlide ? 'Slide updated' : 'New hero slide created');
     } catch {
-      // Ignore
+      showToast('슬라이드 저장에 실패했습니다.');
     }
-
-    if (isSupabaseConfigured()) {
-      await supabase.from('hero_slides').upsert(newOrUpdated);
-    }
-
-    setIsModalOpen(false);
-    showToast(editingSlide ? 'Slide updated' : 'New hero slide created');
   };
 
   return (

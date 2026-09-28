@@ -1,0 +1,38 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+
+const NAVIGATION = [
+  { href: '/admin', label: '대시보드' },
+  { href: '/admin/products', label: '상품 등록·수정' },
+  { href: '/admin/labels', label: '수출 라벨 스튜디오' },
+  { href: '/admin/hero', label: '히어로 콘텐츠' },
+  { href: '/admin/navigation', label: '사이트 메뉴' },
+  { href: '/admin/journal', label: '저널' },
+  { href: '/admin/media', label: '미디어' },
+  { href: '/admin/crm', label: 'RFQ·도매 문의' },
+  { href: '/admin/orders', label: '주문' },
+  { href: '/admin/users', label: '직원 권한' },
+  { href: '/admin/account', label: '내 계정' },
+];
+
+export default function AdminShell({ children, email, role }: { children: React.ReactNode; email: string; role: string }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  async function signOut() {
+    await fetch('/api/admin/session', { method: 'DELETE' });
+    await supabase.auth.signOut();
+    router.refresh();
+  }
+  return <div className="flex min-h-screen flex-col bg-[#0a0a0c] text-stone-200 md:flex-row">
+    <aside className="w-full shrink-0 border-b border-stone-800 bg-[#0d0d12] p-5 md:min-h-screen md:w-60 md:border-b-0 md:border-r">
+      <Link href="/admin" className="text-lg font-bold text-white">송영민푸드 CMS</Link>
+      <p className="mt-1 break-all text-xs text-stone-400">{email} · {role}</p>
+      <nav className="mt-7 flex gap-2 overflow-x-auto md:flex-col" aria-label="관리자 메뉴">{NAVIGATION.map((item) => <Link key={item.href} href={item.href} className={`whitespace-nowrap rounded px-3 py-2 text-sm ${pathname === item.href ? 'bg-[#c5a880] font-semibold text-black' : 'text-stone-300 hover:bg-stone-800'}`}>{item.label}</Link>)}</nav>
+      <button className="mt-7 text-sm text-amber-300" onClick={signOut}>로그아웃</button>
+    </aside>
+    <div className="min-w-0 flex-1">{children}</div>
+  </div>;
+}

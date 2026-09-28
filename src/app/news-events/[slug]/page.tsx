@@ -1,20 +1,13 @@
 import React from 'react';
 import Link from 'next/link';
-import { getJournalBySlug, getJournalArticles } from '@/lib/journal-db';
+import { getJournalBySlug } from '@/lib/journal-db';
 import { Calendar, ArrowLeft, Tag, Share2 } from 'lucide-react';
-
-export async function generateStaticParams() {
-  const articles = await getJournalArticles(true);
-  return articles.map((a) => ({
-    slug: a.slug,
-  }));
-}
 
 export default async function NewsEventsDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
   const article = await getJournalBySlug(resolvedParams.slug);
 
-  if (!article) {
+  if (!article || !article.is_published) {
     return (
       <div className="min-h-screen bg-[#0a0a0c] text-stone-100 flex items-center justify-center p-4">
         <div className="text-center space-y-4">

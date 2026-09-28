@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { JournalArticle } from '@/lib/types';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import {
   FileCode,
   Plus,
@@ -18,41 +17,6 @@ import {
   Sparkles,
 } from 'lucide-react';
 
-const FALLBACK_JOURNAL_ARTICLES: JournalArticle[] = [
-  {
-    id: 'art-1',
-    title: '송영민푸드 K-푸드 신선 공방 오픈 소식',
-    slug: 'songyoungminfood-k-food-lab-open',
-    category: '뉴스',
-    excerpt: '대한민국 프리미엄 K-냉동식품과 원소주, 생막걸리 전통주 직송 라인업이 강화되었습니다.',
-    content: '# 송영민푸드 K-푸드 신선 공방 오픈\n\n송영민푸드(Song Youngmin Food)에서 엄선된 국산 100% 원재료 기반 K-냉동식품과 명품 전통주 라인업을 신규 출시합니다.',
-    cover_image: 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=1200&q=80',
-    is_published: true,
-    published_date: '2026-06-15',
-  },
-  {
-    id: 'art-2',
-    title: '원소주 24% & 느린마을 생막걸리 미식 페어링 가이드',
-    slug: 'wonsoju-makgeolli-pairing-guide',
-    category: 'K-레시피',
-    excerpt: '비비고 왕교자 만두 및 수제 떡볶이 밀키트와 완벽하게 어우러지는 전통주 페어링 팁.',
-    content: '# K-주류 미식 페어링 가이드\n\n옹기 숙성 원소주의 청량하고 깊은 풍미와 떡볶이의 매콤함이 이루는 환상의 조합을 경험하세요.',
-    cover_image: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?auto=format&fit=crop&w=1200&q=80',
-    is_published: true,
-    published_date: '2026-05-20',
-  },
-  {
-    id: 'art-3',
-    title: '에어프라이어 15분! 바삭한 크리스피 반반 치킨 비법',
-    slug: 'airfryer-crispy-chicken-recipe',
-    category: 'K-레시피',
-    excerpt: '집에서도 갓 튀겨낸 듯 바삭하고 튀김 옷이 살아있는 양념 & 간장 치킨 조리법.',
-    content: '# 에어프라이어 치킨 조리 비법\n\n180도 예열된 에어프라이어에서 15분간 조리하면 극강의 바삭함이 완성됩니다.',
-    cover_image: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=1200&q=80',
-    is_published: true,
-    published_date: '2026-04-10',
-  },
-];
 
 export default function JournalManager() {
   const [articles, setArticles] = useState<JournalArticle[]>([]);
@@ -78,7 +42,7 @@ export default function JournalManager() {
       const res = await fetch('/api/journal?mode=admin');
       if (res.ok) {
         const data = await res.json();
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+        if (data.success && Array.isArray(data.data)) {
           setArticles(data.data);
           setLoading(false);
           return;
@@ -88,26 +52,8 @@ export default function JournalManager() {
       // API call failed, fallback below
     }
 
-    // 2. Supabase Direct DB 쿼리 시도
-    if (isSupabaseConfigured()) {
-      try {
-        const { data, error } = await supabase
-          .from('journal_articles')
-          .select('*')
-          .order('published_date', { ascending: false });
-
-        if (!error && data && data.length > 0) {
-          setArticles(data as JournalArticle[]);
-          setLoading(false);
-          return;
-        }
-      } catch (err) {
-        console.error('Supabase query error:', err);
-      }
-    }
-
-    // 3. Fallback Initial Dummy Data 세팅
-    setArticles(FALLBACK_JOURNAL_ARTICLES);
+    setArticles([]);
+    setToastMessage('저널을 불러오지 못했습니다.');
     setLoading(false);
   };
 
@@ -123,47 +69,31 @@ export default function JournalManager() {
   const handleTogglePublish = async (id: string, currentPublished: boolean) => {
     const nextStatus = !currentPublished;
 
-    // Optimistic UI Update
-    setArticles((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, is_published: nextStatus } : a))
-    );
-
     try {
-      await fetch('/api/journal', {
-        method: 'POST',
+      const response = await fetch('/api/journal', {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, is_published: nextStatus }),
       });
+      if (!response.ok || !(await response.json()).success) throw new Error('Update failed');
+      setArticles((prev) => prev.map((article) => article.id === id ? { ...article, is_published: nextStatus } : article));
+      showToast(`Article status updated to ${nextStatus ? 'Published' : 'Draft'}`);
     } catch {
-      // Ignore API failure in static mode
+      showToast('발행 상태 변경에 실패했습니다.');
     }
-
-    if (isSupabaseConfigured()) {
-      await supabase
-        .from('journal_articles')
-        .update({ is_published: nextStatus })
-        .eq('id', id);
-    }
-
-    showToast(`Article status updated to ${nextStatus ? 'Published' : 'Draft'}`);
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this article?')) return;
 
-    setArticles((prev) => prev.filter((a) => a.id !== id));
-
     try {
-      await fetch(`/api/journal?id=${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/journal?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      if (!response.ok || !(await response.json()).success) throw new Error('Delete failed');
+      setArticles((prev) => prev.filter((article) => article.id !== id));
+      showToast('Article deleted successfully');
     } catch {
-      // Ignore
+      showToast('저널 삭제에 실패했습니다.');
     }
-
-    if (isSupabaseConfigured()) {
-      await supabase.from('journal_articles').delete().eq('id', id);
-    }
-
-    showToast('Article deleted successfully');
   };
 
   const openCreateModal = () => {
@@ -203,16 +133,13 @@ export default function JournalManager() {
       });
       const data = await res.json();
       if (data.success) {
-        setCoverImage(data.url);
+        setCoverImage(data.data.url);
         showToast('Image uploaded successfully!');
       } else {
         alert(data.error || 'Upload failed');
       }
     } catch {
-      // Fallback: Create local object URL
-      const localUrl = URL.createObjectURL(file);
-      setCoverImage(localUrl);
-      showToast('Image attached locally!');
+      showToast('이미지 업로드에 실패했습니다.');
     } finally {
       setUploading(false);
     }
@@ -222,41 +149,33 @@ export default function JournalManager() {
     e.preventDefault();
     if (!title.trim()) return alert('Title is required');
 
-    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    const newOrUpdated: JournalArticle = {
-      id: editingArticle ? editingArticle.id : `art-${Date.now()}`,
+    const slug = editingArticle?.slug || title.toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-') || `post-${crypto.randomUUID()}`;
+    const newOrUpdated: Partial<JournalArticle> = {
+      ...(editingArticle ? { id: editingArticle.id } : {}),
       title,
       slug,
       category,
       excerpt,
       content,
-      cover_image: coverImage || 'https://images.unsplash.com/photo-1541544741938-0af808871cc0?auto=format&fit=crop&w=1200&q=80',
+      cover_image: coverImage || '/images/products/coming-soon.png',
       is_published: isPublished,
       published_date: editingArticle?.published_date || new Date().toISOString().split('T')[0],
     };
 
-    if (editingArticle) {
-      setArticles((prev) => prev.map((a) => (a.id === editingArticle.id ? newOrUpdated : a)));
-    } else {
-      setArticles((prev) => [newOrUpdated, ...prev]);
-    }
-
     try {
-      await fetch('/api/journal', {
+      const response = await fetch('/api/journal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newOrUpdated),
       });
+      if (!response.ok) throw new Error('Save failed');
+      const saved = (await response.json()).data as JournalArticle;
+      setArticles((prev) => editingArticle ? prev.map((item) => item.id === saved.id ? saved : item) : [saved, ...prev]);
+      setIsModalOpen(false);
+      showToast(editingArticle ? 'Article updated' : 'New article created');
     } catch {
-      // Static fallback
+      showToast('저널 저장에 실패했습니다.');
     }
-
-    if (isSupabaseConfigured()) {
-      await supabase.from('journal_articles').upsert(newOrUpdated);
-    }
-
-    setIsModalOpen(false);
-    showToast(editingArticle ? 'Article updated' : 'New article created');
   };
 
   return (

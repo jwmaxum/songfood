@@ -1,39 +1,10 @@
-import fs from 'fs';
-import path from 'path';
+import labelsSnapshot from '../../data/food-labels.json';
 import { FoodLabel, ExportCountry, LabelSummaryItem } from '@/types/label';
 import { supabaseAdmin, isSupabaseConfigured } from './supabase';
 import { getProducts } from './products-db';
 
-const LABELS_DATA_PATH = path.join(process.cwd(), 'data', 'food-labels.json');
-
-/**
- * 로컬 JSON 파일에서 라벨 데이터 읽기
- */
 function readLocalLabels(): FoodLabel[] {
-  try {
-    if (fs.existsSync(LABELS_DATA_PATH)) {
-      const data = fs.readFileSync(LABELS_DATA_PATH, 'utf-8');
-      return JSON.parse(data);
-    }
-  } catch (err) {
-    console.warn('[labels-db] Failed to read local food-labels.json, returning empty array:', err);
-  }
-  return [];
-}
-
-/**
- * 로컬 JSON 파일에 라벨 데이터 쓰기
- */
-function writeLocalLabels(labels: FoodLabel[]): void {
-  try {
-    const dir = path.dirname(LABELS_DATA_PATH);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(LABELS_DATA_PATH, JSON.stringify(labels, null, 2), 'utf-8');
-  } catch (err) {
-    console.error('[labels-db] Failed to write local food-labels.json:', err);
-  }
+  return labelsSnapshot as FoodLabel[];
 }
 
 /**
@@ -187,7 +158,7 @@ export async function getAllFoodLabels(country?: ExportCountry): Promise<FoodLab
       }
 
       const { data, error } = await query;
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         return data.map(mapRowToFoodLabel);
       }
     } catch (err) {
@@ -277,16 +248,7 @@ export async function saveFoodLabel(label: FoodLabel): Promise<FoodLabel> {
   }
 
   // Fallback: Local JSON 저장
-  const localLabels = readLocalLabels();
-  const index = localLabels.findIndex((l) => l.id === labelToSave.id);
-  if (index >= 0) {
-    localLabels[index] = labelToSave;
-  } else {
-    localLabels.push(labelToSave);
-  }
-  writeLocalLabels(localLabels);
-
-  return labelToSave;
+  throw new Error('Food label could not be saved to Supabase');
 }
 
 /**
@@ -302,13 +264,7 @@ export async function deleteFoodLabel(id: string): Promise<boolean> {
     }
   }
 
-  const localLabels = readLocalLabels();
-  const filtered = localLabels.filter((l) => l.id !== id);
-  if (filtered.length !== localLabels.length) {
-    writeLocalLabels(filtered);
-    return true;
-  }
-  return false;
+  throw new Error('Food label could not be deleted from Supabase');
 }
 
 /**

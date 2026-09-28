@@ -1,0 +1,11 @@
+[
+  { "collection": "K-김치/발효식품", "categories": ["김치 & 발효식품"] },
+  { "collection": "K-만두/냉동식품", "categories": ["만두 & 교자"] },
+  { "collection": "K-간편식/HMR", "categories": ["떡볶이 & 밀키트", "국 & 탕류", "간편식 & 조리육류"] },
+  { "collection": "K-면류/라면", "categories": ["라면", "생면 & 국수", "당면"] },
+  { "collection": "K-소스/장류", "categories": ["장류", "소스 & 양념", "분말 조미료"] },
+  { "collection": "K-김/수산가공", "categories": ["김 가공품", "해조류", "어묵 & 수산가공", "건어물 & 안주류"] },
+  { "collection": "K-스낵/전통과자", "categories": ["스낵 & 과자", "전통과자"] },
+  { "collection": "K-주류/전통주", "categories": ["증류식 소주", "막걸리 & 탁주"] },
+  { "collection": "K-음료/전통차", "categories": ["전통 음료", "전통차"] }
+]

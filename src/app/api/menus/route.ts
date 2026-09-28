@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireStaff } from '@/lib/admin-auth';
 import {
   getAllMenusTree,
   getActiveMenusTree,
@@ -7,7 +8,7 @@ import {
   deleteMenuItem,
 } from '@/lib/menus-db';
 
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
@@ -16,6 +17,8 @@ export async function GET(req: NextRequest) {
     const position = searchParams.get('position') as 'header' | 'footer' | undefined;
 
     if (mode === 'admin') {
+      const denied = await requireStaff(req, ['admin', 'product_staff']);
+      if (denied) return denied;
       const tree = await getAllMenusTree();
       return NextResponse.json({ success: true, data: tree });
     }
@@ -29,6 +32,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  const denied = await requireStaff(req, ['admin', 'product_staff']);
+  if (denied) return denied;
   try {
     const body = await req.json();
     const { id, is_active } = body;
@@ -50,6 +55,8 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await requireStaff(req, ['admin', 'product_staff']);
+  if (denied) return denied;
   try {
     const body = await req.json();
     const { title, url, parent_id, sort_order, is_active, position, image_url } = body;
@@ -76,6 +83,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const denied = await requireStaff(req, ['admin', 'product_staff']);
+  if (denied) return denied;
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');

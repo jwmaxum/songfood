@@ -52,30 +52,30 @@ export default function FooterClient({ menus }: { menus: any[] }) {
             {/* Group 1: 회사 소개 & 브랜딩 */}
             <div className="space-y-3">
               <h4 className="text-xs uppercase font-mono tracking-widest text-[#c59b27] font-semibold">
-                Company &amp; Story
+                {t('footer_company_story', '회사 소개 & 브랜드')}
               </h4>
               <ul className="space-y-2 text-xs">
                 <li>
                   <Link href="/about" className="hover:text-white transition-colors duration-200 inline-flex items-center group">
-                    <span>🏢 회사 소개 &amp; 경영철학</span>
+                    <span>🏢 {t('nav_about_story', '회사 소개 & 브랜드 스토리')}</span>
                     <ArrowUpRight size={12} className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-[#c59b27]" />
                   </Link>
                 </li>
                 <li>
                   <Link href="/why-kfood" className="hover:text-white transition-colors duration-200 inline-flex items-center group">
-                    <span>🏆 Why K-Food &amp; 품질인증</span>
+                    <span>🏆 {t('nav_why_kfood', 'Why K-Food & 품질인증')}</span>
                     <ArrowUpRight size={12} className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-[#c59b27]" />
                   </Link>
                 </li>
                 <li>
                   <Link href="/rfq" className="hover:text-white transition-colors duration-200 inline-flex items-center group">
-                    <span>🌐 Overseas Buyer RFQ</span>
+                    <span>🌐 {t('nav_rfq', 'Overseas Buyer RFQ')}</span>
                     <ArrowUpRight size={12} className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-[#c59b27]" />
                   </Link>
                 </li>
                 <li>
                   <Link href="/news-events" className="hover:text-white transition-colors duration-200 inline-flex items-center group">
-                    <span>📰 Media Lab &amp; 뉴스&amp;이벤트</span>
+                    <span>📰 {t('nav_news_events', '뉴스&이벤트 (News & Events)')}</span>
                     <ArrowUpRight size={12} className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-[#c59b27]" />
                   </Link>
                 </li>
@@ -85,30 +85,30 @@ export default function FooterClient({ menus }: { menus: any[] }) {
             {/* Group 2: 쇼핑 & B2B 수출 */}
             <div className="space-y-3">
               <h4 className="text-xs uppercase font-mono tracking-widest text-[#c59b27] font-semibold">
-                Shopping &amp; B2B Export
+                {t('footer_shopping_b2b', '쇼핑 & B2B 수출')}
               </h4>
               <ul className="space-y-2 text-xs">
                 <li>
                   <Link href="/shop" className="hover:text-white transition-colors duration-200 inline-flex items-center group">
-                    <span>🛒 K-Food 프리미엄 쇼핑몰</span>
+                    <span>🛒 {t('nav_shop', 'K-Food 프리미엄 쇼핑몰')}</span>
                     <ArrowUpRight size={12} className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-[#c59b27]" />
                   </Link>
                 </li>
                 <li>
                   <Link href="/rfq" className="hover:text-white transition-colors duration-200 inline-flex items-center group">
-                    <span>📋 B2B / RFQ 견적 신청</span>
+                    <span>📋 {t('nav_rfq_short', 'B2B / RFQ 견적 신청')}</span>
                     <ArrowUpRight size={12} className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-[#c59b27]" />
                   </Link>
                 </li>
                 <li>
                   <Link href="/news-events" className="hover:text-white transition-colors duration-200 inline-flex items-center group">
-                    <span>📰 뉴스&amp;이벤트 (News &amp; Events)</span>
+                    <span>📰 {t('nav_news_events', '뉴스&이벤트 (News & Events)')}</span>
                     <ArrowUpRight size={12} className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-[#c59b27]" />
                   </Link>
                 </li>
                 <li>
                   <Link href="/catalogues" className="hover:text-white transition-colors duration-200 inline-flex items-center group">
-                    <span>📁 자료실 (Catalogues)</span>
+                    <span>📁 {t('nav_catalogues', '자료실 (Catalogues)')}</span>
                     <ArrowUpRight size={12} className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-[#c59b27]" />
                   </Link>
                 </li>
@@ -124,7 +124,7 @@ export default function FooterClient({ menus }: { menus: any[] }) {
             {/* Group 3: 회사 정책 & 약관 */}
             <div className="space-y-3">
               <h4 className="text-xs uppercase font-mono tracking-widest text-[#c59b27] font-semibold">
-                Legal &amp; Policy
+                {t('footer_customer_support', '고객 지원 & 정책')}
               </h4>
               <ul className="space-y-2 text-xs">
                 <li>

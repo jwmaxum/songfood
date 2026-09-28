@@ -49,12 +49,14 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
   const [selectedTier, setSelectedTier] = useState<'ea' | 'box' | 'carton'>('ea');
 
   // Prices calculation
-  const eaPrice = product.price || 18000;
-  const boxQty = product.box_qty || 20;
-  const boxPrice = product.box_price || Math.round(eaPrice * boxQty * 0.9);
-  const cartonBoxQty = product.carton_box_qty || 5;
+  const eaPrice = product.price || 0;
+  const boxQty = product.box_qty || 0;
+  const boxPrice = product.box_price || 0;
+  const cartonBoxQty = product.carton_box_qty || 0;
   const cartonTotalQty = cartonBoxQty * boxQty;
-  const cartonPrice = product.carton_price || Math.round(eaPrice * cartonTotalQty * 0.8);
+  const cartonPrice = product.carton_price || 0;
+  const hasBox = boxQty > 0 && boxPrice > 0;
+  const hasCarton = cartonTotalQty > 0 && cartonPrice > 0;
 
   const getSelectedPrice = () => {
     if (selectedTier === 'box') return boxPrice;
@@ -190,15 +192,14 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
 
               {/* Rating & Stock Status */}
               <div className="flex items-center space-x-4 pt-1 text-xs">
-                <div className="flex items-center space-x-1 text-amber-400">
+                {Boolean(product.rating && product.reviews_count) && <div className="flex items-center space-x-1 text-amber-400">
                   <Star size={14} fill="currentColor" />
-                  <span className="font-mono font-semibold">{product.rating || 4.9}</span>
-                  <span className="text-stone-400">({product.reviews_count || 24} reviews)</span>
-                </div>
-                <span className="text-stone-600">•</span>
+                  <span className="font-mono font-semibold">{product.rating}</span>
+                  <span className="text-stone-400">({product.reviews_count} reviews)</span>
+                </div>}
                 <span className="text-emerald-400 font-mono flex items-center space-x-1">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>재고 있음 ({product.stock || 150}개 잔여)</span>
+                  <span>{product.stock && product.stock > 0 ? `재고 있음 (${product.stock}개 잔여)` : '재고 확인 필요'}</span>
                 </span>
               </div>
             </div>
@@ -229,7 +230,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
                         낱개 (EA) 구매
                       </th>
                       <th
-                        onClick={() => setSelectedTier('box')}
+                        onClick={() => hasBox && setSelectedTier('box')}
                         className={`py-2 px-3 cursor-pointer text-center transition-colors ${
                           selectedTier === 'box' ? 'bg-[#c59b27]/20 text-[#c59b27] font-bold border-t-2 border-[#c59b27]' : 'hover:bg-stone-800'
                         }`}
@@ -237,7 +238,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
                         박스 (Box) 구매
                       </th>
                       <th
-                        onClick={() => setSelectedTier('carton')}
+                        onClick={() => hasCarton && setSelectedTier('carton')}
                         className={`py-2 px-3 cursor-pointer text-center transition-colors ${
                           selectedTier === 'carton' ? 'bg-[#c59b27]/20 text-[#c59b27] font-bold border-t-2 border-[#c59b27]' : 'hover:bg-stone-800'
                         }`}
@@ -256,16 +257,16 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
                         1개 (EA)
                       </td>
                       <td
-                        onClick={() => setSelectedTier('box')}
+                        onClick={() => hasBox && setSelectedTier('box')}
                         className={`py-2.5 px-3 text-center cursor-pointer ${selectedTier === 'box' ? 'text-[#c59b27] font-bold bg-[#c59b27]/10' : ''}`}
                       >
-                        1박스 ({boxQty}개입)
+                        {hasBox ? `1박스 (${boxQty}개입)` : '견적 문의'}
                       </td>
                       <td
-                        onClick={() => setSelectedTier('carton')}
+                        onClick={() => hasCarton && setSelectedTier('carton')}
                         className={`py-2.5 px-3 text-center cursor-pointer ${selectedTier === 'carton' ? 'text-[#c59b27] font-bold bg-[#c59b27]/10' : ''}`}
                       >
-                        1카톤 ({cartonTotalQty}개입 / {cartonBoxQty}박스)
+                        {hasCarton ? `1카톤 (${cartonTotalQty}개입 / ${cartonBoxQty}박스)` : '견적 문의'}
                       </td>
                     </tr>
                     <tr>
@@ -277,16 +278,16 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
                         ₩{eaPrice.toLocaleString()}원
                       </td>
                       <td
-                        onClick={() => setSelectedTier('box')}
+                        onClick={() => hasBox && setSelectedTier('box')}
                         className={`py-2.5 px-3 text-center cursor-pointer font-bold ${selectedTier === 'box' ? 'text-[#c59b27] text-sm bg-[#c59b27]/10' : 'text-amber-400'}`}
                       >
-                        ₩{boxPrice.toLocaleString()}원
+                        {hasBox ? `₩${boxPrice.toLocaleString()}원` : '견적 문의'}
                       </td>
                       <td
-                        onClick={() => setSelectedTier('carton')}
+                        onClick={() => hasCarton && setSelectedTier('carton')}
                         className={`py-2.5 px-3 text-center cursor-pointer font-bold ${selectedTier === 'carton' ? 'text-[#c59b27] text-sm bg-[#c59b27]/10' : 'text-emerald-400'}`}
                       >
-                        ₩{cartonPrice.toLocaleString()}원
+                        {hasCarton ? `₩${cartonPrice.toLocaleString()}원` : '견적 문의'}
                       </td>
                     </tr>
                     <tr>
@@ -307,6 +308,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
                       <td className="py-2.5 px-3 text-center">
                         <button
                           type="button"
+                          disabled={!hasBox}
                           onClick={() => setSelectedTier('box')}
                           className={`w-full py-1.5 rounded text-xs font-bold border transition-all ${
                             selectedTier === 'box'
@@ -320,6 +322,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
                       <td className="py-2.5 px-3 text-center">
                         <button
                           type="button"
+                          disabled={!hasCarton}
                           onClick={() => setSelectedTier('carton')}
                           className={`w-full py-1.5 rounded text-xs font-bold border transition-all ${
                             selectedTier === 'carton'
@@ -362,7 +365,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
                 <ShieldCheck size={16} className="text-[#c59b27]" />
                 <div>
                   <div className="text-stone-400 text-[10px]">Finish & Processing</div>
-                  <div className="font-semibold text-stone-200">{product.finish}</div>
+                  <div className="font-semibold text-stone-200">{product.finish || '확인 필요'}</div>
                 </div>
               </div>
             </div>
@@ -434,7 +437,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
               </div>
               <div className="flex items-center space-x-2">
                 <ShieldCheck size={14} className="text-[#EAB308]" />
-                <span>HACCP, Halal, Vegan &amp; FSSC 22000 Certified Korean Food Production.</span>
+                <span>인증 및 수출 가능 여부는 상품별 증빙 자료를 확인해 안내합니다.</span>
               </div>
               <div className="flex items-center space-x-2">
                 <RotateCcw size={14} className="text-[#EAB308]" />
@@ -477,7 +480,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
                   : 'border-transparent text-stone-400 hover:text-stone-200'
               }`}
             >
-              Reviews ({product.reviews_count || 24})
+              Reviews ({product.reviews_count || 0})
             </button>
           </div>
 
@@ -489,28 +492,28 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-sans text-xs pt-4 border-t border-stone-800">
                   <div className="p-3 bg-stone-900/80 rounded-xl border border-stone-800 space-y-1">
                     <span className="text-stone-500 font-bold">브랜드 / 제조사</span>
-                    <div className="text-stone-100 font-bold">{product.brand || '송영민푸드'} / {product.manufacturer || '송영민푸드(주)'}</div>
+                    <div className="text-stone-100 font-bold">{product.brand || '확인 필요'} / {product.manufacturer || '확인 필요'}</div>
                   </div>
                   <div className="p-3 bg-stone-900/80 rounded-xl border border-stone-800 space-y-1">
                     <span className="text-stone-500 font-bold">원산지 / 내용량</span>
-                    <div className="text-stone-100 font-bold">{product.country_of_origin || '대한민국'} / {product.net_weight || product.thickness || '500g'}</div>
+                    <div className="text-stone-100 font-bold">{product.country_of_origin || '확인 필요'} / {product.net_weight || '확인 필요'}</div>
                   </div>
                   <div className="p-3 bg-stone-900/80 rounded-xl border border-stone-800 space-y-1">
                     <span className="text-stone-500 font-bold">유통기한 &amp; 보관방법</span>
-                    <div className="text-stone-100 font-bold">{product.shelf_life || '12개월'} ({product.storage || '냉동 보관'})</div>
+                    <div className="text-stone-100 font-bold">{product.shelf_life || '확인 필요'} ({product.storage || '확인 필요'})</div>
                   </div>
                   <div className="p-3 bg-stone-900/80 rounded-xl border border-stone-800 space-y-1">
                     <span className="text-stone-500 font-bold">원재료 및 알레르기 유발물질</span>
-                    <div className="text-stone-100">{product.ingredients || '상세 라벨 참조'} (알레르기: {product.allergens || '해당 없음'})</div>
+                    <div className="text-stone-100">{product.ingredients || '확인 필요'} (알레르기: {product.allergens || '확인 필요'})</div>
                   </div>
                 </div>
 
                 {/* Certifications Badge row */}
-                {product.certifications && (
+                {Boolean(product.certifications?.length) && (
                   <div className="pt-2">
                     <span className="text-xs font-bold text-stone-400 block mb-2">보유 품질 및 수출 인증:</span>
                     <div className="flex flex-wrap gap-2">
-                      {product.certifications.map((c) => (
+                      {product.certifications?.map((c) => (
                         <span key={c} className="px-3 py-1 bg-emerald-950 text-emerald-300 border border-emerald-500/40 rounded-full text-xs font-bold">
                           ✓ {c}
                         </span>
@@ -526,39 +529,39 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs font-mono">
                   <div className="p-4 bg-stone-900/90 rounded-xl border border-amber-500/30 space-y-1">
                     <span className="text-amber-400 font-bold">Carton Quantity</span>
-                    <div className="text-stone-100 text-sm font-bold">{product.carton_qty || 10} units / CTN</div>
+                    <div className="text-stone-100 text-sm font-bold">{product.carton_qty ? `${product.carton_qty} units / CTN` : 'To be confirmed'}</div>
                   </div>
                   <div className="p-4 bg-stone-900/90 rounded-xl border border-amber-500/30 space-y-1">
                     <span className="text-amber-400 font-bold">Carton Size &amp; Gross Weight</span>
-                    <div className="text-stone-100 text-sm font-bold">{product.carton_size || '480x320x240 mm'} ({product.gross_weight || 11.2} kg)</div>
+                    <div className="text-stone-100 text-sm font-bold">{product.carton_size || 'To be confirmed'} ({product.gross_weight ?? 'TBC'} kg)</div>
                   </div>
                   <div className="p-4 bg-stone-900/90 rounded-xl border border-amber-500/30 space-y-1">
                     <span className="text-amber-400 font-bold">CBM per Carton</span>
-                    <div className="text-amber-300 text-sm font-bold">{product.cbm || 0.035} m³</div>
+                    <div className="text-amber-300 text-sm font-bold">{product.cbm ?? 'TBC'} m³</div>
                   </div>
                   <div className="p-4 bg-stone-900/90 rounded-xl border border-amber-500/30 space-y-1">
                     <span className="text-amber-400 font-bold">MOQ (Minimum Order Qty)</span>
-                    <div className="text-stone-100 text-sm font-bold">{product.moq_cartons || 50} Cartons</div>
+                    <div className="text-stone-100 text-sm font-bold">{product.moq_cartons ? `${product.moq_cartons} Cartons` : 'To be confirmed'}</div>
                   </div>
                   <div className="p-4 bg-stone-900/90 rounded-xl border border-amber-500/30 space-y-1">
                     <span className="text-amber-400 font-bold">HS Code</span>
-                    <div className="text-stone-100 text-sm font-bold">{product.hs_code || '1902.20-1000'}</div>
+                    <div className="text-stone-100 text-sm font-bold">{product.hs_code || 'To be confirmed'}</div>
                   </div>
                   <div className="p-4 bg-stone-900/90 rounded-xl border border-amber-500/30 space-y-1">
                     <span className="text-amber-400 font-bold">Production Lead Time</span>
-                    <div className="text-stone-100 text-sm font-bold">{product.production_lead_time || '14 Days'}</div>
+                    <div className="text-stone-100 text-sm font-bold">{product.production_lead_time || 'To be confirmed'}</div>
                   </div>
                   <div className="p-4 bg-stone-900/90 rounded-xl border border-amber-500/30 space-y-1">
                     <span className="text-amber-400 font-bold">Export Packaging</span>
-                    <div className="text-stone-100 text-sm font-bold">{product.export_packaging || 'Reefer Cold Chain CTN'}</div>
+                    <div className="text-stone-100 text-sm font-bold">{product.export_packaging || 'To be confirmed'}</div>
                   </div>
                   <div className="p-4 bg-stone-900/90 rounded-xl border border-amber-500/30 space-y-1">
                     <span className="text-amber-400 font-bold">Loading Port</span>
-                    <div className="text-stone-100 text-sm font-bold">{product.loading_port || 'Busan Port, Korea'}</div>
+                    <div className="text-stone-100 text-sm font-bold">{product.loading_port || 'To be confirmed'}</div>
                   </div>
                   <div className="p-4 bg-amber-950/80 rounded-xl border border-amber-400 space-y-1">
                     <span className="text-amber-300 font-bold">Export Price (FOB)</span>
-                    <div className="text-amber-400 text-base font-extrabold">${product.export_price_usd || 15} USD / CTN</div>
+                    <div className="text-amber-400 text-base font-extrabold">{product.export_price_usd ? `$${product.export_price_usd} USD / CTN` : 'Quote required'}</div>
                   </div>
                 </div>
 
@@ -574,27 +577,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
             )}
 
             {activeTab === 'reviews' && (
-              <div className="space-y-6">
-                <div className="flex items-center space-x-4 p-4 bg-stone-900 rounded border border-emerald-900/30">
-                  <div className="text-center pr-6 border-r border-stone-800">
-                    <div className="font-mono text-3xl font-bold text-[#c59b27]">
-                      {product.rating || 4.9}
-                    </div>
-                    <div className="flex text-amber-400 mt-1 justify-center">
-                      <Star size={13} fill="currentColor" />
-                      <Star size={13} fill="currentColor" />
-                      <Star size={13} fill="currentColor" />
-                      <Star size={13} fill="currentColor" />
-                      <Star size={13} fill="currentColor" />
-                    </div>
-                    <div className="text-[10px] text-stone-500 mt-1">out of 5 stars</div>
-                  </div>
-                  <div className="text-xs text-stone-400 space-y-1">
-                    <p className="font-medium text-stone-200">Verified Michelin-Grade Feedback</p>
-                    <p>98% of customers recommended this product for its unparalleled flavor complexity and freshness.</p>
-                  </div>
-                </div>
-              </div>
+              <p className="text-sm text-stone-400">등록된 검증 구매 후기가 없습니다.</p>
             )}
           </div>
         </div>

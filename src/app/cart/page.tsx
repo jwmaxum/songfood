@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import {
   ShoppingBag,
   Trash2,
@@ -17,6 +18,7 @@ import {
 } from 'lucide-react';
 
 export default function CartPage() {
+  const { t } = useLanguage();
   const {
     cartItems,
     removeFromCart,
@@ -51,14 +53,14 @@ export default function CartPage() {
       <div className="bg-[#0d110e] border-b border-emerald-900/30 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto space-y-2">
           <div className="flex items-center space-x-2 text-xs text-stone-500 font-mono">
-            <Link href="/" className="hover:text-stone-300">Home</Link>
+            <Link href="/" className="hover:text-stone-300">{t('checkout_breadcrumb_home', '홈')}</Link>
             <ChevronRight size={12} />
-            <Link href="/shop" className="hover:text-stone-300">Shop</Link>
+            <Link href="/shop" className="hover:text-stone-300">{t('nav_shop', '쇼핑몰')}</Link>
             <ChevronRight size={12} />
-            <span className="text-[#c59b27]">Shopping Cart</span>
+            <span className="text-[#c59b27]">{t('cart_title', '장바구니')}</span>
           </div>
           <h1 className="font-serif-luxury text-3xl sm:text-4xl font-light text-white">
-            Your Cart Summary
+            {t('cart_summary_title', '장바구니 주문 요약')}
           </h1>
         </div>
       </div>
@@ -70,16 +72,16 @@ export default function CartPage() {
               <ShoppingBag size={36} />
             </div>
             <div className="space-y-2">
-              <h2 className="font-serif-luxury text-2xl text-white">Your cart is currently empty</h2>
+              <h2 className="font-serif-luxury text-2xl text-white">{t('cart_empty_title', '장바구니가 비어 있습니다.')}</h2>
               <p className="text-xs text-stone-400 max-w-sm mx-auto font-light leading-relaxed">
-                Before proceeding to checkout, you must add some artisanal gourmet products to your shopping cart.
+                {t('cart_empty_desc', '주문하시려면 먼저 프리미엄 K-Food 상품을 장바구니에 담아주세요.')}
               </p>
             </div>
             <Link
               href="/shop"
               className="inline-flex items-center space-x-2 bg-[#c59b27] hover:bg-[#b08820] text-black font-semibold text-xs uppercase tracking-widest px-6 py-3 rounded transition-all shadow-lg"
             >
-              <span>Explore Fine Food Catalog</span>
+              <span>{t('btn_explore_catalog', 'K-Food 상품 둘러보기')}</span>
               <ArrowRight size={14} />
             </Link>
           </div>
@@ -115,10 +117,10 @@ export default function CartPage() {
               {/* Table Container */}
               <div className="bg-[#101411] border border-emerald-900/30 rounded-lg overflow-hidden shadow-xl">
                 <div className="hidden sm:grid grid-cols-12 gap-4 p-4 border-b border-emerald-900/30 text-[11px] uppercase tracking-wider font-semibold text-stone-400 bg-[#0c100d]">
-                  <div className="col-span-6">상품 정보 (소매 / 도매)</div>
-                  <div className="col-span-2 text-center">단가</div>
-                  <div className="col-span-2 text-center">수량</div>
-                  <div className="col-span-2 text-right">소계</div>
+                  <div className="col-span-6">{t('product_details', '상품 정보')}</div>
+                  <div className="col-span-2 text-center">{t('format', '단가')}</div>
+                  <div className="col-span-2 text-center">{t('account_orders', '수량')}</div>
+                  <div className="col-span-2 text-right">{t('subtotal_label', '소계')}</div>
                 </div>
 
                 <div className="divide-y divide-emerald-900/20 p-4 sm:p-0">
@@ -157,11 +159,11 @@ export default function CartPage() {
                             <div className="text-[11px] text-stone-400 space-x-2 flex items-center">
                               {item.purchaseType === 'wholesale' ? (
                                 <span className="bg-amber-950 text-amber-300 border border-amber-700/60 px-2 py-0.5 rounded font-mono font-bold text-[10px]">
-                                  📦 대용량 박스팩 ({cartonQty}개입 대량할인)
+                                  📦 {t('bulk_box_pack', '대용량 박스팩')} ({cartonQty}{t('quantity_unit', '개')})
                                 </span>
                               ) : (
                                 <span className="bg-stone-800 text-stone-300 px-2 py-0.5 rounded font-mono text-[10px]">
-                                  🛒 소매 낱개
+                                  🛒 {t('single_item', '소량 개별상품')}
                                 </span>
                               )}
                               <span>•</span>
@@ -172,7 +174,7 @@ export default function CartPage() {
                               className="text-[11px] text-stone-500 hover:text-red-400 flex items-center space-x-1 pt-1 transition-colors"
                             >
                               <Trash2 size={12} />
-                              <span>삭제</span>
+                              <span>{t('remove', '삭제')}</span>
                             </button>
                           </div>
                         </div>
@@ -220,13 +222,13 @@ export default function CartPage() {
                     onClick={clearCart}
                     className="text-xs text-stone-400 hover:text-red-400 transition-colors underline font-mono"
                   >
-                    장바구니 비우기
+                    {t('clear_cart', '장바구니 비우기')}
                   </button>
                   <Link
                     href="/shop"
                     className="text-xs text-[#c59b27] hover:underline font-mono"
                   >
-                    ← 쇼핑 계속하기
+                    ← {t('continue_shopping', '쇼핑 계속하기')}
                   </Link>
                 </div>
               </div>
@@ -238,18 +240,18 @@ export default function CartPage() {
               {/* Cart Totals Box */}
               <div className="bg-[#101411] border border-emerald-900/30 rounded-lg p-6 space-y-6 shadow-xl sticky top-28">
                 <h3 className="font-serif-luxury text-lg text-white font-medium border-b border-emerald-900/30 pb-3">
-                  주문 금액 합계 (Cart Totals)
+                  {t('cart_summary_title', '주문 금액 합계')}
                 </h3>
 
                 {/* Coupon Input */}
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-stone-400 uppercase tracking-wider">할인 쿠폰 코드</label>
+                  <label className="text-xs font-medium text-stone-400 uppercase tracking-wider">{t('coupon_code_label', '할인 쿠폰 코드')}</label>
                   <form onSubmit={handleApplyCoupon} className="flex space-x-2">
                     <div className="relative flex-1">
                       <Tag size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500" />
                       <input
                         type="text"
-                        placeholder="WELCOME10 또는 KFOOD15"
+                        placeholder="WELCOME10 / KFOOD15"
                         value={inputCoupon}
                         onChange={(e) => setInputCoupon(e.target.value)}
                         className="w-full bg-stone-900 border border-emerald-900/40 rounded pl-8 pr-3 py-2 text-xs text-stone-200 placeholder-stone-600 focus:outline-none focus:border-[#c59b27]"
@@ -259,7 +261,7 @@ export default function CartPage() {
                       type="submit"
                       className="bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs px-3 py-2 rounded transition-colors font-medium border border-stone-700"
                     >
-                      적용
+                      {t('btn_apply_coupon', '적용')}
                     </button>
                   </form>
 
@@ -279,13 +281,13 @@ export default function CartPage() {
                     <div className="flex justify-between items-center text-xs bg-[#18221b] p-2.5 rounded border border-emerald-800/40">
                       <span className="text-emerald-400 font-medium flex items-center space-x-1.5">
                         <Sparkles size={13} />
-                        <span>적용된 쿠폰: {couponCode}</span>
+                        <span>Code: {couponCode}</span>
                       </span>
                       <button
                         onClick={removeCoupon}
                         className="text-stone-400 hover:text-red-400 text-[11px] underline"
                       >
-                        삭제
+                        {t('remove', '삭제')}
                       </button>
                     </div>
                   )}
@@ -294,22 +296,22 @@ export default function CartPage() {
                 {/* Subtotals & Taxes */}
                 <div className="space-y-3 text-xs text-stone-300 border-t border-emerald-900/30 pt-4">
                   <div className="flex justify-between">
-                    <span className="text-stone-400">상품 주문 소계</span>
+                    <span className="text-stone-400">{t('subtotal_label', '상품 주문 소계')}</span>
                     <span className="font-mono font-medium">₩{subtotal.toLocaleString()}원</span>
                   </div>
 
                   {discountAmount > 0 && (
                     <div className="flex justify-between text-emerald-400">
-                      <span>쿠폰 할인 금액</span>
+                      <span>{t('discount_label', '쿠폰 할인 금액')}</span>
                       <span className="font-mono">-₩{discountAmount.toLocaleString()}원</span>
                     </div>
                   )}
 
                   <div className="flex justify-between">
-                    <span className="text-stone-400">신선 냉동 배송비</span>
+                    <span className="text-stone-400">{t('shipping_fee_label', '신선 냉동 배송비')}</span>
                     <span className="font-mono">
                       {shippingFee === 0 ? (
-                        <span className="text-emerald-400 uppercase font-semibold text-[11px]">무료 배송</span>
+                        <span className="text-emerald-400 uppercase font-semibold text-[11px]">{t('free_shipping', '무료 배송')}</span>
                       ) : (
                         `₩${shippingFee.toLocaleString()}원`
                       )}
@@ -317,7 +319,7 @@ export default function CartPage() {
                   </div>
 
                   <div className="flex justify-between items-center text-lg font-bold text-white pt-3 border-t border-emerald-900/30">
-                    <span>최종 결제 금액</span>
+                    <span>{t('total_amount_label', '최종 결제 금액')}</span>
                     <span className="font-mono text-[#c59b27]">₩{totalAmount.toLocaleString()}원</span>
                   </div>
                 </div>
@@ -328,7 +330,7 @@ export default function CartPage() {
                     href="/checkout"
                     className="w-full bg-[#14532D] hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl text-xs uppercase tracking-widest transition-all shadow-xl flex items-center justify-center space-x-2"
                   >
-                    <span>국내 B2C/도매 주문 결제하기</span>
+                    <span>{t('btn_proceed_checkout', '주문서 작성 / 결제하기')}</span>
                     <ArrowRight size={15} />
                   </Link>
 
@@ -336,7 +338,7 @@ export default function CartPage() {
                     href="/rfq"
                     className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-extrabold py-3.5 px-4 rounded-xl text-xs uppercase tracking-widest transition-all shadow-xl flex items-center justify-center space-x-2 ring-2 ring-amber-400/40"
                   >
-                    <span>🌎 장바구니 상품 15% 할인 견적서(RFQ) 변환</span>
+                    <span>🌎 {t('nav_rfq', '해외 바이어 RFQ 견적')}</span>
                   </Link>
                 </div>
 

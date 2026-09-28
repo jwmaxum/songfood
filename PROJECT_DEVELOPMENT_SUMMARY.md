@@ -1,3 +1,5 @@
+> **현황 정정 (2026-09-28):** 이 문서는 과거 구현 목표와 시연 화면을 설명한 기록입니다. 현재 출시 가능 상태를 뜻하지 않습니다. 실제 개발 현황, 다국어 점검 및 단계별 수정 일정은 [2026-09-28 개발 현황 평가](DEVELOPMENT_AUDIT_2026-09-28.md)를 기준으로 확인하세요.
+
 # 송영민푸드 (Song Youngmin Food) K-Food 웹 애플리케이션 개발 완료 보고서 (PROJECT_DEVELOPMENT_SUMMARY.md)
 
 - **사이트 브랜드**: **송영민푸드 (Song Youngmin Food)**
@@ -117,7 +119,7 @@ anatoria/
 │   └── uploads/
 ├── src/
 │   ├── app/
-│   │   ├── admin/                  # 어드민 백오피스 CMS (PIN 로그인, 대시보드)
+│   │   ├── admin/                  # Supabase 직원 인증 CMS 및 대시보드
 │   │   │   ├── content-blocks/
 │   │   │   ├── hero/
 │   │   │   ├── journal/

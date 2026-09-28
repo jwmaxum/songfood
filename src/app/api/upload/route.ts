@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 import { addMediaItem } from '@/lib/media-db';
+import { requireStaff } from '@/lib/admin-auth';
+import { supabaseAdmin } from '@/lib/supabase';
 
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 
 // ─── 보안 설정 ───────────────────────────────────────────────────
 const ALLOWED_MIME_TYPES: Record<string, string> = {
@@ -17,10 +17,12 @@ const ALLOWED_MIME_TYPES: Record<string, string> = {
 };
 
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;   // 5MB
-const MAX_VIDEO_SIZE_BYTES = 100 * 1024 * 1024;  // 100MB
+const MAX_VIDEO_SIZE_BYTES = 50 * 1024 * 1024;  // Supabase project upload limit
 // ─────────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
+  const denied = await requireStaff(req, ['admin', 'product_staff']);
+  if (denied) return denied;
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
@@ -57,23 +59,18 @@ export async function POST(req: NextRequest) {
 
     // ── 3. 파일명 sanitize ─────────────────────────────────────────
     const ext = ALLOWED_MIME_TYPES[mimeType]; // 검증된 확장자 사용 (사용자 입력 확장자 무시)
-    const safeName = `${Date.now()}-${file.name
+    const safeName = `${crypto.randomUUID()}-${file.name
       .replace(/[^a-zA-Z0-9._-]/g, '_')
       .replace(/\.[^.]+$/, '')}${ext}`;  // 기존 확장자 제거 후 검증된 확장자 추가
 
     // ── 4. 저장 ────────────────────────────────────────────────────
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-
-    const filePath = path.join(uploadsDir, safeName);
-    fs.writeFileSync(filePath, buffer);
-
-    const publicUrl = `/uploads/${safeName}`;
+    const { error: uploadError } = await supabaseAdmin.storage.from('media').upload(safeName, await file.arrayBuffer(), {
+      contentType: mimeType,
+      upsert: false,
+    });
+    if (uploadError) throw uploadError;
+    const { data: urlData } = supabaseAdmin.storage.from('media').getPublicUrl(safeName);
+    const publicUrl = urlData.publicUrl;
     const mediaType = isVideo ? 'video' : 'image';
     const fileSizeMb = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
 

@@ -51,7 +51,7 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
               }`}
             >
               <Store size={13} className="text-[#EAB308]" />
-              <span>🇰🇷 K-FOOD SHOP</span>
+              <span>🇰🇷 {t('nav_shop', 'K-FOOD SHOP')}</span>
             </Link>
 
             <Link
@@ -63,7 +63,7 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
               }`}
             >
               <Globe size={13} className="animate-pulse" />
-              <span>🌎 GLOBAL B2B / EXPORT</span>
+              <span>🌎 {t('nav_global_b2b', 'GLOBAL B2B / EXPORT')}</span>
             </Link>
           </div>
 
@@ -74,7 +74,7 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
               className="flex items-center space-x-1 text-[#EAB308] hover:underline font-bold"
             >
               <FileText size={12} />
-              <span>Request a Quote (RFQ)</span>
+              <span>{t('nav_rfq_short', 'Request a Quote (RFQ)')}</span>
             </Link>
 
             <Link
@@ -82,7 +82,7 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
               className="flex items-center space-x-1 text-stone-400 hover:text-amber-400 transition-colors bg-stone-900 border border-stone-700 px-2 py-0.5 rounded"
             >
               <Shield size={11} />
-              <span>Admin Studio</span>
+              <span>{t('nav_admin', 'Admin Studio')}</span>
             </Link>
 
             {/* 7-Language i18n Selector Component */}
@@ -109,37 +109,37 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
             {/* 1st Position: K-FOOD SHOP */}
             <Link href="/shop" className="flex items-center space-x-1.5 hover:text-[#14532D] transition-colors py-2">
               <Store size={15} className="text-[#14532D]" />
-              <span>K-FOOD SHOP</span>
+              <span>{t('nav_shop', 'K-FOOD SHOP')}</span>
             </Link>
 
             {/* 2nd Position: COMPANY Dropdown */}
             <div className="relative group py-2">
               <Link href="/about" className="flex items-center space-x-1.5 hover:text-[#14532D] transition-colors py-2">
                 <Building2 size={15} className="text-[#14532D]" />
-                <span>COMPANY</span>
+                <span>{t('nav_company', 'COMPANY')}</span>
                 <ChevronDown size={12} className="group-hover:rotate-180 transition-transform duration-200" />
               </Link>
 
               <div className="absolute top-full left-0 w-60 bg-white border border-stone-200 rounded-xl shadow-xl py-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all duration-200 -translate-y-1 group-hover:translate-y-0 z-50">
                 <Link href="/about" className="block px-4 py-2.5 hover:bg-[#FAFAF8] text-xs font-bold text-stone-700 hover:text-[#14532D] transition-colors">
-                  🏢 회사 소개 &amp; 브랜드 스토리
+                  🏢 {t('nav_about_story', '회사 소개 & 브랜드 스토리')}
                 </Link>
                 <Link href="/why-kfood" className="block px-4 py-2.5 hover:bg-[#FAFAF8] text-xs font-bold text-stone-700 hover:text-[#14532D] transition-colors">
-                  🏆 Why K-Food &amp; 품질인증
+                  🏆 {t('nav_why_kfood', 'Why K-Food & 품질인증')}
                 </Link>
                 <Link href="/labeling" className="block px-4 py-2.5 hover:bg-[#FAFAF8] text-xs font-bold text-[#14532D] hover:bg-emerald-50 transition-colors flex items-center justify-between">
-                  <span>🏷️ 식품 라벨링 시스템 (Master Labeling)</span>
+                  <span>🏷️ {t('nav_labeling', '식품 라벨링 시스템 (Master Labeling)')}</span>
                   <span className="text-[10px] bg-[#14532D] text-white px-1.5 py-0.5 rounded font-bold">5대국</span>
                 </Link>
                 <Link href="/rfq" className="block px-4 py-2.5 hover:bg-[#FAFAF8] text-xs font-bold text-stone-700 hover:text-[#14532D] transition-colors">
-                  🌐 Overseas Buyer RFQ
+                  🌐 {t('nav_rfq', 'Overseas Buyer RFQ')}
                 </Link>
                 <div className="my-1 border-t border-stone-100" />
                 <Link href="/news-events" className="block px-4 py-2.5 hover:bg-[#FAFAF8] text-xs font-bold text-stone-700 hover:text-[#14532D] transition-colors">
-                  📰 뉴스&amp;이벤트 (News &amp; Events)
+                  📰 {t('nav_news_events', '뉴스&이벤트 (News & Events)')}
                 </Link>
                 <Link href="/catalogues" className="block px-4 py-2.5 hover:bg-[#FAFAF8] text-xs font-bold text-stone-700 hover:text-[#14532D] transition-colors">
-                  📁 자료실 (Catalogues)
+                  📁 {t('nav_catalogues', '자료실 (Catalogues)')}
                 </Link>
               </div>
             </div>
@@ -147,7 +147,7 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
             {/* 3rd Position: B2B / RFQ QUOTE */}
             <Link href="/rfq" className="flex items-center space-x-1.5 text-amber-700 hover:text-amber-600 transition-colors py-2 font-black">
               <Globe size={15} className="text-[#EAB308]" />
-              <span>OVERSEAS BUYER RFQ</span>
+              <span>{t('nav_rfq', 'OVERSEAS BUYER RFQ')}</span>
             </Link>
           </nav>
 
@@ -208,25 +208,25 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
           <div className="px-6 py-6 space-y-4">
             {/* Mobile GNB Items */}
             <div className="border-b border-emerald-900/30 pb-3 space-y-3">
-              <div className="text-xs font-extrabold uppercase text-[#c59b27] tracking-wider">COMPANY (회사소개)</div>
+              <div className="text-xs font-extrabold uppercase text-[#c59b27] tracking-wider">{t('nav_company', 'COMPANY')}</div>
               <Link href="/about" onClick={() => setMobileMenuOpen(false)} className="block text-xs text-stone-300 hover:text-white pl-2">
-                🏢 회사 소개 &amp; 브랜드 스토리
+                🏢 {t('nav_about_story', '회사 소개 & 브랜드 스토리')}
               </Link>
               <Link href="/why-kfood" onClick={() => setMobileMenuOpen(false)} className="block text-xs text-stone-300 hover:text-white pl-2">
-                🏆 Why K-Food &amp; 품질인증
+                🏆 {t('nav_why_kfood', 'Why K-Food & 품질인증')}
               </Link>
               <Link href="/labeling" onClick={() => setMobileMenuOpen(false)} className="block text-xs text-amber-300 font-bold hover:text-white pl-2 flex items-center justify-between pr-2">
-                <span>🏷️ 식품 라벨링 시스템 (Master Labeling)</span>
+                <span>🏷️ {t('nav_labeling', '식품 라벨링 시스템 (Master Labeling)')}</span>
                 <span className="text-[10px] bg-[#EAB308] text-stone-900 px-1.5 py-0.5 rounded font-black">5대국</span>
               </Link>
               <Link href="/rfq" onClick={() => setMobileMenuOpen(false)} className="block text-xs text-stone-300 hover:text-white pl-2">
-                🌐 Overseas Buyer RFQ
+                🌐 {t('nav_rfq', 'Overseas Buyer RFQ')}
               </Link>
               <Link href="/news-events" onClick={() => setMobileMenuOpen(false)} className="block text-xs text-stone-300 hover:text-white pl-2">
-                📰 뉴스&amp;이벤트 (News &amp; Events)
+                📰 {t('nav_news_events', '뉴스&이벤트 (News & Events)')}
               </Link>
               <Link href="/catalogues" onClick={() => setMobileMenuOpen(false)} className="block text-xs text-stone-300 hover:text-white pl-2">
-                📁 자료실 (Catalogues)
+                📁 {t('nav_catalogues', '자료실 (Catalogues)')}
               </Link>
             </div>
 
@@ -236,14 +236,14 @@ export default function HeaderClient({ menus }: HeaderClientProps) {
                 onClick={() => setMobileMenuOpen(false)}
                 className="block text-center py-2.5 bg-[#14532D] text-white text-xs font-bold rounded-lg"
               >
-                🛒 K-FOOD SHOP 바로가기
+                🛒 {t('nav_shop', 'K-FOOD SHOP')}
               </Link>
               <Link
                 href="/rfq"
                 onClick={() => setMobileMenuOpen(false)}
                 className="block text-center py-2.5 bg-amber-600 text-white text-xs font-bold rounded-lg"
               >
-                📋 B2B / RFQ 견적 신청
+                📋 {t('nav_rfq_short', 'B2B / RFQ 견적 신청')}
               </Link>
             </div>
           </div>

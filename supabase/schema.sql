@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS public.menus (
     is_active BOOLEAN NOT NULL DEFAULT true,
     position TEXT NOT NULL CHECK (position IN ('header', 'footer', 'both')),
     image_url TEXT,
+    badge TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -198,7 +199,7 @@ CREATE TABLE IF NOT EXISTS public.journal_articles (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     title TEXT NOT NULL,
     slug TEXT UNIQUE NOT NULL,
-    category TEXT NOT NULL CHECK (category IN ('News', 'Event', 'Architecture', 'Design')),
+    category TEXT NOT NULL,
     excerpt TEXT,
     content TEXT NOT NULL,
     cover_image TEXT,
@@ -217,6 +218,18 @@ CREATE TABLE IF NOT EXISTS public.media_library (
     type TEXT NOT NULL CHECK (type IN ('image', 'video')),
     size TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.contact_inquiries (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    phone TEXT,
+    company TEXT,
+    subject TEXT NOT NULL,
+    message TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'unread',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- ==============================================================================
@@ -250,6 +263,7 @@ ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.content_blocks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.journal_articles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.media_library ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.contact_inquiries ENABLE ROW LEVEL SECURITY;
 
 -- 0. Drop Existing Policies for Clean Re-execution
 DROP POLICY IF EXISTS "Public Read Active Menus" ON public.menus;
@@ -628,3 +642,31 @@ ON CONFLICT (id) DO UPDATE SET
     cover_image = EXCLUDED.cover_image,
     is_published = EXCLUDED.is_published,
     published_date = EXCLUDED.published_date;
+
+-- ------------------------------------------------------------------------------
+-- 16. COMMERCIAL INQUIRIES (unpriced export RFQ and domestic wholesale leads)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.commercial_inquiries (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    kind TEXT NOT NULL CHECK (kind IN ('export_rfq', 'domestic_wholesale')),
+    status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'reviewing', 'responded', 'closed')),
+    company TEXT NOT NULL,
+    contact_name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    phone TEXT,
+    business_type TEXT,
+    business_registration_no TEXT,
+    country TEXT,
+    destination_port TEXT,
+    incoterms TEXT,
+    estimated_monthly_volume TEXT,
+    items JSONB NOT NULL DEFAULT '[]'::jsonb,
+    notes TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS commercial_inquiries_kind_created_idx ON public.commercial_inquiries (kind, created_at DESC);
+CREATE INDEX IF NOT EXISTS commercial_inquiries_status_idx ON public.commercial_inquiries (status);
+ALTER TABLE public.commercial_inquiries ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.commercial_inquiries FROM anon, authenticated;
+GRANT ALL ON public.commercial_inquiries TO service_role;

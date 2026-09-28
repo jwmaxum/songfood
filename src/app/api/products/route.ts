@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getProducts, saveProduct, deleteProduct } from '@/lib/products-db';
-export const dynamic = 'force-static';
+import { requireStaff } from '@/lib/admin-auth';
+
+export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -30,6 +32,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const denied = await requireStaff(req, ['admin', 'product_staff']);
+    if (denied) return denied;
     const body = await req.json();
     const saved = await saveProduct(body);
     return NextResponse.json({ success: true, data: saved });
@@ -41,6 +45,8 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const denied = await requireStaff(req, ['admin', 'product_staff']);
+    if (denied) return denied;
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
 

@@ -5,6 +5,9 @@ import Footer from '@/components/layout/Footer';
 import { AppProviders } from '@/components/providers/AppProviders';
 import CartDrawer from '@/components/cart/CartDrawer';
 
+// Header, footer, catalog and CMS pages read live Supabase data.
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: '송영민푸드 (Song Youngmin Food) | Premium K-Food, Korea Food & K-Fresh Food',

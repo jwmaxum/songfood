@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { MediaItem } from '@/lib/types';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import {
   Image as ImageIcon,
   Plus,
@@ -16,40 +15,6 @@ import {
   Check,
 } from 'lucide-react';
 
-const FALLBACK_MEDIA_ITEMS: MediaItem[] = [
-  {
-    id: 'media-1',
-    name: 'hero-olive-oil-pour.mp4',
-    url: 'https://cdn.coverr.co/videos/coverr-pouring-extra-virgin-olive-oil-5421/1080p.mp4',
-    type: 'video',
-    size: '12.4 MB',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'media-2',
-    name: 'tuscan-evoo-bottle-hd.jpg',
-    url: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=1200&q=80',
-    type: 'image',
-    size: '2.1 MB',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'media-3',
-    name: 'parmigiano-reggiano-36m-block.jpg',
-    url: 'https://images.unsplash.com/photo-1452195100486-9cc805987862?auto=format&fit=crop&w=1200&q=80',
-    type: 'image',
-    size: '3.4 MB',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'media-4',
-    name: 'piedmont-black-truffle-oil.jpg',
-    url: 'https://images.unsplash.com/photo-1541544741938-0af808871cc0?auto=format&fit=crop&w=1200&q=80',
-    type: 'image',
-    size: '1.8 MB',
-    created_at: new Date().toISOString(),
-  },
-];
 
 export default function MediaManager() {
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
@@ -69,7 +34,7 @@ export default function MediaManager() {
       const res = await fetch('/api/media?mode=admin');
       if (res.ok) {
         const data = await res.json();
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+        if (data.success && Array.isArray(data.data)) {
           setMediaItems(data.data);
           setLoading(false);
           return;
@@ -79,20 +44,8 @@ export default function MediaManager() {
       // Fallback
     }
 
-    if (isSupabaseConfigured()) {
-      try {
-        const { data, error } = await supabase.from('media_library').select('*');
-        if (!error && data && data.length > 0) {
-          setMediaItems(data as MediaItem[]);
-          setLoading(false);
-          return;
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    setMediaItems(FALLBACK_MEDIA_ITEMS);
+    setMediaItems([]);
+    setToastMessage('미디어를 불러오지 못했습니다.');
     setLoading(false);
   };
 
@@ -114,19 +67,14 @@ export default function MediaManager() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this media asset?')) return;
-    setMediaItems((prev) => prev.filter((m) => m.id !== id));
-
     try {
-      await fetch(`/api/media?id=${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/media?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      if (!response.ok || !(await response.json()).success) throw new Error('Delete failed');
+      setMediaItems((prev) => prev.filter((item) => item.id !== id));
+      showToast('Media deleted successfully');
     } catch {
-      // Ignore
+      showToast('미디어 삭제에 실패했습니다.');
     }
-
-    if (isSupabaseConfigured()) {
-      await supabase.from('media_library').delete().eq('id', id);
-    }
-
-    showToast('Media deleted successfully');
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -141,19 +89,17 @@ export default function MediaManager() {
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
       const data = await res.json();
       if (data.success) {
-        setMediaUrl(data.url);
+        setMediaUrl(data.data.url);
         setMediaName(file.name);
         setMediaType(file.type.startsWith('video/') ? 'video' : 'image');
+        setMediaItems((prev) => [data.data as MediaItem, ...prev]);
+        setIsModalOpen(false);
         showToast('File uploaded!');
       } else {
         alert(data.error || 'Upload failed');
       }
     } catch {
-      const localUrl = URL.createObjectURL(file);
-      setMediaUrl(localUrl);
-      setMediaName(file.name);
-      setMediaType(file.type.startsWith('video/') ? 'video' : 'image');
-      showToast('Media attached locally!');
+      showToast('미디어 업로드에 실패했습니다.');
     } finally {
       setUploading(false);
     }
@@ -163,23 +109,16 @@ export default function MediaManager() {
     e.preventDefault();
     if (!mediaName.trim() || !mediaUrl.trim()) return alert('Name & URL are required');
 
-    const newItem: MediaItem = {
-      id: `media-${Date.now()}`,
-      name: mediaName,
-      url: mediaUrl,
-      type: mediaType,
-      size: '2.5 MB',
-      created_at: new Date().toISOString(),
-    };
-
-    setMediaItems((prev) => [newItem, ...prev]);
-
-    if (isSupabaseConfigured()) {
-      await supabase.from('media_library').upsert(newItem);
+    try {
+      const response = await fetch('/api/media', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: mediaName, url: mediaUrl, type: mediaType, size: 'External URL' }) });
+      if (!response.ok) throw new Error('Save failed');
+      const saved = (await response.json()).data as MediaItem;
+      setMediaItems((prev) => [saved, ...prev]);
+      setIsModalOpen(false);
+      showToast('New media asset registered');
+    } catch {
+      showToast('미디어 저장에 실패했습니다.');
     }
-
-    setIsModalOpen(false);
-    showToast('New media asset registered');
   };
 
   return (

@@ -2,6 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { ProductItem } from '@/lib/types';
+import { PRODUCT_COLLECTIONS } from '@/lib/product-taxonomy';
 
 interface CategoryItem {
   id: string;
@@ -12,16 +14,17 @@ interface CategoryItem {
   count: string;
 }
 
-const CATEGORIES: CategoryItem[] = [
-  { id: '1', name: '비비고 만두', icon: '🥟', url: '/collections?cat=fresh#mandu', colorBg: 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200', count: '14 품목' },
-  { id: '2', name: '원소주 & 증류주', icon: '🍾', url: '/collections?cat=dairy#soju', colorBg: 'bg-amber-50 hover:bg-amber-100 border-amber-200', count: '18 품목' },
-  { id: '3', name: '떡볶이 밀키트', icon: '🥘', url: '/collections?cat=fresh#tteok', colorBg: 'bg-rose-50 hover:bg-rose-100 border-rose-200', count: '8 품목' },
-  { id: '4', name: '크리스피 치킨', icon: '🍗', url: '/collections?cat=fresh#chicken', colorBg: 'bg-yellow-50 hover:bg-yellow-100 border-yellow-200', count: '12 품목' },
-  { id: '5', name: '생막걸리 & 탁주', icon: '🍶', url: '/collections?cat=dairy#makgeolli', colorBg: 'bg-purple-50 hover:bg-purple-100 border-purple-200', count: '9 품목' },
-  { id: '6', name: 'K-간식 & 디저트', icon: '🍿', url: '/collections?cat=pantry#snack', colorBg: 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200', count: '11 품목' },
-];
+const ICONS = ['🥬', '🥟', '🥘', '🍜', '🫙', '🌊', '🍪', '🍶', '🍵'];
 
-export default function CategoryIcons() {
+export default function CategoryIcons({ products }: { products: ProductItem[] }) {
+  const categories: CategoryItem[] = PRODUCT_COLLECTIONS.map((collection, index) => ({
+    id: collection,
+    name: collection,
+    icon: ICONS[index],
+    url: `/collections?collection=${encodeURIComponent(collection)}`,
+    colorBg: 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200',
+    count: `${products.filter((product) => product.collection === collection).length} 품목`,
+  }));
   return (
     <section className="py-14 bg-white border-b border-stone-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -34,8 +37,8 @@ export default function CategoryIcons() {
         </div>
 
         {/* Circular Category Buttons */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6">
-          {CATEGORIES.map((cat) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+          {categories.map((cat) => (
             <Link
               key={cat.id}
               href={cat.url}

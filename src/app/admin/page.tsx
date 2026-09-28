@@ -15,6 +15,8 @@ import {
   BookOpen,
 } from 'lucide-react';
 import type { KpiData } from '@/app/api/kpi/route';
+import { GET as getKpiResponse } from '@/app/api/kpi/route';
+import { cookies } from 'next/headers';
 import ExchangeRateWidget from './ExchangeRateWidget';
 
 export const metadata = {
@@ -24,10 +26,8 @@ export const metadata = {
 
 async function fetchKpi(): Promise<KpiData & { configured: boolean }> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/kpi`, {
-      next: { revalidate: 60 }, // 1분 캐시
-    });
+    const token = (await cookies()).get('sf_admin_access')?.value || '';
+    const res = await getKpiResponse(new Request('https://admin.local/api/kpi', { headers: { Authorization: `Bearer ${token}` } }));
     if (!res.ok) throw new Error('KPI fetch failed');
     const json = await res.json();
     return { ...json.data, configured: json.configured };

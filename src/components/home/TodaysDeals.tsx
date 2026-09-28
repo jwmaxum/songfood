@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ProductItem } from '@/lib/types';
-import { getStoredProductsOverride } from '@/lib/products-sync';
+import { supabase } from '@/lib/supabase';
 import { useCart } from '@/context/CartContext';
 import { Clock, ShoppingBag, Star, Zap } from 'lucide-react';
 
@@ -31,17 +31,11 @@ export default function TodaysDeals({ products }: TodaysDealsProps) {
   const [currentProducts, setCurrentProducts] = useState<ProductItem[]>(products);
 
   useEffect(() => {
-    function syncProducts() {
-      const override = getStoredProductsOverride();
-      if (override) {
-        setCurrentProducts(override);
-      } else {
-        setCurrentProducts(products);
-      }
-    }
-    syncProducts();
-    window.addEventListener('songfood_products_updated', syncProducts);
-    return () => window.removeEventListener('songfood_products_updated', syncProducts);
+    let active = true;
+    supabase.from('products').select('*').then(({ data, error }) => {
+      if (active && !error && data?.length) setCurrentProducts(data as ProductItem[]);
+    });
+    return () => { active = false; };
   }, [products]);
 
   // Filter products that are designated as Today's Deals by Admin or fallback to discounted items
@@ -126,11 +120,11 @@ export default function TodaysDeals({ products }: TodaysDealsProps) {
                     </Link>
                   </div>
 
-                  <div className="flex items-center space-x-1 text-amber-500 text-xs">
+                  {Boolean(product.reviews_count && product.rating) && <div className="flex items-center space-x-1 text-amber-500 text-xs">
                     <Star size={14} fill="currentColor" />
-                    <span className="font-bold text-stone-800 ml-1">{product.rating || 4.9}</span>
-                    <span className="text-stone-400">({product.reviews_count || 32}개 후기)</span>
-                  </div>
+                    <span className="font-bold text-stone-800 ml-1">{product.rating}</span>
+                    <span className="text-stone-400">({product.reviews_count}개 후기)</span>
+                  </div>}
 
                   <div className="pt-3 border-t border-stone-100 space-y-2">
                     <div className="flex flex-col text-xs font-mono">

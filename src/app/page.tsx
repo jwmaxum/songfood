@@ -55,7 +55,7 @@ export default async function Home() {
       <TodaysDeals products={products} />
 
       {/* 3. Category Icons (Quick category circles) */}
-      <CategoryIcons />
+      <CategoryIcons products={products} />
 
       {/* 4. Best Sellers Collection */}
       <BestSellers products={products} />

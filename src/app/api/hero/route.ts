@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireStaff } from '@/lib/admin-auth';
 import {
   getAllHeroSlides,
   getActiveHeroSlides,
@@ -7,7 +8,7 @@ import {
   deleteHeroSlide,
 } from '@/lib/cms-db';
 
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
@@ -15,6 +16,8 @@ export async function GET(req: NextRequest) {
     const mode = searchParams.get('mode');
 
     if (mode === 'admin') {
+      const denied = await requireStaff(req, ['admin', 'product_staff']);
+      if (denied) return denied;
       const slides = await getAllHeroSlides();
       return NextResponse.json({ success: true, data: slides });
     }
@@ -28,6 +31,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  const denied = await requireStaff(req, ['admin', 'product_staff']);
+  if (denied) return denied;
   try {
     const body = await req.json();
     const { id, is_active } = body;
@@ -45,6 +50,8 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await requireStaff(req, ['admin', 'product_staff']);
+  if (denied) return denied;
   try {
     const body = await req.json();
     const saved = await saveHeroSlide(body);
@@ -56,6 +63,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const denied = await requireStaff(req, ['admin', 'product_staff']);
+  if (denied) return denied;
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');

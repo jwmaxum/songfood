@@ -3,9 +3,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, Tag, Truck } from 'lucide-react';
 
 export default function CartDrawer() {
+  const { t } = useLanguage();
   const {
     cartItems,
     isCartOpen,
@@ -52,7 +54,7 @@ export default function CartDrawer() {
         <div className="p-5 border-b border-emerald-900/30 flex items-center justify-between bg-[#0b0e0c]">
           <div className="flex items-center space-x-2.5">
             <ShoppingBag className="w-5 h-5 text-[#c59b27]" />
-            <h2 className="font-serif-luxury text-lg tracking-wide text-white">Your Shopping Cart</h2>
+            <h2 className="font-serif-luxury text-lg tracking-wide text-white">{t('cart_drawer_title', '장바구니')}</h2>
             <span className="bg-[#c59b27]/20 border border-[#c59b27]/40 text-[#c59b27] text-xs font-semibold px-2 py-0.5 rounded-full">
               {cartItems.reduce((acc, item) => acc + item.quantity, 0)}
             </span>
@@ -73,8 +75,8 @@ export default function CartDrawer() {
               <Truck size={14} className="text-[#c59b27]" />
               <span>
                 {remainingForFreeShipping > 0
-                  ? `Add $${remainingForFreeShipping.toFixed(2)} more for FREE Express Shipping`
-                  : '🎉 You have unlocked FREE Express Shipping!'}
+                  ? t('free_shipping_remaining', '₩{amount}원 더 담으시면 무료배송 적용!').replace('{amount}', remainingForFreeShipping.toLocaleString())
+                  : t('free_shipping_unlocked', '🎉 5만원 이상 구매로 무료배송(0원) 혜택이 적용되었습니다!')}
               </span>
             </span>
             <span className="font-mono text-[11px] text-[#c59b27] font-semibold">
@@ -97,9 +99,9 @@ export default function CartDrawer() {
                 <ShoppingBag size={28} />
               </div>
               <div className="space-y-1">
-                <h3 className="font-serif-luxury text-lg text-white">Your cart is empty</h3>
+                <h3 className="font-serif-luxury text-lg text-white">{t('cart_empty_title', '장바구니가 비어 있습니다.')}</h3>
                 <p className="text-xs text-stone-400 max-w-[240px]">
-                  Explore our curated artisanal ingredients and fine Italian foods.
+                  {t('cart_empty_desc', '결제를 진행하려면 먼저 프리미엄 K-Food 상품을 장바구니에 담아주세요.')}
                 </p>
               </div>
               <Link
@@ -107,7 +109,7 @@ export default function CartDrawer() {
                 onClick={() => setIsCartOpen(false)}
                 className="mt-2 inline-flex items-center space-x-2 bg-[#c59b27] hover:bg-[#b08820] text-black font-semibold text-xs tracking-wider uppercase px-5 py-2.5 rounded transition-all"
               >
-                <span>Start Shopping</span>
+                <span>{t('btn_explore_catalog', 'K-Food 상품 둘러보기')}</span>
                 <ArrowRight size={14} />
               </Link>
             </div>
@@ -132,7 +134,7 @@ export default function CartDrawer() {
                       <button
                         onClick={() => removeFromCart(item.product.id)}
                         className="text-stone-500 hover:text-red-400 transition-colors p-1"
-                        title="Remove item"
+                        title={t('remove', '삭제')}
                       >
                         <Trash2 size={15} />
                       </button>
@@ -167,11 +169,11 @@ export default function CartDrawer() {
                     {/* Price */}
                     <div className="text-right">
                       <span className="text-xs font-semibold text-[#c59b27] font-mono">
-                        ${((item.product.price || 50) * item.quantity).toFixed(2)}
+                        ₩{((item.product.price || 18000) * item.quantity).toLocaleString()}원
                       </span>
                       {item.quantity > 1 && (
                         <div className="text-[10px] text-stone-500">
-                          ${(item.product.price || 50).toFixed(2)} each
+                          ₩{(item.product.price || 18000).toLocaleString()}원 / {t('quantity_unit', '개')}
                         </div>
                       )}
                     </div>
@@ -191,7 +193,7 @@ export default function CartDrawer() {
                 <Tag size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500" />
                 <input
                   type="text"
-                  placeholder="Coupon code (e.g. WELCOME10)"
+                  placeholder={t('coupon_placeholder', '쿠폰 코드 입력 (예: KFOOD10)')}
                   value={inputCoupon}
                   onChange={(e) => setInputCoupon(e.target.value)}
                   className="w-full bg-stone-900/90 border border-emerald-900/40 rounded pl-8 pr-3 py-1.5 text-xs text-stone-200 placeholder-stone-500 focus:outline-none focus:border-[#c59b27]"
@@ -201,7 +203,7 @@ export default function CartDrawer() {
                 type="submit"
                 className="bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs px-3 py-1.5 rounded transition-colors font-medium border border-stone-700"
               >
-                Apply
+                {t('btn_apply_coupon', '쿠폰 적용')}
               </button>
             </form>
 
@@ -221,13 +223,13 @@ export default function CartDrawer() {
               <div className="flex justify-between items-center text-xs bg-[#18221b] px-3 py-1.5 rounded border border-emerald-800/40">
                 <span className="text-emerald-400 font-medium flex items-center space-x-1">
                   <Tag size={12} />
-                  <span>Code '{couponCode}' active</span>
+                  <span>Code '{couponCode}'</span>
                 </span>
                 <button
                   onClick={removeCoupon}
                   className="text-stone-400 hover:text-red-400 text-[11px] underline"
                 >
-                  Remove
+                  {t('remove', '삭제')}
                 </button>
               </div>
             )}
@@ -235,31 +237,31 @@ export default function CartDrawer() {
             {/* Calculations */}
             <div className="space-y-1.5 text-xs text-stone-300 pt-1">
               <div className="flex justify-between">
-                <span className="text-stone-400">Subtotal</span>
-                <span className="font-mono">${subtotal.toFixed(2)}</span>
+                <span className="text-stone-400">{t('subtotal_label', '상품 소계')}</span>
+                <span className="font-mono">₩{subtotal.toLocaleString()}원</span>
               </div>
 
               {discountAmount > 0 && (
                 <div className="flex justify-between text-emerald-400">
-                  <span>Discount</span>
-                  <span className="font-mono">-${discountAmount.toFixed(2)}</span>
+                  <span>{t('discount_label', '할인 금액')}</span>
+                  <span className="font-mono">-₩{discountAmount.toLocaleString()}원</span>
                 </div>
               )}
 
               <div className="flex justify-between">
-                <span className="text-stone-400">Estimated Shipping</span>
+                <span className="text-stone-400">{t('shipping_fee_label', '신선 배송비')}</span>
                 <span className="font-mono">
                   {shippingFee === 0 ? (
-                    <span className="text-emerald-400 uppercase font-semibold text-[11px]">Free</span>
+                    <span className="text-emerald-400 uppercase font-semibold text-[11px]">{t('free_shipping', '무료배송')}</span>
                   ) : (
-                    `$${shippingFee.toFixed(2)}`
+                    `₩${shippingFee.toLocaleString()}원`
                   )}
                 </span>
               </div>
 
               <div className="flex justify-between items-center text-base font-semibold text-white pt-2 border-t border-emerald-900/30">
-                <span>Total</span>
-                <span className="font-mono text-[#c59b27]">${totalAmount.toFixed(2)}</span>
+                <span>{t('total_amount_label', '총 결제금액')}</span>
+                <span className="font-mono text-[#c59b27]">₩{totalAmount.toLocaleString()}원</span>
               </div>
             </div>
 
@@ -270,14 +272,14 @@ export default function CartDrawer() {
                 onClick={() => setIsCartOpen(false)}
                 className="w-full text-center py-2.5 px-3 rounded border border-emerald-800/50 text-xs font-semibold tracking-wider text-stone-200 hover:bg-stone-800 transition-colors uppercase"
               >
-                View Cart
+                {t('cart_drawer_title', '장바구니')}
               </Link>
               <Link
                 href="/checkout"
                 onClick={() => setIsCartOpen(false)}
                 className="w-full text-center py-2.5 px-3 rounded bg-[#c59b27] hover:bg-[#b08820] text-black font-semibold text-xs tracking-wider uppercase transition-all shadow-lg flex items-center justify-center space-x-1.5"
               >
-                <span>Checkout</span>
+                <span>{t('checkout', '결제하기')}</span>
                 <ArrowRight size={14} />
               </Link>
             </div>

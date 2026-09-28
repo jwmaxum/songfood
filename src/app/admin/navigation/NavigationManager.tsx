@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { MenuItem } from '@/lib/types';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import {
   DndContext,
   closestCenter,
@@ -23,54 +22,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Plus, Trash2, ArrowLeft, Eye, EyeOff, RefreshCw, Layers, CheckCircle2 } from 'lucide-react';
 
-const FALLBACK_RAW_MENUS: MenuItem[] = [
-  // Header Menus
-  { id: 'menu-hdr-all', title: 'ALL', url: '/collections', parent_id: null, sort_order: 0, is_active: true, position: 'header' },
-  { id: 'menu-hdr-1', title: 'K-냉동식품', url: '/collections?cat=fresh', parent_id: null, sort_order: 1, is_active: true, position: 'header', badge: 'HOT' },
-  { id: 'menu-hdr-2', title: 'K-전통식품', url: '/collections?cat=traditional', parent_id: null, sort_order: 2, is_active: true, position: 'header' },
-  { id: 'menu-hdr-3', title: 'K-간편식/HMR', url: '/collections?cat=pantry', parent_id: null, sort_order: 3, is_active: true, position: 'header' },
-  { id: 'menu-hdr-4', title: 'K-소스/조미료', url: '/collections?cat=sauce', parent_id: null, sort_order: 4, is_active: true, position: 'header' },
-  { id: 'menu-hdr-5', title: 'K-주류 & 전통주', url: '/collections?cat=dairy', parent_id: null, sort_order: 5, is_active: true, position: 'header', badge: 'PREMIUM' },
-  { id: 'menu-hdr-6', title: 'K-스낵/음료', url: '/collections?cat=snack', parent_id: null, sort_order: 6, is_active: true, position: 'header' },
-  { id: 'menu-hdr-7', title: '오늘의 특가', url: '/collections?cat=deals', parent_id: null, sort_order: 7, is_active: true, position: 'header', badge: 'SALE' },
-  { id: 'menu-hdr-8', title: '베스트셀러', url: '/shop', parent_id: null, sort_order: 8, is_active: true, position: 'header' },
-  { id: 'menu-hdr-9', title: 'K-레시피 & 저널', url: '/journal', parent_id: null, sort_order: 9, is_active: true, position: 'header' },
 
-  // Sub-Menus
-  { id: 'menu-sub-1', title: 'CJ 비비고 왕교자 만두', url: '/collections?cat=fresh#mandu', parent_id: 'menu-hdr-1', sort_order: 1, is_active: true, position: 'header' },
-  { id: 'menu-sub-2', title: 'K-수제 떡볶이 & 밀키트', url: '/collections?cat=fresh#tteok', parent_id: 'menu-hdr-1', sort_order: 2, is_active: true, position: 'header' },
-  { id: 'menu-sub-3', title: '크리스피 양념 & 간장치킨', url: '/collections?cat=fresh#chicken', parent_id: 'menu-hdr-1', sort_order: 3, is_active: true, position: 'header' },
-  { id: 'menu-sub-4', title: '원소주 & 증류식 소주', url: '/collections?cat=dairy#soju', parent_id: 'menu-hdr-5', sort_order: 1, is_active: true, position: 'header' },
-  { id: 'menu-sub-5', title: '느린마을 생막걸리 & 탁주', url: '/collections?cat=dairy#makgeolli', parent_id: 'menu-hdr-5', sort_order: 2, is_active: true, position: 'header' },
-
-  // Footer Menus
-  { id: 'menu-ftr-1', title: '송영민푸드 K-Food 브랜드 소개', url: '/why-kfood', parent_id: null, sort_order: 1, is_active: true, position: 'footer' },
-  { id: 'menu-ftr-2', title: 'Overseas Buyer RFQ (해외 바이어 RFQ)', url: '/rfq', parent_id: null, sort_order: 2, is_active: true, position: 'footer' },
-  { id: 'menu-ftr-3', title: 'B2B 도매 & 식자재 공급 문의', url: '/wholesale', parent_id: null, sort_order: 3, is_active: true, position: 'footer' },
-  { id: 'menu-ftr-4', title: '고객 센터 & 문의', url: '/contact', parent_id: null, sort_order: 4, is_active: true, position: 'footer' },
-  { id: 'menu-ftr-5', title: '해외 바이어 RFQ 견적 위저드', url: '/rfq', parent_id: null, sort_order: 5, is_active: true, position: 'footer' },
-  { id: 'menu-ftr-6', title: '개인정보 처리방침', url: '/privacy', parent_id: null, sort_order: 6, is_active: true, position: 'footer' },
-  { id: 'menu-ftr-7', title: '이용약관', url: '/terms', parent_id: null, sort_order: 7, is_active: true, position: 'footer' },
-];
-
-function buildMenuTree(allMenus: MenuItem[]): MenuItem[] {
-  const depth1 = allMenus
-    .filter((m) => !m.parent_id)
-    .sort((a, b) => a.sort_order - b.sort_order);
-
-  const depth2 = allMenus.filter((m) => m.parent_id);
-
-  return depth1.map((parent) => {
-    const children = depth2
-      .filter((child) => child.parent_id === parent.id)
-      .sort((a, b) => a.sort_order - b.sort_order);
-
-    return {
-      ...parent,
-      children: children.length > 0 ? children : [],
-    };
-  });
-}
 
 // Sortable Item Component for Depth 1
 function SortableItem({
@@ -278,7 +230,7 @@ export default function NavigationManager() {
       const res = await fetch('/api/menus?mode=admin');
       if (res.ok) {
         const data = await res.json();
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+        if (data.success && Array.isArray(data.data)) {
           setItems(data.data);
           setLoading(false);
           return;
@@ -288,21 +240,8 @@ export default function NavigationManager() {
       // Fallback
     }
 
-    if (isSupabaseConfigured()) {
-      try {
-        const { data, error } = await supabase.from('menus').select('*').order('sort_order');
-        if (!error && data && data.length > 0) {
-          setItems(buildMenuTree(data as MenuItem[]));
-          setLoading(false);
-          return;
-        }
-      } catch (err) {
-        console.error('Supabase query error:', err);
-      }
-    }
-
-    // Default Fallback Initial Menu Tree
-    setItems(buildMenuTree(FALLBACK_RAW_MENUS));
+    setItems([]);
+    setToastMessage('메뉴를 불러오지 못했습니다.');
     setLoading(false);
   };
 
@@ -321,6 +260,13 @@ export default function NavigationManager() {
   });
 
   const handleToggleActive = async (id: string, is_active: boolean) => {
+    try {
+      const response = await fetch('/api/menus', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, is_active }) });
+      if (!response.ok || !(await response.json()).success) throw new Error('Update failed');
+    } catch {
+      showToast('메뉴 상태 변경에 실패했습니다.');
+      return;
+    }
     setItems((prevItems) => {
       const updateTree = (list: MenuItem[]): MenuItem[] => {
         return list.map((item) => {
@@ -336,26 +282,19 @@ export default function NavigationManager() {
       return updateTree(prevItems);
     });
 
-    try {
-      await fetch('/api/menus', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, is_active }),
-      });
-    } catch {
-      // Static fallback
-    }
-
-    if (isSupabaseConfigured()) {
-      await supabase.from('menus').update({ is_active }).eq('id', id);
-    }
-
     showToast(`Menu status updated`);
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this menu item?')) return;
 
+    try {
+      const response = await fetch(`/api/menus?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      if (!response.ok || !(await response.json()).deleted) throw new Error('Delete failed');
+    } catch {
+      showToast('메뉴 삭제에 실패했습니다.');
+      return;
+    }
     setItems((prevItems) => {
       const filterTree = (list: MenuItem[]): MenuItem[] => {
         return list
@@ -368,20 +307,10 @@ export default function NavigationManager() {
       return filterTree(prevItems);
     });
 
-    try {
-      await fetch(`/api/menus?id=${id}`, { method: 'DELETE' });
-    } catch {
-      // Ignore
-    }
-
-    if (isSupabaseConfigured()) {
-      await supabase.from('menus').delete().eq('id', id);
-    }
-
     showToast('Menu deleted successfully');
   };
 
-  const handleDragEndDepth1 = (event: DragEndEvent) => {
+  const handleDragEndDepth1 = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
@@ -393,23 +322,29 @@ export default function NavigationManager() {
       sort_order: idx + 1,
     }));
 
-    setItems(reordered);
-    showToast('Menu reordered');
+    try {
+      const response = await fetch('/api/menus/reorder', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: reordered.map((item) => ({ id: item.id, sort_order: item.sort_order })) }) });
+      if (!response.ok || !(await response.json()).success) throw new Error('Reorder failed');
+      setItems(reordered);
+      showToast('Menu reordered');
+    } catch {
+      showToast('메뉴 순서 변경에 실패했습니다.');
+    }
   };
 
   const handleAddMenuSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim() || !newUrl.trim()) return alert('Title and URL are required');
 
-    const newItem: MenuItem = {
-      id: `menu-${Date.now()}`,
-      title: newTitle,
-      url: newUrl,
-      parent_id: newParentId,
-      sort_order: items.length + 1,
-      is_active: true,
-      position: newPosition,
-    };
+    let newItem: MenuItem;
+    try {
+      const response = await fetch('/api/menus', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newTitle, url: newUrl, parent_id: newParentId, sort_order: items.length + 1, is_active: true, position: newPosition }) });
+      if (!response.ok) throw new Error('Create failed');
+      newItem = (await response.json()).data as MenuItem;
+    } catch {
+      showToast('메뉴 생성에 실패했습니다.');
+      return;
+    }
 
     if (newParentId) {
       setItems((prev) =>

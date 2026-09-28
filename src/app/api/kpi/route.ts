@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
+import { requireStaff } from '@/lib/admin-auth';
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase';
 import productsData from '../../../../data/products.json';
 import journalData from '../../../../data/journal.json';
 
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 
 export interface KpiData {
   totalOrders: number;
@@ -34,7 +35,9 @@ function getRevenue(result: SupabaseCountResult): number {
   return 0;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const denied = await requireStaff(request, ['admin', 'product_staff', 'inquiry_staff', 'order_staff']);
+  if (denied) return denied;
   const localProductsCount = Array.isArray(productsData) ? productsData.length : 8;
   const localJournalCount = Array.isArray(journalData) ? journalData.length : 3;
 

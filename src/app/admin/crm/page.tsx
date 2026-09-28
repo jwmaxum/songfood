@@ -1,283 +1,76 @@
 'use client';
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { RFQRequest, BuyerLead } from '@/lib/types';
-import { Users, FileText, TrendingUp, Sliders, CheckCircle2, ChevronRight, Search, Shield, ArrowUpRight, DollarSign } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { INQUIRY_STATUSES, type InquiryKind, type InquiryStatus } from '@/lib/commercial-inquiry';
 
-const MOCK_LEADS: BuyerLead[] = [
-  {
-    id: 'lead-1',
-    company: 'Pacific Foods Import Co.',
-    name: 'John Smith',
-    email: 'john@pacificfoods.com',
-    phone: '+1 310 555 0199',
-    country: 'USA (Los Angeles)',
-    status: 'QUOTATION',
-    totalQuotesCount: 3,
-    totalOrderValueUsd: 48500,
-    lastInquiryDate: '2026-08-07',
-    interestedProducts: ['CJ 비비고 왕교자 만두', '명품 포기김치 5kg', 'K-치킨 반반'],
-  },
-  {
-    id: 'lead-2',
-    company: 'Tokyo Asia Food Trading Inc.',
-    name: 'Kenji Sato',
-    email: 'kenji@tokyoasiafood.jp',
-    phone: '+81 3 3221 8890',
-    country: 'Japan (Tokyo)',
-    status: 'NEGOTIATION',
-    totalQuotesCount: 2,
-    totalOrderValueUsd: 62000,
-    lastInquiryDate: '2026-08-06',
-    interestedProducts: ['원소주 375ml', '느린마을 막걸리', 'K-스낵 고구마칩'],
-  },
-  {
-    id: 'lead-3',
-    company: 'Al-Madina Gourmet Importers',
-    name: 'Tariq Al-Mansoor',
-    email: 'tariq@almadinagroup.ae',
-    phone: '+971 4 881 2345',
-    country: 'UAE (Dubai)',
-    status: 'NEW_LEAD',
-    totalQuotesCount: 1,
-    totalOrderValueUsd: 28400,
-    lastInquiryDate: '2026-08-08',
-    interestedProducts: ['송영민 수제 불고기 소스', 'Halal 김치', 'K-스낵'],
-  },
-  {
-    id: 'lead-4',
-    company: 'Hamburg Asian Supermarket Group',
-    name: 'Greta Weber',
-    email: 'greta@hamburg-asia.de',
-    phone: '+49 40 1234 5678',
-    country: 'Germany (Hamburg)',
-    status: 'EXPORT',
-    totalQuotesCount: 5,
-    totalOrderValueUsd: 125000,
-    lastInquiryDate: '2026-08-02',
-    interestedProducts: ['Bibigo Mandu', 'Tteokbokki Kit', 'Pogggi Kimchi'],
-  },
-];
+type Inquiry = {
+  id: string; kind: InquiryKind; status: InquiryStatus; company: string; contact_name: string;
+  email: string; phone: string | null; business_type: string | null; business_registration_no: string | null;
+  country: string | null; destination_port: string | null; incoterms: string | null;
+  estimated_monthly_volume: string | null; items: { product_id: string; product_name: string; quantity_cartons: number }[];
+  notes: string | null; created_at: string;
+};
 
-const PIPELINE_STAGES: RFQRequest['status'][] = [
-  'NEW_LEAD',
-  'INQUIRY',
-  'PRODUCT_MATCHING',
-  'QUOTATION',
-  'NEGOTIATION',
-  'PURCHASE_ORDER',
-  'PAYMENT',
-  'EXPORT',
-];
+const labels: Record<InquiryStatus, string> = { new: '신규', reviewing: '검토 중', responded: '회신 완료', closed: '종결' };
+
+async function readInquiries(): Promise<Inquiry[]> {
+  const response = await fetch('/api/commercial-inquiries', { cache: 'no-store' });
+  const result = await response.json();
+  if (!response.ok || !result.success) throw new Error(result.error || '문의 목록 조회에 실패했습니다.');
+  return result.inquiries;
+}
 
 export default function AdminCRMPage() {
-  const [leads, setLeads] = useState<BuyerLead[]>(MOCK_LEADS);
-  const [selectedStage, setSelectedStage] = useState<string>('All');
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  // Admin Global Price Adjustment Control (% Markup/Discount)
-  const [priceAdjustmentPercent, setPriceAdjustmentPercent] = useState<number>(0); // e.g. +5% or -5%
+  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
+  const [kind, setKind] = useState<'all' | InquiryKind>('all');
+  const [query, setQuery] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState<string | null>(null);
 
-  const updateLeadStatus = (id: string, newStatus: RFQRequest['status']) => {
-    setLeads((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, status: newStatus } : l))
-    );
-  };
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      setInquiries(await readInquiries());
+      setError('');
+    } catch (cause) { setError(cause instanceof Error ? cause.message : '문의 목록 조회에 실패했습니다.'); }
+    finally { setLoading(false); }
+  }, []);
 
-  const filteredLeads = leads.filter((l) => {
-    if (selectedStage !== 'All' && l.status !== selectedStage) return false;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      return (
-        l.company.toLowerCase().includes(q) ||
-        l.name.toLowerCase().includes(q) ||
-        l.country.toLowerCase().includes(q) ||
-        l.email.toLowerCase().includes(q)
-      );
-    }
-    return true;
-  });
+  useEffect(() => {
+    let active = true;
+    readInquiries().then((items) => { if (active) { setInquiries(items); setError(''); } })
+      .catch((cause) => { if (active) setError(cause instanceof Error ? cause.message : '문의 목록 조회에 실패했습니다.'); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
 
-  const totalPipelineValue = leads.reduce((sum, l) => sum + l.totalOrderValueUsd, 0);
+  async function changeStatus(id: string, status: InquiryStatus) {
+    setUpdating(id);
+    try {
+      const response = await fetch('/api/commercial-inquiries', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.error || '상태 변경에 실패했습니다.');
+      setInquiries((current) => current.map((item) => item.id === id ? { ...item, status } : item));
+      setError('');
+    } catch (cause) { setError(cause instanceof Error ? cause.message : '상태 변경에 실패했습니다.'); }
+    finally { setUpdating(null); }
+  }
 
-  return (
-    <div className="min-h-screen bg-[#0A0A0C] text-stone-100 font-sans pb-24 p-6 sm:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        
-        {/* Header Bar */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-stone-800 pb-6">
-          <div>
-            <div className="flex items-center space-x-2 text-xs font-bold text-[#c5a880]">
-              <Shield size={14} />
-              <span>SONG YOUNGMIN FOOD ADMIN CMS</span>
-            </div>
-            <h1 className="text-3xl font-extrabold text-white font-jakarta mt-1">
-              Global Buyer CRM &amp; Export RFQ Pipeline
-            </h1>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <div className="bg-stone-900 border border-stone-800 px-4 py-2 rounded-xl">
-              <div className="text-[10px] text-stone-400 font-bold uppercase">Total Pipeline Value</div>
-              <div className="text-xl font-extrabold text-[#c5a880] font-jakarta">${totalPipelineValue.toLocaleString()} USD</div>
-            </div>
-            <Link
-              href="/admin"
-              className="px-4 py-2.5 bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-bold rounded-xl border border-stone-700"
-            >
-              ← Back to Admin Studio
-            </Link>
-          </div>
-        </div>
-
-        {/* Admin Global Price Adjustment Control Card */}
-        <div className="bg-gradient-to-r from-stone-900 via-amber-950/40 to-stone-900 border border-amber-500/40 rounded-2xl p-6 shadow-xl space-y-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center space-x-2">
-                <Sliders className="text-[#c5a880] w-5 h-5" />
-                <h2 className="text-base font-extrabold text-white font-jakarta">Global Export Price Adjustment Slider (Up/Down %)</h2>
-              </div>
-              <p className="text-xs text-stone-400">
-                Adjust international wholesale pricing globally by increasing (+) or discounting (-) base FOB prices.
-              </p>
-            </div>
-
-            <div className="flex items-center space-x-4 bg-stone-950 border border-stone-800 p-3 rounded-xl">
-              <span className="text-xs text-stone-400 font-bold">Adjustment:</span>
-              <span className={`text-xl font-extrabold font-jakarta ${priceAdjustmentPercent >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                {priceAdjustmentPercent >= 0 ? `+${priceAdjustmentPercent}%` : `${priceAdjustmentPercent}%`}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <span className="text-xs text-stone-400 font-bold w-12">-20%</span>
-            <input
-              type="range"
-              min="-20"
-              max="30"
-              step="1"
-              value={priceAdjustmentPercent}
-              onChange={(e) => setPriceAdjustmentPercent(parseInt(e.target.value))}
-              className="w-full accent-amber-500 bg-stone-950 h-2 rounded-lg cursor-pointer"
-            />
-            <span className="text-xs text-stone-400 font-bold w-12">+30%</span>
-          </div>
-        </div>
-
-        {/* 8-Stage Pipeline Kanban Overview Pills */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
-          {PIPELINE_STAGES.map((st) => {
-            const count = leads.filter((l) => l.status === st).length;
-            const isSelected = selectedStage === st;
-            return (
-              <button
-                key={st}
-                onClick={() => setSelectedStage(isSelected ? 'All' : st)}
-                className={`p-3 rounded-xl border text-left transition-all ${
-                  isSelected
-                    ? 'bg-[#c5a880] text-black border-[#c5a880] shadow-lg font-bold'
-                    : 'bg-stone-900/80 text-stone-300 border-stone-800 hover:border-stone-700'
-                }`}
-              >
-                <div className="text-[10px] uppercase tracking-wider font-extrabold truncate">{st.replace('_', ' ')}</div>
-                <div className="text-lg font-extrabold font-jakarta mt-1">{count} Leads</div>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Buyer Leads Table */}
-        <div className="bg-stone-900/80 border border-stone-800 rounded-2xl overflow-hidden shadow-2xl">
-          <div className="p-6 border-b border-stone-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <h3 className="text-base font-bold text-white font-jakarta">Active Buyer Accounts ({filteredLeads.length})</h3>
-
-            <div className="relative w-full md:w-64">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search company, country..."
-                className="w-full bg-stone-950 border border-stone-700 rounded-xl py-2 px-3 pl-9 text-xs text-stone-100"
-              />
-              <Search className="absolute left-3 top-2.5 text-stone-500 w-4 h-4" />
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left text-stone-300">
-              <thead className="bg-stone-950 text-stone-400 uppercase text-[10px] tracking-wider border-b border-stone-800">
-                <tr>
-                  <th className="p-4">Company &amp; Country</th>
-                  <th className="p-4">Contact Person</th>
-                  <th className="p-4">Products of Interest</th>
-                  <th className="p-4">Pipeline Status</th>
-                  <th className="p-4 text-right">Quotes</th>
-                  <th className="p-4 text-right">Order Value (USD)</th>
-                  <th className="p-4 text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-800">
-                {filteredLeads.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-stone-800/40 transition-colors">
-                    <td className="p-4">
-                      <div className="font-bold text-white text-sm">{lead.company}</div>
-                      <div className="text-[11px] text-[#c5a880] font-mono">{lead.country}</div>
-                    </td>
-
-                    <td className="p-4 space-y-0.5">
-                      <div className="font-bold text-stone-200">{lead.name}</div>
-                      <div className="text-[11px] text-stone-500">{lead.email}</div>
-                    </td>
-
-                    <td className="p-4">
-                      <div className="flex flex-wrap gap-1">
-                        {lead.interestedProducts.map((p) => (
-                          <span key={p} className="px-2 py-0.5 bg-stone-950 text-stone-300 border border-stone-800 rounded text-[10px]">
-                            {p}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-
-                    <td className="p-4">
-                      <select
-                        value={lead.status}
-                        onChange={(e) => updateLeadStatus(lead.id, e.target.value as RFQRequest['status'])}
-                        className="bg-stone-950 border border-amber-500/40 rounded-lg p-2 text-xs font-bold text-amber-300 cursor-pointer"
-                      >
-                        {PIPELINE_STAGES.map((st) => (
-                          <option key={st} value={st}>
-                            {st.replace('_', ' ')}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-
-                    <td className="p-4 text-right font-bold text-stone-200">{lead.totalQuotesCount}</td>
-
-                    <td className="p-4 text-right font-extrabold text-[#c5a880] font-jakarta">
-                      ${lead.totalOrderValueUsd.toLocaleString()}
-                    </td>
-
-                    <td className="p-4 text-center">
-                      <Link
-                        href={`/rfq?buyer=${lead.id}`}
-                        className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 border border-amber-500/40 rounded-lg font-bold text-[11px] inline-flex items-center space-x-1"
-                      >
-                        <span>View RFQ</span>
-                        <ArrowUpRight size={12} />
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+  const visible = inquiries.filter((item) => (kind === 'all' || item.kind === kind) &&
+    `${item.company} ${item.contact_name} ${item.email} ${item.country || ''} ${item.id}`.toLowerCase().includes(query.toLowerCase()));
+  return <main className="min-h-screen bg-[#0a0a0c] p-6 text-stone-100 sm:p-8">
+    <div className="mx-auto max-w-6xl space-y-6">
+      <header><h1 className="text-3xl font-bold">상업 문의 관리</h1><p className="mt-2 text-sm text-stone-400">해외 RFQ와 국내 도매 문의를 실제 접수 순서대로 표시합니다. 견적은 담당자가 별도로 확인해 발행합니다.</p></header>
+      <div className="flex flex-wrap gap-3"><select value={kind} onChange={(event) => setKind(event.target.value as typeof kind)} className="rounded border border-stone-700 bg-stone-900 p-2 text-sm"><option value="all">전체 문의</option><option value="export_rfq">해외 RFQ</option><option value="domestic_wholesale">국내 도매</option></select><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="상호, 담당자, 이메일, 접수번호 검색" className="min-w-64 rounded border border-stone-700 bg-stone-900 p-2 text-sm" /><button onClick={() => void load()} className="rounded border border-stone-700 px-4 text-sm">새로고침</button></div>
+      {error && <p role="alert" className="rounded border border-red-700 bg-red-950 p-3 text-sm">{error}</p>}
+      {loading ? <p>문의 목록을 불러오는 중…</p> : visible.length === 0 ? <p className="rounded border border-stone-800 p-8 text-stone-400">해당하는 문의가 없습니다.</p> :
+      <div className="space-y-4">{visible.map((item) => <article key={item.id} className="rounded-xl border border-stone-800 bg-stone-900 p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs text-amber-400">{item.kind === 'export_rfq' ? '해외 RFQ' : '국내 도매'} · {new Date(item.created_at).toLocaleString('ko-KR')}</p><h2 className="mt-1 text-lg font-semibold">{item.company}</h2><p className="text-xs text-stone-500">{item.id}</p></div><label className="text-xs">처리 상태<select value={item.status} disabled={updating === item.id} onChange={(event) => void changeStatus(item.id, event.target.value as InquiryStatus)} className="ml-2 rounded border border-stone-700 bg-stone-950 p-2 text-sm">{INQUIRY_STATUSES.map((status) => <option key={status} value={status}>{labels[status]}</option>)}</select></label></div>
+        <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2"><div>담당자: {item.contact_name}</div><div>이메일: <a className="text-amber-300 underline" href={`mailto:${item.email}`}>{item.email}</a></div><div>전화: {item.phone || '미입력'}</div><div>업태: {item.business_type || '미입력'}</div>{item.kind === 'export_rfq' ? <><div>목적지: {item.country}{item.destination_port ? ` / ${item.destination_port}` : ''}</div><div>요청 조건: {item.incoterms}</div></> : <><div>월 예상 규모: {item.estimated_monthly_volume || '미입력'}</div><div>사업자등록번호: {item.business_registration_no || '미입력'}</div></>}</dl>
+        {item.items?.length > 0 && <div className="mt-4"><h3 className="text-sm font-semibold">관심 상품</h3><ul className="mt-2 list-inside list-disc text-sm text-stone-300">{item.items.map((product) => <li key={product.product_id}>{product.product_name} · {product.quantity_cartons} cartons</li>)}</ul></div>}
+        {item.notes && <p className="mt-4 whitespace-pre-wrap rounded bg-stone-950 p-3 text-sm text-stone-300">{item.notes}</p>}
+      </article>)}</div>}
     </div>
-  );
+  </main>;
 }

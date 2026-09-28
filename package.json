@@ -5,6 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:worker": "opennextjs-cloudflare build",
+    "preview:worker": "opennextjs-cloudflare preview",
+    "deploy:worker": "node scripts/deploy-worker.cjs",
+    "deploy:pages-bridge": "node scripts/deploy-pages-bridge.cjs main",
+    "sync:products:snapshot": "node scripts/export-products-snapshot.cjs",
     "start": "next start",
     "lint": "eslint",
     "test": "jest",
@@ -25,6 +30,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.20.6",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",
@@ -38,6 +44,7 @@
     "jest-environment-jsdom": "^30.4.1",
     "tailwindcss": "^4",
     "ts-jest": "^29.4.12",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.142.0"
   }
 }

@@ -3,9 +3,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ProductItem } from '@/lib/types';
-import { getStoredProductsOverride } from '@/lib/products-sync';
+import { supabase } from '@/lib/supabase';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useCart } from '@/context/CartContext';
+import { PRODUCT_COLLECTIONS, categoriesForCollection } from '@/lib/product-taxonomy';
 import {
   Filter,
   X,
@@ -37,6 +38,7 @@ export default function CollectionShowcaseClient({
   const catParam = searchParams.get('cat');
   const urlLook = searchParams.get('look');
   const urlCollection = searchParams.get('collection');
+  const urlCategory = searchParams.get('category');
 
   // Dynamic Options derived from products DB
   const formatOptions = useMemo(
@@ -61,13 +63,13 @@ export default function CollectionShowcaseClient({
     if (initialCollectionFilter) return initialCollectionFilter;
     if (catParam) {
       const catMap: Record<string, string> = {
-        fresh: 'K-냉동식품',
-        dairy: 'K-주류 & 전통주',
+        fresh: 'K-만두/냉동식품',
+        dairy: 'K-주류/전통주',
         pantry: 'K-간편식/HMR',
-        traditional: 'K-전통식품',
-        kimchi: 'K-전통식품',
-        sauce: 'K-소스/조미료',
-        snack: 'K-스낵/음료',
+        traditional: 'K-김치/발효식품',
+        kimchi: 'K-김치/발효식품',
+        sauce: 'K-소스/장류',
+        snack: 'K-스낵/전통과자',
       };
       return catMap[catParam.toLowerCase()] || 'All';
     }
@@ -82,11 +84,16 @@ export default function CollectionShowcaseClient({
     urlLook ? [urlLook] : initialLookFilter ? [initialLookFilter] : []
   );
   const [selectedCollection, setSelectedCollection] = useState<string>(getInitialCollection());
+  const [selectedCategory, setSelectedCategory] = useState(urlCategory || 'All');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Quick View Detail Modal State
   const [activeModalProduct, setActiveModalProduct] = useState<ProductItem | null>(null);
   const [modalSelectedTier, setModalSelectedTier] = useState<'ea' | 'box' | 'carton'>('ea');
+  const openModal = (product: ProductItem) => {
+    setModalSelectedTier('ea');
+    setActiveModalProduct(product);
+  };
 
   // Mobile Filter Drawer Toggle
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
@@ -94,17 +101,11 @@ export default function CollectionShowcaseClient({
   const [currentProducts, setCurrentProducts] = useState<ProductItem[]>(initialProducts);
 
   useEffect(() => {
-    function syncProducts() {
-      const override = getStoredProductsOverride();
-      if (override) {
-        setCurrentProducts(override);
-      } else {
-        setCurrentProducts(initialProducts);
-      }
-    }
-    syncProducts();
-    window.addEventListener('songfood_products_updated', syncProducts);
-    return () => window.removeEventListener('songfood_products_updated', syncProducts);
+    let active = true;
+    supabase.from('products').select('*').then(({ data, error }) => {
+      if (active && !error && data?.length) setCurrentProducts(data as ProductItem[]);
+    });
+    return () => { active = false; };
   }, [initialProducts]);
 
   // Client-side Interactive Filter logic
@@ -122,6 +123,7 @@ export default function CollectionShowcaseClient({
       ) {
         return false;
       }
+      if (selectedCategory !== 'All' && product.category !== selectedCategory) return false;
 
       // Format Filter
       if (selectedFormats.length > 0 && !selectedFormats.includes(product.format)) {
@@ -155,9 +157,10 @@ export default function CollectionShowcaseClient({
       return true;
     });
   }, [
-    initialProducts,
+    currentProducts,
     catParam,
     selectedCollection,
+    selectedCategory,
     selectedFormats,
     selectedFinishes,
     selectedColors,
@@ -183,6 +186,7 @@ export default function CollectionShowcaseClient({
     setSelectedColors([]);
     setSelectedLooks([]);
     setSelectedCollection('All');
+    setSelectedCategory('All');
     setSearchQuery('');
   };
 
@@ -191,17 +195,10 @@ export default function CollectionShowcaseClient({
     selectedFinishes.length +
     selectedColors.length +
     selectedLooks.length +
-    (selectedCollection !== 'All' ? 1 : 0);
+    (selectedCollection !== 'All' ? 1 : 0) +
+    (selectedCategory !== 'All' ? 1 : 0);
 
-  const collectionTabs = [
-    'All',
-    'K-냉동식품',
-    'K-전통식품',
-    'K-간편식/HMR',
-    'K-소스/조미료',
-    'K-주류 & 전통주',
-    'K-스낵/음료',
-  ];
+  const collectionTabs = ['All', ...PRODUCT_COLLECTIONS];
 
   return (
     <div className="min-h-screen bg-[#0a0a0c] text-stone-100 font-sans pb-24">
@@ -217,7 +214,7 @@ export default function CollectionShowcaseClient({
             {collectionTabs.map((coll) => (
               <button
                 key={coll}
-                onClick={() => setSelectedCollection(coll)}
+                onClick={() => { setSelectedCollection(coll); setSelectedCategory('All'); }}
                 className={`px-4 py-2 rounded-full text-xs tracking-wider uppercase font-medium transition-all ${
                   selectedCollection === coll
                     ? 'bg-[#c5a880] text-black shadow-lg font-semibold'
@@ -228,6 +225,9 @@ export default function CollectionShowcaseClient({
               </button>
             ))}
           </div>
+          {selectedCollection !== 'All' && <div className="pt-3 flex flex-wrap justify-center gap-2" aria-label="제품 종류 필터">
+            {['All', ...categoriesForCollection(selectedCollection)].map((category) => <button key={category} onClick={() => setSelectedCategory(category)} className={`rounded px-3 py-1.5 text-xs ${selectedCategory === category ? 'bg-emerald-700 text-white' : 'border border-stone-700 text-stone-300'}`}>{category === 'All' ? '전체 종류' : category}</button>)}
+          </div>}
         </div>
       </div>
 
@@ -308,7 +308,7 @@ export default function CollectionShowcaseClient({
                     {/* Visual Card Image */}
                     <div
                       className="relative h-64 overflow-hidden bg-stone-100 dark:bg-stone-900 cursor-pointer"
-                      onClick={() => setActiveModalProduct(product)}
+                      onClick={() => openModal(product)}
                     >
                       <img
                         src={product.image_url}
@@ -333,7 +333,7 @@ export default function CollectionShowcaseClient({
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            setActiveModalProduct(product);
+                            openModal(product);
                           }}
                           className="px-4 py-2 bg-[#c5a880] hover:bg-white text-black font-extrabold text-xs uppercase tracking-widest rounded-lg flex items-center space-x-1.5 shadow-2xl transform translate-y-2 group-hover:translate-y-0 transition-all"
                         >
@@ -351,20 +351,20 @@ export default function CollectionShowcaseClient({
                         </span>
 
                         <h3
-                          onClick={() => setActiveModalProduct(product)}
+                          onClick={() => openModal(product)}
                           className="font-bold text-base text-stone-900 dark:text-white group-hover:text-[#14532D] dark:group-hover:text-[#c5a880] transition-colors cursor-pointer leading-snug line-clamp-2"
                         >
                           {product.name}
                         </h3>
 
                         {/* Rating Row (Image 2 style) */}
-                        <div className="flex items-center space-x-1 text-xs text-stone-600 dark:text-stone-400 font-medium">
+                        {Boolean(product.reviews_count && product.rating) && <div className="flex items-center space-x-1 text-xs text-stone-600 dark:text-stone-400 font-medium">
                           <span className="text-amber-500 font-bold flex items-center space-x-0.5">
                             <span>★</span>
-                            <span>{product.rating || 4.9}</span>
+                            <span>{product.rating}</span>
                           </span>
-                          <span className="text-stone-400 font-normal">({product.reviews_count || (80 + idx * 12)}개 후기)</span>
-                        </div>
+                          <span className="text-stone-400 font-normal">({product.reviews_count}개 후기)</span>
+                        </div>}
                       </div>
 
                       {/* Dual Price Box (Image 2 100% 1:1 Matching) */}
@@ -497,18 +497,18 @@ export default function CollectionShowcaseClient({
                 {/* Specs Box */}
                 <div className="bg-[#0a0a0c] p-3 rounded border border-stone-800 text-[11px] font-mono space-y-1 text-stone-400">
                   <div>용량/무게: <span className="text-stone-200">{activeModalProduct.net_weight || activeModalProduct.format}</span></div>
-                  <div>보관방법: <span className="text-stone-200">{activeModalProduct.storage || '영하 18℃ 이하 냉동 보관'}</span></div>
-                  <div>유통기한: <span className="text-stone-200">{activeModalProduct.shelf_life || '제조일로부터 12개월'}</span></div>
+                  <div>보관방법: <span className="text-stone-200">{activeModalProduct.storage || '확인 필요'}</span></div>
+                  <div>소비기한: <span className="text-stone-200">{activeModalProduct.shelf_life || '확인 필요'}</span></div>
                 </div>
 
                 {/* 3-Tier Price Table with Explicit Select Buttons */}
                 {(() => {
-                  const eaPrice = activeModalProduct.price || 10000;
-                  const boxQty = activeModalProduct.box_qty || 20;
-                  const boxPrice = activeModalProduct.box_price || Math.round(eaPrice * boxQty * 0.9);
-                  const cartonBoxQty = activeModalProduct.carton_box_qty || 5;
+                  const eaPrice = activeModalProduct.price || 0;
+                  const boxQty = activeModalProduct.box_qty || 0;
+                  const boxPrice = activeModalProduct.box_price || 0;
+                  const cartonBoxQty = activeModalProduct.carton_box_qty || 0;
                   const cartonTotalQty = cartonBoxQty * boxQty;
-                  const cartonPrice = activeModalProduct.carton_price || Math.round(eaPrice * cartonTotalQty * 0.8);
+                  const cartonPrice = activeModalProduct.carton_price || 0;
 
                   const selectedPrice =
                     modalSelectedTier === 'box'
@@ -540,14 +540,14 @@ export default function CollectionShowcaseClient({
                             <tr>
                               <td className="py-1.5 px-2 text-left text-stone-400 font-semibold">단위</td>
                               <td className="py-1.5 px-2">1개 (EA)</td>
-                              <td className="py-1.5 px-2">1박스 ({boxQty}개입)</td>
-                              <td className="py-1.5 px-2">1카톤 ({cartonTotalQty}개입)</td>
+                              <td className="py-1.5 px-2">{boxQty ? `1박스 (${boxQty}개입)` : '확인 필요'}</td>
+                              <td className="py-1.5 px-2">{cartonTotalQty ? `1카톤 (${cartonTotalQty}개입)` : '확인 필요'}</td>
                             </tr>
                             <tr className="font-bold">
                               <td className="py-1.5 px-2 text-left text-stone-400 font-semibold">가격</td>
                               <td className="py-1.5 px-2 text-[#c5a880]">₩{eaPrice.toLocaleString()}원</td>
-                              <td className="py-1.5 px-2 text-amber-400">₩{boxPrice.toLocaleString()}원</td>
-                              <td className="py-1.5 px-2 text-emerald-400">₩{cartonPrice.toLocaleString()}원</td>
+                              <td className="py-1.5 px-2 text-amber-400">{boxPrice ? `₩${boxPrice.toLocaleString()}원` : '견적 문의'}</td>
+                              <td className="py-1.5 px-2 text-emerald-400">{cartonPrice ? `₩${cartonPrice.toLocaleString()}원` : '견적 문의'}</td>
                             </tr>
                             <tr>
                               <td className="py-1.5 px-2 text-left text-stone-400 font-semibold">선택</td>
@@ -567,6 +567,7 @@ export default function CollectionShowcaseClient({
                               <td className="py-1.5 px-2">
                                 <button
                                   type="button"
+                                  disabled={!boxQty || !boxPrice}
                                   onClick={() => setModalSelectedTier('box')}
                                   className={`w-full py-1 rounded text-[10px] font-bold border transition-all ${
                                     modalSelectedTier === 'box'
@@ -580,6 +581,7 @@ export default function CollectionShowcaseClient({
                               <td className="py-1.5 px-2">
                                 <button
                                   type="button"
+                                  disabled={!cartonTotalQty || !cartonPrice}
                                   onClick={() => setModalSelectedTier('carton')}
                                   className={`w-full py-1 rounded text-[10px] font-bold border transition-all ${
                                     modalSelectedTier === 'carton'

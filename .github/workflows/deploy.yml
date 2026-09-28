@@ -1,4 +1,4 @@
-name: Anatolia Web CI & Build Workflow
+name: Song Food Worker CI
 
 on:
   push:
@@ -26,8 +26,8 @@ jobs:
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Run Next.js Build (Static HTML Export)
-        run: npm run build
+      - name: Build Cloudflare Worker
+        run: npm run build:worker
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder' }}

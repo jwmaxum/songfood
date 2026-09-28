@@ -5,7 +5,7 @@ import CollectionShowcaseClient from './CollectionShowcaseClient';
 export const metadata = {
   title: 'K-Food 프리미엄 컬렉션 | 송영민푸드 (Song Youngmin Food)',
   description:
-    '대한민국 대표 프리미엄 K-Food, K-냉동식품, K-전통식품, K-간편식, K-소스, K-주류 및 명품 전통주 컬렉션 쇼케이스.',
+    '김치, 만두, 간편식, 면류, 소스, 수산가공품, 스낵, 주류와 전통차를 종류별로 탐색합니다.',
 };
 
 export default async function CollectionsPage() {

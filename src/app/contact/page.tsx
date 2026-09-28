@@ -40,9 +40,8 @@ export default function ContactPage() {
       } else {
         alert(data.error || '문의 접수 중 오류가 발생했습니다.');
       }
-    } catch (err) {
-      // Fallback submission status
-      setSubmitted(true);
+    } catch {
+      alert('문의 접수에 실패했습니다. 잠시 후 다시 시도해 주세요.');
     } finally {
       setLoading(false);
     }
