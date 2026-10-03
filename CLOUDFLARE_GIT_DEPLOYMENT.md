@@ -63,9 +63,19 @@ Cloudflare와 GitHub Actions는 각각 시작되므로 GitHub CI 결과를 기�
 ## 현 시점 검증 범위
 
 - 작업 전 로컬 main과 GitHub main의 기준 SHA는 6885018이며 GitHub 쓰기 권한을 확인했다.
-- Cloudflare 대시보드 연결 도구가 실행되지 않아 기존 Workers Builds 연결 여부를 확인하지 못했다.
+- 2026-10-03 사용자 대시보드 화면에서 Workers Builds의 jwmaxum/songfood 저장소 연결과 main 브랜치를 확인했다. 이후 화면의 Recent builds에는 No builds exist yet for this worker가 표시되어 첫 Git 빌드는 아직 실행되지 않은 상태다.
 - 계정 소유 Cloudflare 토큰은 Workers Builds API에서 지원되지 않는다. 대시보드 연결 방식이면 별도 사용자 API 토큰을 받을 필요가 없다.
 - 따라서 Git push 성공과 Cloudflare 자동 배포 성공은 각각 확인해 기록한다. 저장소 변경만으로 Cloudflare Git 연결 완료라고 판정하지 않는다.
+
+## Git 연결 후 첫 빌드가 없는 경우
+
+1. Settings → Builds에서 Git repository가 jwmaxum/songfood, Branch control이 main인지 확인한다.
+2. 같은 Builds 영역의 Variables and secrets에 위 표의 다섯 변수를 모두 저장한다. Runtime variables and secrets에 등록한 값은 Build 환경으로 자동 전달되지 않는다. 특히 NEXT_PUBLIC_SUPABASE_URL과 NEXT_PUBLIC_SUPABASE_ANON_KEY가 없으면 저장소의 빌드 사전 검사가 실패한다.
+3. Version History의 Add variable 등 Dashboard 변경 기록은 Git 소스를 빌드했다는 증거가 아니다. Deployments 아래 Recent builds의 Go to build history에서 Git 빌드 기록을 확인한다.
+4. No builds exist yet for this worker이면 재시도할 빌드가 없다. 저장소 연결 후 main에 새 커밋을 push하여 첫 빌드를 유발하고, 해당 커밋의 Cloudflare 검사 및 빌드 실행 상태를 확인한다.
+5. 빌드 기록이 생기면 실패 로그에 따라 수정한 뒤 Retry build를 사용한다. 새 push 후에도 기록이 없으면 GitHub 앱의 저장소 접근 권한, Branch control, Build watch paths를 확인한다.
+
+API token의 표시 이름만으로 권한 오류를 단정하지 않는다. 실제 빌드 로그에 토큰 만료 또는 권한 오류가 있을 때 권한을 확인한다. 빌드 시작 확인과 운영 배포 성공 확인은 별도로 기록한다.
 
 ## 공식 자료
 
@@ -84,3 +94,5 @@ Cloudflare와 GitHub Actions는 각각 시작되므로 GitHub CI 결과를 기�
 최초 GitHub CI에서 package-lock.json의 선택 의존성 @emnapi/core 1.10.0 및 중첩 @emnapi/runtime 1.10.0 누락을 발견했다. 원래 기준 커밋의 동일 잠금 항목을 복원했으며 버전을 일괄 갱신하지 않았다. 격리 폴더의 npm ci --dry-run --ignore-scripts --legacy-peer-deps 검사도 통과했다. 최종 Linux CI 결과는 GitHub Actions에서 해당 커밋으로 확인한다.
 
 깨끗한 Linux 설치에서 @testing-library/react의 필수 peer인 @testing-library/dom이 빠지는 문제도 확인했다. 로컬 검증에 사용하던 10.4.1을 명시적 devDependency로 고정해 legacy-peer-deps 설치에서도 UI 테스트가 실행되도록 했다. 앱 런타임 의존성 버전은 변경하지 않았다.
+
+4046d33 커밋의 [GitHub Linux CI](https://github.com/jwmaxum/songfood/actions/runs/37110095234)는 최종 성공했다. GitHub CI 성공만으로 Cloudflare 배포 완료를 의미하지 않는다.
