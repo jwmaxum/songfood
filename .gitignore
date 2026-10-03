@@ -49,3 +49,8 @@ next-env.d.ts
 # mcp & editor configs
 .mcp.json
 .vscode/
+
+# Isolated browser QA output
+.next-qa/
+playwright-report/
+test-results/

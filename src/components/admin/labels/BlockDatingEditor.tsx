@@ -8,7 +8,7 @@ interface BlockDatingEditorProps {
   dateFormat: DateFormatType;
   shelfLifeDays: number;
   lotFormatTemplate: string;
-  onChange: (field: string, value: any) => void;
+  onChange: (field: string, value: unknown) => void;
 }
 
 const DATE_FORMATS: { format: DateFormatType; label: string; example: string; countries: string }[] = [

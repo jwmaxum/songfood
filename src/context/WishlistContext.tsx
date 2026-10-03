@@ -1,84 +1,24 @@
 'use client';
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ProductItem } from '@/lib/types';
-
-interface WishlistContextType {
-  wishlist: ProductItem[];
-  addToWishlist: (product: ProductItem) => void;
-  removeFromWishlist: (productId: string) => void;
-  isInWishlist: (productId: string) => boolean;
-  toggleWishlist: (product: ProductItem) => void;
+import {createContext,useContext,useSyncExternalStore,type ReactNode} from 'react';
+import type {ProductItem} from '@/lib/types';
+import {publicProduct} from '@/lib/public-product';
+const key='anatolia_wishlist',empty:ProductItem[]=[];
+let previous:string|null=null,snapshot:ProductItem[]=empty;
+function read(){
+ try{const raw=localStorage.getItem(key);if(raw===previous)return snapshot;previous=raw;
+ const parsed=raw&&raw.length<1_000_000?JSON.parse(raw):[];
+ snapshot=Array.isArray(parsed)?parsed.filter(p=>p&&typeof p.id==='string'&&typeof p.name==='string').slice(0,200).map(publicProduct):empty;
+ }catch{snapshot=empty;}return snapshot;
 }
-
-const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
-
-export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [wishlist, setWishlist] = useState<ProductItem[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('anatolia_wishlist');
-      if (saved) setWishlist(JSON.parse(saved));
-    } catch (e) {
-      console.error('Failed to parse wishlist', e);
-    } finally {
-      setIsInitialized(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!isInitialized) return;
-    try {
-      localStorage.setItem('anatolia_wishlist', JSON.stringify(wishlist));
-    } catch (e) {
-      console.error('Failed to persist wishlist', e);
-    }
-  }, [wishlist, isInitialized]);
-
-  const addToWishlist = (product: ProductItem) => {
-    setWishlist((prev) => {
-      if (prev.some((p) => p.id === product.id)) return prev;
-      return [...prev, product];
-    });
-  };
-
-  const removeFromWishlist = (productId: string) => {
-    setWishlist((prev) => prev.filter((p) => p.id !== productId));
-  };
-
-  const isInWishlist = (productId: string) => {
-    return wishlist.some((p) => p.id === productId);
-  };
-
-  const toggleWishlist = (product: ProductItem) => {
-    if (isInWishlist(product.id)) {
-      removeFromWishlist(product.id);
-    } else {
-      addToWishlist(product);
-    }
-  };
-
-  return (
-    <WishlistContext.Provider
-      value={{
-        wishlist,
-        addToWishlist,
-        removeFromWishlist,
-        isInWishlist,
-        toggleWishlist,
-      }}
-    >
-      {children}
-    </WishlistContext.Provider>
-  );
-};
-
-export const useWishlist = () => {
-  const context = useContext(WishlistContext);
-  if (!context) {
-    throw new Error('useWishlist must be used within a WishlistProvider');
-  }
-  return context;
-};
+function subscribe(notify:()=>void){window.addEventListener('storage',notify);window.addEventListener('songfood-wishlist',notify);return()=>{window.removeEventListener('storage',notify);window.removeEventListener('songfood-wishlist',notify);};}
+function save(items:ProductItem[]){try{localStorage.setItem(key,JSON.stringify(items.map(publicProduct)));window.dispatchEvent(new Event('songfood-wishlist'));}catch{/* Storage is optional; never log saved customer selections. */}}
+type State={wishlist:ProductItem[];addToWishlist:(p:ProductItem)=>void;removeFromWishlist:(id:string)=>void;isInWishlist:(id:string)=>boolean;toggleWishlist:(p:ProductItem)=>void};
+const WishlistContext=createContext<State|undefined>(undefined);
+export function WishlistProvider({children}:{children:ReactNode}){
+ const wishlist=useSyncExternalStore(subscribe,read,()=>empty);
+ function addToWishlist(p:ProductItem){const current=read();if(current.length<200&&!current.some(i=>i.id===p.id))save([...current,p]);}
+ function removeFromWishlist(id:string){save(read().filter(p=>p.id!==id));}
+ function isInWishlist(id:string){return wishlist.some(p=>p.id===id);}
+ return <WishlistContext.Provider value={{wishlist,addToWishlist,removeFromWishlist,isInWishlist,toggleWishlist:p=>isInWishlist(p.id)?removeFromWishlist(p.id):addToWishlist(p)}}>{children}</WishlistContext.Provider>;
+}
+export function useWishlist(){const value=useContext(WishlistContext);if(!value)throw new Error('WishlistProvider is required');return value;}

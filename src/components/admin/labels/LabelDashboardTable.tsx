@@ -163,7 +163,7 @@ export default function LabelDashboardTable({ products }: LabelDashboardTablePro
           {/* 대상국 필터 */}
           <select
             value={selectedCountryFilter}
-            onChange={(e) => setSelectedCountryFilter(e.target.value as any)}
+            onChange={(e) => setSelectedCountryFilter(e.target.value as typeof selectedCountryFilter)}
             className="px-3 py-2.5 bg-stone-900 border border-stone-800 rounded-lg text-xs text-stone-300 focus:outline-none"
           >
             <option value="ALL">수출 대상국: 전체 (5대국)</option>
@@ -177,7 +177,7 @@ export default function LabelDashboardTable({ products }: LabelDashboardTablePro
           {/* 상태 필터 */}
           <select
             value={selectedStatusFilter}
-            onChange={(e) => setSelectedStatusFilter(e.target.value as any)}
+            onChange={(e) => setSelectedStatusFilter(e.target.value as typeof selectedStatusFilter)}
             className="px-3 py-2.5 bg-stone-900 border border-stone-800 rounded-lg text-xs text-stone-300 focus:outline-none"
           >
             <option value="ALL">상태: 전체 보기</option>

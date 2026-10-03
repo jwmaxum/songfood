@@ -13,14 +13,14 @@ export interface LabelExportRow {
   ingredientsText: string;
   containsAllergens: string;
   storageCondition: string;
-  shelfLifeMonths: number;
+  shelfLifeMonths: number | '';
   barcodeType: string;
   barcodeNumber: string;
-  caloriesKcal: number;
-  sodiumMg: number;
-  proteinG: number;
-  totalFatG: number;
-  totalCarbG: number;
+  caloriesKcal: number | '';
+  sodiumMg: number | '';
+  proteinG: number | '';
+  totalFatG: number | '';
+  totalCarbG: number | '';
   importerCompany: string;
   importerRegNo: string;
   complianceStatus: string;
@@ -40,27 +40,27 @@ export function formatLabelForExcel(
     : '';
 
   return {
-    productId: label.productId || 'SF-DM-001',
+    productId: label.productId || '',
     targetCountry: (label.country || 'US') as TargetCountry,
     productNameKo: label.productNameLocal || label.header?.productNameKo || '',
     productNameEn: label.productNameEn || label.header?.productNameEn || '',
     productNameTarget: label.header?.productNameTarget || label.productNameLocal || '',
-    hsCode: label.hsCode || label.header?.hsCode || '1902.20.0000',
-    netWeight: label.pdp?.netWeightCustom || `${label.netWeightG || 480}g`,
+    hsCode: label.hsCode || label.header?.hsCode || '',
+    netWeight: label.pdp?.netWeightCustom || (label.netWeightG ? String(label.netWeightG)+'g' : ''),
     ingredientsText: ingredientsStr,
     containsAllergens: label.informationPanel?.containsAllergensStatement || '',
     storageCondition: label.informationPanel?.storageConditionTarget || label.storageInstructions || '',
-    shelfLifeMonths: label.shelfLifeMonths || 12,
-    barcodeType: label.barcodeMarking?.barcodeType || label.barcodeType || 'EAN-13',
-    barcodeNumber: label.barcodeMarking?.barcodeNumber || label.barcodeNumber || '8809123456789',
-    caloriesKcal: label.nutrition?.caloriesKcal || 0,
-    sodiumMg: label.nutrition?.sodiumMg || 0,
-    proteinG: label.nutrition?.proteinG || 0,
-    totalFatG: label.nutrition?.totalFatG || 0,
-    totalCarbG: label.nutrition?.totalCarbohydrateG || 0,
+    shelfLifeMonths: label.shelfLifeMonths ?? '',
+    barcodeType: label.barcodeMarking?.barcodeType || label.barcodeType || '',
+    barcodeNumber: label.barcodeMarking?.barcodeNumber || label.barcodeNumber || '',
+    caloriesKcal: label.nutrition?.caloriesKcal ?? '',
+    sodiumMg: label.nutrition?.sodiumMg ?? '',
+    proteinG: label.nutrition?.proteinG ?? '',
+    totalFatG: label.nutrition?.totalFatG ?? '',
+    totalCarbG: label.nutrition?.totalCarbohydrateG ?? '',
     importerCompany: buyerData?.companyName || label.importerInfo?.name || '',
     importerRegNo: buyerData?.registrationNumber || '',
-    complianceStatus: label.status || 'compliant',
+    complianceStatus: label.status || 'draft',
   };
 }
 
@@ -92,9 +92,7 @@ export function generateMultiCountryExcelWorkbook(
     const countryLabels = labels.filter((l) => l.country === c);
     const countryRows = countryLabels.map((l) => formatLabelForExcel(l, buyerData));
     const sheet = XLSX.utils.json_to_sheet(
-      countryRows.length > 0
-        ? countryRows
-        : [formatLabelForExcel({ ...labels[0], country: c }, buyerData)]
+      countryRows
     );
     XLSX.utils.book_append_sheet(wb, sheet, sheetNames[c]);
   }

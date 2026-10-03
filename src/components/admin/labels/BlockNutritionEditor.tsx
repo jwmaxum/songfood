@@ -8,7 +8,7 @@ interface BlockNutritionEditorProps {
   country: ExportCountry;
   nutrition: LabelNutrition;
   netWeightG: number;
-  onChange: (field: string, value: any) => void;
+  onChange: (field: string, value: unknown) => void;
 }
 
 export default function BlockNutritionEditor({

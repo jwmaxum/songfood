@@ -8,8 +8,8 @@ export interface LabelPatchItem {
   targetField: string; // 예: "pdp.claimHighlights", "nutrition.saltEquivalentG"
   title: string;
   description: string;
-  beforeValue: any;
-  afterValue: any;
+  beforeValue: unknown;
+  afterValue: unknown;
   diffSummary: string;
   isRecommended: boolean;
 }
@@ -193,10 +193,10 @@ export function applyPatchesToLabel(
     const fieldPath = patch.targetField.split('.');
     if (fieldPath.length === 2) {
       const [block, key] = fieldPath;
-      if (!(patched as any)[block]) {
-        (patched as any)[block] = {};
-      }
-      (patched as any)[block][key] = patch.afterValue;
+      const allowed:Record<string,string[]>={pdp:['claimHighlights'],nutrition:['saltEquivalentG','caloriesKj'],informationPanel:['containsAllergensStatement','importerDistributorText'],datingLot:['dateFormat']};
+      if(!allowed[block]?.includes(key))continue;
+      const values=patched as unknown as Record<string,Record<string,unknown>>;
+      values[block] = {...values[block],[key]:patch.afterValue};
       appliedIds.push(patch.id);
     }
   }

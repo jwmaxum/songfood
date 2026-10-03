@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { ProductItem } from '@/lib/types';
-import { FoodLabel, ExportCountry } from '@/types/label';
+import { FoodLabel, ExportCountry, DateFormatType, LabelIngredient } from '@/types/label';
 import CountryTabSelector from './CountryTabSelector';
 import BlockHeaderEditor from './BlockHeaderEditor';
 import BlockPdpEditor from './BlockPdpEditor';
@@ -29,8 +29,6 @@ export default function LabelStudioClient({
   const [selectedCountry, setSelectedCountry] = useState<ExportCountry>('US');
   const [labels, setLabels] = useState<Record<ExportCountry, FoodLabel>>(initialLabels);
   const [activeBlock, setActiveBlock] = useState<number | null>(1);
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
   const [isArtworkModalOpen, setIsArtworkModalOpen] = useState(false);
   const [isAutoFixModalOpen, setIsAutoFixModalOpen] = useState(false);
 
@@ -38,49 +36,49 @@ export default function LabelStudioClient({
   const currentLabel = labels[selectedCountry] || ({} as FoodLabel);
   
   const header = currentLabel.header || {
-    hsCode: product.hs_code || '1902.20-1000',
+    hsCode: product.hs_code || '',
     productNameKo: product.name,
     productNameEn: product.name_en || '',
     productNameTarget: product.name,
-    legalProductType: '냉동식품',
+    legalProductType: '',
   };
 
   const pdp = currentLabel.pdp || {
-    netWeightG: 1000,
-    netWeightCustom: '1,000g',
+    netWeightG: 0,
+    netWeightCustom: '',
     claimHighlights: [],
     certifications: [],
   };
 
   const informationPanel = currentLabel.informationPanel || {
     containsAllergensStatement: '',
-    storageConditionKo: '냉동보관',
-    storageConditionTarget: 'Keep Frozen',
-    manufacturerName: 'Songyoungmin Food Co., Ltd.',
+    storageConditionKo: product.storage || '',
+    storageConditionTarget: '',
+    manufacturerName: product.manufacturer || '',
     importerDistributorText: '[Buyer to fill]',
   };
 
   const nutrition = currentLabel.nutrition || {
     servingSizeG: 100,
     servingsPerContainer: 1,
-    caloriesKcal: 200,
-    totalFatG: 5,
-    saturatedFatG: 2,
-    sodiumMg: 300,
-    totalCarbohydrateG: 20,
-    totalSugarsG: 2,
-    proteinG: 8,
+    caloriesKcal: 0,
+    totalFatG: 0,
+    saturatedFatG: 0,
+    sodiumMg: 0,
+    totalCarbohydrateG: 0,
+    totalSugarsG: 0,
+    proteinG: 0,
   };
 
   const datingLot = currentLabel.datingLot || {
-    dateFormat: (selectedCountry === 'US' ? 'MM/DD/YYYY' : 'YYYY/MM/DD') as any,
-    shelfLifeDays: 365,
-    lotFormatTemplate: 'LOT-YYMMDD-LN1',
+    dateFormat: (selectedCountry === 'US' ? 'MM/DD/YYYY' : 'YYYY/MM/DD') as DateFormatType,
+    shelfLifeDays: 0,
+    lotFormatTemplate: '',
   };
 
   const barcodeMarking = currentLabel.barcodeMarking || {
     barcodeType: selectedCountry === 'US' ? 'UPC-A' : 'EAN-13',
-    barcodeNumber: '8809123456789',
+    barcodeNumber: '',
     recyclingMarks: [],
     registrationNumbers: {},
   };
@@ -88,14 +86,13 @@ export default function LabelStudioClient({
   const ingredients = currentLabel.ingredients || [];
 
   // 실시간 Red-Flag 컴플라이언스 검증 실행
-  const validationResult = useMemo(() => {
-    return validateLabel({
+  const validationResult = validateLabel({
       country: selectedCountry,
       productNameLocal: header.productNameTarget || header.productNameKo || '',
       productNameEn: header.productNameEn || '',
       productCategory: header.legalProductType,
       ingredients: ingredients,
-      netWeightG: pdp.netWeightG || 1000,
+      netWeightG: pdp.netWeightG || 0,
       claimsBadges: pdp.claimHighlights || [],
       nutrition: {
         caloriesKcal: nutrition.caloriesKcal || 0,
@@ -125,12 +122,11 @@ export default function LabelStudioClient({
             .filter(Boolean)
         : [],
       alcoholPercentage: 0,
-      registrationNumbers: barcodeMarking.registrationNumbers as any,
+      registrationNumbers: barcodeMarking.registrationNumbers,
       dateMarkingType: datingLot.dateFormat,
       barcodeType: barcodeMarking.barcodeType,
       barcodeNumber: barcodeMarking.barcodeNumber,
     });
-  }, [selectedCountry, header, pdp, ingredients, nutrition, informationPanel, barcodeMarking, datingLot]);
 
   // 라벨 데이터 업데이트 헬퍼
   const updateCurrentLabel = (updater: (prev: FoodLabel) => FoodLabel) => {
@@ -141,23 +137,23 @@ export default function LabelStudioClient({
   };
 
   // 블록별 필드 업데이트 핸들러
-  const handleHeaderChange = (field: string, val: any) => {
+  const handleHeaderChange = (field: string, val: unknown) => {
     updateCurrentLabel((prev) => ({
       ...prev,
       header: { ...prev.header, [field]: val },
     }));
   };
 
-  const handlePdpChange = (field: string, val: any) => {
+  const handlePdpChange = (field: string, val: unknown) => {
     updateCurrentLabel((prev) => ({
       ...prev,
       pdp: { ...prev.pdp, [field]: val },
     }));
   };
 
-  const handleInfoChange = (field: string, val: any) => {
+  const handleInfoChange = (field: string, val: unknown) => {
     if (field === 'ingredients') {
-      updateCurrentLabel((prev) => ({ ...prev, ingredients: val }));
+      updateCurrentLabel((prev) => ({ ...prev, ingredients: val as LabelIngredient[] }));
     } else {
       updateCurrentLabel((prev) => ({
         ...prev,
@@ -166,21 +162,21 @@ export default function LabelStudioClient({
     }
   };
 
-  const handleNutritionChange = (field: string, val: any) => {
+  const handleNutritionChange = (field: string, val: unknown) => {
     updateCurrentLabel((prev) => ({
       ...prev,
-      nutrition: { ...(prev.nutrition || {}), [field]: val } as any,
+      nutrition: { ...nutrition, [field]: val },
     }));
   };
 
-  const handleDatingChange = (field: string, val: any) => {
+  const handleDatingChange = (field: string, val: unknown) => {
     updateCurrentLabel((prev) => ({
       ...prev,
       datingLot: { ...prev.datingLot, [field]: val },
     }));
   };
 
-  const handleBarcodeChange = (field: string, val: any) => {
+  const handleBarcodeChange = (field: string, val: unknown) => {
     updateCurrentLabel((prev) => ({
       ...prev,
       barcodeMarking: { ...prev.barcodeMarking, [field]: val },
@@ -188,25 +184,15 @@ export default function LabelStudioClient({
   };
 
   // Auto-Fix 원클릭 자동 보정 적용
-  const handleAutoFix = (fixedFields: any) => {
+  const handleAutoFix = (fixedFields: Partial<FoodLabel>) => {
     updateCurrentLabel((prev) => ({
       ...prev,
       ...fixedFields,
     }));
   };
 
-  // 저장 처리 (로컬 스토리지 또는 피드백)
-  const handleSave = () => {
-    setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
-    }, 600);
-  };
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-6"><p role="status" className="rounded border border-amber-500 bg-amber-950 p-4 text-sm text-amber-100">검수용 시안 도구입니다. 저장·최종 승인·고객 공개는 연결 전이며, 자동 점수는 인증이나 수출 적합성 확정이 아닙니다. 새로고침 전 별도 작업 기록을 남기세요.</p>
       {/* 1. 상단 글로벌 바 */}
       <div className="bg-[#12121a] border border-stone-800 rounded-xl p-4 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
@@ -238,12 +224,7 @@ export default function LabelStudioClient({
 
         {/* 액션 버튼 그룹 */}
         <div className="flex items-center space-x-2.5">
-          {saveSuccess && (
-            <span className="text-xs text-emerald-400 font-semibold animate-fade-in flex items-center space-x-1">
-              <span>✓</span>
-              <span>라벨 저장 완료!</span>
-            </span>
-          )}
+
           {validationResult.criticalErrors.length > 0 && (
             <button
               type="button"
@@ -271,15 +252,14 @@ export default function LabelStudioClient({
           </Link>
           <button
             type="button"
-            onClick={handleSave}
-            disabled={isSaving}
+            disabled title="저장 기능 연결 전입니다. 화면 편집은 새로고침 시 사라집니다."
             className="px-4 py-2 bg-[#c5a880] hover:bg-[#b59870] text-black font-bold text-xs rounded-lg transition-colors shadow flex items-center space-x-1.5"
           >
-            <span>{isSaving ? '저장 중...' : '💾 라벨 저장'}</span>
+            <span>라벨 저장 준비 중</span>
           </button>
           <button
             type="button"
-            onClick={() => alert(`[${selectedCountry}] 라벨이 최종 승인(Approved)되었습니다. 해외 바이어 RFQ 뷰어에 즉시 연동됩니다.`)}
+            disabled title="규격 승인 절차는 아직 연결되지 않았습니다."
             className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg transition-colors shadow flex items-center space-x-1"
           >
             <span>✓ 최종 규격 승인</span>

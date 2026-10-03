@@ -32,7 +32,6 @@ export default function ContentBlockManager() {
   const [mediaUrl, setMediaUrl] = useState('');
 
   const fetchBlocks = async () => {
-    setLoading(true);
     try {
       const res = await fetch('/api/content-blocks?mode=admin');
       if (res.ok) {
@@ -53,7 +52,9 @@ export default function ContentBlockManager() {
   };
 
   useEffect(() => {
-    fetchBlocks();
+    let active=true;
+    fetch("/api/content-blocks?mode=admin").then(async r=>{if(!r.ok)throw new Error();const d=await r.json();if(!d.success||!Array.isArray(d.data))throw new Error();if(active)setBlocks(d.data);}).catch(()=>{if(active)setToastMessage("자료를 불러오지 못했습니다.");}).finally(()=>{if(active)setLoading(false);});
+    return()=>{active=false;};
   }, []);
 
   const showToast = (msg: string) => {
@@ -228,7 +229,7 @@ export default function ContentBlockManager() {
 
               <div className="px-6 py-3.5 bg-[#0a0a0c]/60 border-t border-stone-800/80 flex items-center justify-between">
                 <span className="text-[10px] text-stone-500 font-mono">
-                  Updated: {new Date(block.updated_at || Date.now()).toLocaleDateString()}
+                  Updated: {block.updated_at ? new Date(block.updated_at).toLocaleDateString('ko-KR',{timeZone:'Asia/Seoul'}) : '기록 없음'}
                 </span>
 
                 <button

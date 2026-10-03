@@ -9,7 +9,7 @@ export interface LabelAuditEntry {
   changedBy: string; // user email or admin ID
   changedAt: string;
   action: 'CREATE' | 'UPDATE' | 'APPROVE' | 'REJECT' | 'AUTO_FIX';
-  fieldDiffs: Record<string, { oldValue: any; newValue: any }>;
+  fieldDiffs: Record<string, { oldValue: unknown; newValue: unknown }>;
   summary: string;
 }
 
@@ -22,8 +22,8 @@ const auditLogsStore: LabelAuditEntry[] = [];
 export function computeLabelDiff(
   oldLabel: Partial<FoodLabel>,
   newLabel: Partial<FoodLabel>
-): Record<string, { oldValue: any; newValue: any }> {
-  const diffs: Record<string, { oldValue: any; newValue: any }> = {};
+): Record<string, { oldValue: unknown; newValue: unknown }> {
+  const diffs: Record<string, { oldValue: unknown; newValue: unknown }> = {};
 
   const keysToCheck: (keyof FoodLabel)[] = [
     'status',

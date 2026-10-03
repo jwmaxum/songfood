@@ -44,7 +44,7 @@ export default function TodaysDeals({ products }: TodaysDealsProps) {
           <div>
             <div className="inline-flex items-center space-x-2 bg-[#DC2626] text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2">
               <Zap size={13} className="animate-pulse" />
-              <span>오늘의 한정 특가 (TODAY'S DEAL)</span>
+              <span>오늘의 한정 특가 (TODAY&apos;S DEAL)</span>
             </div>
             <h2 className="font-jakarta text-3xl font-extrabold text-stone-900 tracking-tight">
               오늘의 특가 타임세일

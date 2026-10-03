@@ -55,6 +55,11 @@ export interface LabelIngredient {
   allergenOrigin?: string;      // 유래 원천
   isHighlyRefinedOil?: boolean; // 고도정제유 FALCPA 면제 여부
   displayOrder?: number;
+  originCountry?: string;
+  origin?: string;
+  ingredientNameEn?: string;
+  eNumber?: string;
+  percentage?: number;
   orderIndex?: number;          // 별칭 호환
 }
 
@@ -97,8 +102,9 @@ export interface LabelNutrition {
     sugars: 'green' | 'amber' | 'red';
     salt: 'green' | 'amber' | 'red';
   };
-  trafficLightColor?: any;
-  dailyValuePercentages?: any;
+  sugarsG?: number;
+  trafficLightColor?: LabelNutrition['trafficLightRatings'];
+  dailyValuePercentages?: Record<string,number>;
 }
 
 export interface ComplianceViolation {
@@ -218,6 +224,7 @@ export interface FoodLabel {
 
   createdAt?: string;
   updatedAt?: string;
+  blocks?: {infoPanel?: {allergensText?:string};header?: {gaccRegistrationNumber?:string}};
 }
 
 export interface LabelSummaryItem {

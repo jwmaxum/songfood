@@ -31,12 +31,11 @@ export async function POST(req: NextRequest) {
       success: true,
       data: validationResult
     });
-  } catch (err: any) {
-    console.error('[api/labels/validate] Error:', err);
+  } catch {
     return NextResponse.json(
       {
         success: false,
-        error: err.message || 'Internal server error during compliance validation.'
+        error: 'Internal server error during compliance validation.'
       },
       { status: 500 }
     );

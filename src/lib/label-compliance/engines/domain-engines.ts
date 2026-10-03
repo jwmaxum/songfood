@@ -165,14 +165,14 @@ export function run14DomainEngines(input: ValidationInput): DomainEnginesOutput 
         })),
       };
 
-      const compoundFlags = validateCompoundIngredients(dummyLabel, input.ingredients as any);
+      const compoundFlags = validateCompoundIngredients(dummyLabel, input.ingredients.map(ing=>({...ing,ingredientNameTarget:ing.ingredientNameTarget||ing.ingredientNameEn||ing.ingredientNameKo,ratio:ing.ratio??0,isAllergen:ing.isAllergen??false})));
       for (const f of compoundFlags) {
         if (f.severity === 'critical') crit.push(f);
         else if (f.severity === 'warning') warn.push(f);
         else inf.push(f);
       }
 
-      const procFlags = validateProcessingAids(dummyLabel, input.ingredients as any);
+      const procFlags = validateProcessingAids(dummyLabel, input.ingredients.map(ing=>({...ing,ingredientNameTarget:ing.ingredientNameTarget||ing.ingredientNameEn||ing.ingredientNameKo,ratio:ing.ratio??0,isAllergen:ing.isAllergen??false})));
       for (const f of procFlags) {
         if (f.severity === 'critical') crit.push(f);
         else if (f.severity === 'warning') warn.push(f);
@@ -354,7 +354,7 @@ export function run14DomainEngines(input: ValidationInput): DomainEnginesOutput 
     // Run Detailed Country of Origin (COOL) Engine (Phase 14)
     try {
       const hasOriginInfo =
-        input.ingredients.some((ing: any) => ing.originCountry !== undefined || ing.origin !== undefined) ||
+        input.ingredients.some((ing) => ing.originCountry !== undefined || ing.origin !== undefined) ||
         Boolean(input.rawText && /産地|원산지|原料原産地|国産|韓国産/i.test(input.rawText));
 
       if (hasOriginInfo) {
@@ -364,7 +364,7 @@ export function run14DomainEngines(input: ValidationInput): DomainEnginesOutput 
           country: input.country,
           version: 1,
           status: 'draft',
-          ingredients: input.ingredients.map((ing: any) => ({
+          ingredients: input.ingredients.map((ing) => ({
             ingredientNameKo: ing.ingredientNameKo,
             ingredientNameTarget: ing.ingredientNameEn || ing.ingredientNameKo,
             ratio: ing.ratio ?? 0,
@@ -374,7 +374,7 @@ export function run14DomainEngines(input: ValidationInput): DomainEnginesOutput 
           })),
         };
 
-        const coolFlags = validateCountryOfOrigin(dummyLabel, input.ingredients as any);
+        const coolFlags = validateCountryOfOrigin(dummyLabel, input.ingredients.map(ing=>({...ing,ingredientNameTarget:ing.ingredientNameTarget||ing.ingredientNameEn||ing.ingredientNameKo,ratio:ing.ratio??0,isAllergen:ing.isAllergen??false})));
         for (const f of coolFlags) {
           if (f.severity === 'critical') crit.push(f);
           else if (f.severity === 'warning') warn.push(f);

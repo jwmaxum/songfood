@@ -16,7 +16,7 @@ interface BlockBarcodeEditorProps {
     halalCertNo?: string;
     euApprovalNo?: string;
   };
-  onChange: (field: string, value: any) => void;
+  onChange: (field: string, value: unknown) => void;
 }
 
 const RECYCLING_OPTIONS: { id: string; label: string; country: string; subText: string }[] = [

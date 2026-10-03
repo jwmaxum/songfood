@@ -1,3 +1,4 @@
+import {localeOf,localizedHref} from '@/lib/i18n/locale';
 import { createAuthClient } from '@/lib/supabase-admin';
 import { ApiError, applicationOrigin, emailField, failure, json, rateLimit, readJson, requireSameOrigin } from '@/lib/request-security';
 export const dynamic = 'force-dynamic';
@@ -10,7 +11,7 @@ export async function POST(request: Request) {
     await rateLimit(request, 'email-link-address', 1, 60, email);
     const { error } = await createAuthClient().auth.signInWithOtp({
       email, options: { shouldCreateUser: true,
-        emailRedirectTo: new URL('/account/confirmed', applicationOrigin(request)).toString() },
+        emailRedirectTo: new URL(body.language===undefined?'/account/confirmed':localizedHref('/account/confirmed',localeOf(body.language)), applicationOrigin(request)).toString() },
     });
     if (error) {
       if (error.status === 429) throw new ApiError(429, '인증 메일 요청이 많습니다. 잠시 후 다시 시도해 주세요.');

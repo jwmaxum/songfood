@@ -1,3 +1,6 @@
+type Snake<S extends string> = S extends `${infer H}${infer T}` ? `${H extends Lowercase<H> ? H : `_${Lowercase<H>}`}${Snake<T>}` : S;
+type Row<T> = Partial<T> & {[K in keyof T as Snake<K & string>]?:T[K]};
+type LabelRow = Omit<Row<FoodLabel>,'ingredients'|'nutrition'|'compliance'> & {ingredients?:Row<import('@/types/label').LabelIngredient>[];nutrition?:Row<import('@/types/label').LabelNutrition>|Row<import('@/types/label').LabelNutrition>[];compliance?:Row<import('@/types/label').LabelComplianceLog>|Row<import('@/types/label').LabelComplianceLog>[]};
 import labelsSnapshot from '../../data/food-labels.json';
 import { FoodLabel, ExportCountry, LabelSummaryItem } from '@/types/label';
 import { supabaseAdmin, isSupabaseConfigured } from './supabase-admin';
@@ -10,19 +13,19 @@ function readLocalLabels(): FoodLabel[] {
 /**
  * Supabase DB의 snake_case Row를 camelCase FoodLabel로 변환
  */
-export function mapRowToFoodLabel(row: any): FoodLabel {
-  if (!row) return row;
+export function mapRowToFoodLabel(row: LabelRow): FoodLabel {
+  if (!row?.id || !row.country || !(row.product_id || row.productId)) throw new Error('Invalid label record');
   // 이미 camelCase인 경우 (로컬 JSON fallback 등)
   if (row.productId && !row.product_id) return row as FoodLabel;
 
   const nutritionRow = Array.isArray(row.nutrition) ? row.nutrition[0] : row.nutrition;
   const complianceRow = Array.isArray(row.compliance) ? row.compliance[0] : row.compliance;
 
-  const ingredients = (row.ingredients || []).map((ing: any) => ({
+  const ingredients = (row.ingredients || []).map((ing) => ({
     id: ing.id,
     labelId: ing.label_id || ing.labelId,
-    ingredientNameKo: ing.ingredient_name_ko || ing.ingredientNameKo,
-    ingredientNameTarget: ing.ingredient_name_target || ing.ingredientNameTarget,
+    ingredientNameKo: ing.ingredient_name_ko || ing.ingredientNameKo || '',
+    ingredientNameTarget: ing.ingredient_name_target || ing.ingredientNameTarget || '',
     ratio: Number(ing.ratio ?? 0),
     subIngredients: ing.sub_ingredients || ing.subIngredients,
     insOrENumber: ing.ins_or_e_number || ing.insOrENumber,
@@ -65,7 +68,7 @@ export function mapRowToFoodLabel(row: any): FoodLabel {
   const compliance = complianceRow ? {
     id: complianceRow.id,
     labelId: complianceRow.label_id || complianceRow.labelId,
-    jurisdiction: complianceRow.jurisdiction,
+    jurisdiction: complianceRow.jurisdiction || '',
     isCompliant: Boolean(complianceRow.is_compliant ?? complianceRow.isCompliant),
     score: Number(complianceRow.score ?? 100),
     criticalErrors: complianceRow.critical_errors || complianceRow.criticalErrors || [],
@@ -78,10 +81,10 @@ export function mapRowToFoodLabel(row: any): FoodLabel {
 
   return {
     id: row.id,
-    productId: row.product_id || row.productId,
+    productId: (row.product_id || row.productId)!,
     country: row.country,
     version: row.version ?? 1,
-    status: row.status ?? 'compliant',
+    status: row.status ?? 'draft',
     hsCode: row.hs_code || row.hsCode,
     productNameLocal: row.product_name_local || row.productNameLocal,
     productNameEn: row.product_name_en || row.productNameEn,
@@ -298,7 +301,7 @@ export async function getProductLabelSummaries(): Promise<LabelSummaryItem[]> {
         };
       }
       return acc;
-    }, {} as Record<ExportCountry, { labelId?: string; status: any; score: number; hasCritical: boolean }>);
+    }, {} as Record<ExportCountry, { labelId?: string; status: import('@/types/label').LabelStatus; score: number; hasCritical: boolean }>);
 
     return {
       id: product.id,

@@ -55,12 +55,11 @@ export async function POST(req: NextRequest) {
       success: true,
       data: result
     });
-  } catch (err: any) {
-    console.error('[api/labels/nutrition-calculate] Error:', err);
+  } catch {
     return NextResponse.json(
       {
         success: false,
-        error: err.message || 'Internal server error during nutrition conversion.'
+        error: 'Internal server error during nutrition conversion.'
       },
       { status: 500 }
     );

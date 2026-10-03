@@ -38,7 +38,7 @@ export function runBatchValidation(products: Product[]): BatchValidationReport {
   const startTime = performance.now();
   const countries: TargetCountry[] = ['US', 'CN', 'JP', 'EU', 'UAE'];
 
-  const countrySummaries: Record<TargetCountry, any> = {
+  const countrySummaries: Record<TargetCountry, BatchValidationReport['countrySummaries'][TargetCountry] & {totalScore:number}> = {
     US: { evaluatedCount: 0, passCount: 0, warnCount: 0, failCount: 0, totalScore: 0, averageScore: 0 },
     CN: { evaluatedCount: 0, passCount: 0, warnCount: 0, failCount: 0, totalScore: 0, averageScore: 0 },
     JP: { evaluatedCount: 0, passCount: 0, warnCount: 0, failCount: 0, totalScore: 0, averageScore: 0 },
@@ -116,7 +116,7 @@ export function runBatchValidation(products: Product[]): BatchValidationReport {
   for (const c of countries) {
     const s = countrySummaries[c];
     s.averageScore = s.evaluatedCount > 0 ? Math.round(s.totalScore / s.evaluatedCount) : 0;
-    delete s.totalScore;
+
   }
 
   const durationMs = Math.round((performance.now() - startTime) * 100) / 100;

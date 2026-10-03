@@ -7,7 +7,7 @@ import { FoodLabel } from '@/types/label';
 interface ComplianceAlertBoxProps {
   label: FoodLabel;
   validationResult: ValidationResult;
-  onAutoFix: (fixedFields: any) => void;
+  onAutoFix: (fixedFields: Partial<FoodLabel>) => void;
 }
 
 export default function ComplianceAlertBox({
@@ -15,24 +15,18 @@ export default function ComplianceAlertBox({
   validationResult,
   onAutoFix,
 }: ComplianceAlertBoxProps) {
-  const { criticalErrors, warnings, infoNotes, isCompliant, score } = validationResult;
+  const { criticalErrors, warnings, isCompliant, score } = validationResult;
 
   // 원클릭 자동 수정 핸들러
   const handleAutoFixItem = (item: RedFlagItem) => {
-    const fixed: any = {};
+    const fixed: Partial<FoodLabel> = {};
 
     const pdp = label.pdp || {};
-    const netWeightG = pdp.netWeightG || 1000;
-    const info = label.informationPanel || {};
-    const nutrition = label.nutrition || ({} as any);
+    const netWeightG = pdp.netWeightG || label.netWeightG;
+        const nutrition = label.nutrition;
     const datingLot = label.datingLot || {};
 
-    if (item.code === 'US-CRIT-ALLERGEN-CONTAINS') {
-      fixed.informationPanel = {
-        ...info,
-        containsAllergensStatement: 'CONTAINS: WHEAT, SOYBEAN, PORK, SESAME.',
-      };
-    } else if (item.code === 'US-WARN-NET-WEIGHT-OZ') {
+    if (item.code === 'US-WARN-NET-WEIGHT-OZ' && netWeightG && netWeightG > 0) {
       const oz = (netWeightG * 0.035274).toFixed(1);
       const lbs = (netWeightG / 453.592).toFixed(2);
       fixed.pdp = {
@@ -46,12 +40,12 @@ export default function ComplianceAlertBox({
           (c) => !c.includes('零添加') && !c.includes('不添加') && !c.includes('무첨가')
         ),
       };
-    } else if (item.code === 'CN-CRIT-ENERGY-KJ' || item.code === 'EU-CRIT-ENERGY-DUAL') {
+    } else if (nutrition && (item.code === 'CN-CRIT-ENERGY-KJ' || item.code === 'EU-CRIT-ENERGY-DUAL')) {
       fixed.nutrition = {
         ...nutrition,
         energyKj: Math.round((nutrition.caloriesKcal || 0) * 4.184),
       };
-    } else if (item.code === 'JP-CRIT-SALT-EQUIVALENT') {
+    } else if (nutrition && item.code === 'JP-CRIT-SALT-EQUIVALENT') {
       fixed.nutrition = {
         ...nutrition,
         saltEquivalentG: parseFloat((((nutrition.sodiumMg || 0) * 2.54) / 1000).toFixed(2)),
@@ -119,6 +113,8 @@ export default function ComplianceAlertBox({
                 <span className="text-[10px] text-stone-400">해결 솔루션 제안 있음</span>
                 <button
                   type="button"
+                  disabled={crit.code==='US-CRIT-ALLERGEN-CONTAINS'}
+                  title={crit.code==='US-CRIT-ALLERGEN-CONTAINS'?'실제 원재료와 알레르기 자료를 확인해 직접 입력하세요.':undefined}
                   onClick={() => handleAutoFixItem(crit)}
                   className="px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded text-[11px] font-semibold transition-colors flex items-center space-x-1 shadow"
                 >
@@ -162,9 +158,9 @@ export default function ComplianceAlertBox({
         <div className="p-3 bg-emerald-950/40 border border-emerald-800/60 rounded-lg text-xs text-emerald-300 flex items-center space-x-2">
           <span className="text-lg">✅</span>
           <div>
-            <p className="font-bold">현지 세관 및 식품규제 100% 통과 적합</p>
+            <p className="font-bold">자동 점검에서 추가 경고가 발견되지 않았습니다</p>
             <p className="text-[11px] text-emerald-400/80">
-              {label.country} 규제 기준에 불일치하는 Red-Flag 요소가 없습니다.
+              통관·법적 적합성 승인이 아닙니다. 실제 원재료·검사서류와 목적국 규정을 전문가가 확인해야 합니다.
             </p>
           </div>
         </div>

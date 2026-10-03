@@ -1,65 +1,22 @@
 'use client';
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Language, LANGUAGES, LanguageInfo, DICTIONARIES } from './dictionaries';
-
-interface LanguageContextType {
-  language: Language;
-  setLanguage: (lang: Language) => void;
-  t: (key: string, fallback?: string) => string;
-  currentLangInfo: LanguageInfo;
-  dir: 'ltr' | 'rtl';
+import {createContext,useContext,useCallback} from 'react';
+import type {ReactNode} from 'react';
+import {translateUI} from './translate';
+import {DICTIONARIES,LANGUAGES} from './dictionaries';
+import {localeOf,localizedHref,type Locale} from './locale';
+const LanguageContext = createContext<Locale>('ko');
+export function LanguageProvider({children,initialLanguage='ko'}:{children:ReactNode;initialLanguage?:Locale}) {
+  return <LanguageContext.Provider value={initialLanguage}>{children}</LanguageContext.Provider>;
 }
-
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
-
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>('ko');
-
-  useEffect(() => {
-    const savedLang = localStorage.getItem('anatolia_lang') as Language;
-    if (savedLang && LANGUAGES.some((l) => l.code === savedLang)) {
-      setLanguageState(savedLang);
-    }
-  }, []);
-
-  const setLanguage = (lang: Language) => {
-    setLanguageState(lang);
-    localStorage.setItem('anatolia_lang', lang);
-    const info = LANGUAGES.find((l) => l.code === lang);
-    const dir = info?.dir || 'ltr';
-    if (typeof document !== 'undefined') {
-      document.documentElement.lang = lang;
-      document.documentElement.dir = dir;
-    }
-  };
-
-  const currentLangInfo = LANGUAGES.find((l) => l.code === language) || LANGUAGES[0];
-  const dir = currentLangInfo.dir || 'ltr';
-
-  useEffect(() => {
-    if (typeof document !== 'undefined') {
-      document.documentElement.lang = language;
-      document.documentElement.dir = dir;
-    }
-  }, [language, dir]);
-
-  const t = (key: string, fallback?: string): string => {
-    const dict = DICTIONARIES[language] || DICTIONARIES.ko;
-    return dict[key] || fallback || key;
-  };
-
-  return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, currentLangInfo, dir }}>
-      {children}
-    </LanguageContext.Provider>
-  );
-}
-
 export function useLanguage() {
-  const context = useContext(LanguageContext);
-  if (!context) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
-  }
-  return context;
+  const language = useContext(LanguageContext);
+  const t=useCallback((key:string,fallback?:string)=>{const translated=translateUI(key,language);return translated!==key?translated:DICTIONARIES[language][key] || fallback || key;},[language]);
+  return {language,dir:'ltr' as const,currentLangInfo:LANGUAGES.find(l=>l.code===language)!,
+    text:(ko:string,en:string)=>language==='en'?en:ko,
+    href:(url:string)=>localizedHref(url,language),
+    t,
+    setLanguage:(value:string)=>{
+      const next = localeOf(value);
+      if (next !== language) window.location.assign(localizedHref(window.location.pathname+window.location.search+window.location.hash,next));
+    }};
 }

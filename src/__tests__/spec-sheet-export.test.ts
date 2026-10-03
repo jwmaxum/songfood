@@ -1,3 +1,4 @@
+import * as XLSX from 'xlsx';
 import {
   formatLabelForExcel,
   generateMultiCountryExcelWorkbook,
@@ -96,6 +97,18 @@ describe('Phase 6: Master Spec Sheet & Excel Bulk Export Engine', () => {
     expect(workbook.SheetNames).toContain('UAE_MoIAT_Spec');
 
     expect(workbook.SheetNames.length).toBe(6);
+  });
+
+  test('SheetJS round-trip preserves Korean, numeric values and leading-zero barcodes',()=>{
+    const wb=generateMultiCountryExcelWorkbook([mockLabelUS]);
+    const bytes=XLSX.write(wb,{type:'array',bookType:'xlsx'});
+    const parsed=XLSX.read(bytes,{type:'array'});
+    expect(parsed.SheetNames).toHaveLength(6);
+    const rows=XLSX.utils.sheet_to_json(parsed.Sheets.Master_Catalog_Summary);
+    expect(rows[0]).toMatchObject({productNameKo:mockLabelUS.productNameLocal,caloriesKcal:220,barcodeNumber:'012345678905'});
+    expect(XLSX.utils.sheet_to_json(parsed.Sheets.CN_GACC_Spec)).toHaveLength(0);
+    const empty=formatLabelForExcel({country:'US'} as FoodLabel);
+    expect(empty).toMatchObject({productId:'',hsCode:'',barcodeNumber:'',netWeight:'',shelfLifeMonths:'',caloriesKcal:'',complianceStatus:'draft'});
   });
 
   test('3. Populates rows within each country sheet correctly', () => {

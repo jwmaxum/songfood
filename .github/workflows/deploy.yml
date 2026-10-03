@@ -4,6 +4,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+permissions:
+  contents: read
 jobs:
   build:
     name: Test & Build Application
@@ -16,22 +18,10 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci --legacy-peer-deps
-      - name: Security and membership lint
-        run: npm run lint:b2b
-      - name: Product and pricing lint
-        run: npm run lint:pricing
-      - name: B2B customer experience lint
-        run: npm run lint:storefront
-      - name: B2B inquiry and quote workflow lint
-        run: npm run lint:crm
-      - name: Proforma Invoice lint
-        run: npm run lint:pi
-      - name: Domestic order workflow lint
-        run: npm run lint:orders
-      - name: Operations integration lint
-        run: npm run lint:operations
-      - name: Unit and authorization tests
-        run: npm test -- --runInBand
+      - name: Whole repository lint
+        run: npm run lint
+      - name: Unit, authorization and regression tests
+        run: npm test -- --runInBand --coverage
       - name: Type check
         run: npm run typecheck
       - name: Build Cloudflare Worker (public config without server secrets)
@@ -40,3 +30,31 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://supabase-build.example.invalid
           NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_build_fixture_only_no_access
         run: npm run build:worker
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-coverage
+          path: coverage/
+          retention-days: 14
+  browser:
+    name: Isolated browser and accessibility checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - run: npx playwright install --with-deps chromium
+      - name: Production-mode browser tests (local fixtures only)
+        run: npm run test:browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-qa
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14

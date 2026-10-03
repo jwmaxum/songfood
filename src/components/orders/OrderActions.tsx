@@ -1,4 +1,6 @@
 'use client';
+import Feedback from '@/components/storefront/Feedback';
+
 import {useState} from 'react';
 import type {OrderDetail} from '@/lib/orders/types';
 import {CARRIERS,TEMPERATURES,refundDue} from '@/lib/orders/types';
@@ -10,7 +12,7 @@ function ActionForm({title,action,children,act,busy,transform,blocked=false}:{ti
  const [localError,setLocalError]=useState('');
  return <details className="rounded-lg border p-4"><summary className="cursor-pointer font-semibold">{title}</summary>
  <form className="mt-4" onSubmit={async e=>{e.preventDefault();const form=e.currentTarget,f=Object.fromEntries(new FormData(form));setLocalError('');try{if(await act({action,...(transform?transform(f):f)}))form.reset();}catch(e){setLocalError(e instanceof Error?e.message:'입력값을 확인해 주세요.');}}}>
- <fieldset disabled={busy||blocked} className="space-y-4">{children}<button className={button}>{busy?'처리 중…':title}</button></fieldset>{localError&&<p role="alert">{localError}</p>}</form></details>;
+ <fieldset disabled={busy||blocked} className="space-y-4">{children}<button className={button}>{busy?'처리 중…':title}</button></fieldset>{localError&&<Feedback error>{localError}</Feedback>}</form></details>;
 }
 const Reason=({label='사유 / 고객 안내 내용'}:{label?:string})=><label className="block">{label}<textarea name="message" minLength={3} maxLength={2000} required className={field}/></label>;
 export default function OrderActions({detail,staff,busy,act}:Props){
@@ -27,7 +29,7 @@ export default function OrderActions({detail,staff,busy,act}:Props){
  {staff&&o.status==='confirmed'&&o.claim_status!=='open'&&o.paid_minor-o.refunded_minor<o.total_minor!-o.credit_minor&&<Payment action="deposit" {...common}/>}
  {staff&&refundDue(o)>0&&<><p className="rounded bg-amber-50 p-3">환불 대기 {formatMoney(refundDue(o),'KRW')} — 실제 송금 후 기록하세요.</p><Payment action="refund" {...common}/></>}
  {staff&&remaining.length>0&&o.status==='confirmed'&&<ActionForm {...common} title="출고·송장 등록" action="ship" blocked={!canShip} transform={f=>({carrier:f.carrier,tracking:f.tracking,message:f.message,temperature:o.review?.temperature,items:remaining.filter(i=>Number(f['qty:'+i.id])>0).map(i=>({item_id:i.id,quantity:Number(f['qty:'+i.id])}))})}>
- {!canShip&&<p role="status" className="text-red-700">전액 입금 확인, 미해결 클레임 및 환불 대기 해소 후 출고할 수 있습니다.</p>}
+ {!canShip&&<Feedback  className="text-red-700">전액 입금 확인, 미해결 클레임 및 환불 대기 해소 후 출고할 수 있습니다.</Feedback>}
  <fieldset disabled={!canShip} className="space-y-4"><div className="grid gap-4 sm:grid-cols-2"><label>운송사<select name="carrier" className={field}>{Object.entries(CARRIERS).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label><label>운송장 / 화물 배송 참조번호<input name="tracking" required minLength={3} maxLength={100} className={field}/></label></div>
  <p>확정 배송 온도: {TEMPERATURES[o.review?.temperature as keyof typeof TEMPERATURES]}</p>
  {remaining.map(i=><label className="block" key={i.id}>{i.snapshot.name} ({i.snapshot.unit}, 미출고 {i.snapshot.quantity-i.shipped_quantity-i.cancelled_quantity})

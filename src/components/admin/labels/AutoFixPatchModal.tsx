@@ -29,14 +29,9 @@ export default function AutoFixPatchModal({
     return generateAutoFixPatches(label, redFlags);
   }, [label, redFlags]);
 
-  const [selectedPatchIds, setSelectedPatchIds] = useState<string[]>([]);
-
-  // Default select all patches when modal opens or patches change
-  React.useEffect(() => {
-    if (patches.length > 0) {
-      setSelectedPatchIds(patches.map((p) => p.id));
-    }
-  }, [patches]);
+  const [selection,setSelection]=useState<{patches:LabelPatchItem[];ids:string[]}|null>(null);
+  const selectedPatchIds=selection?.patches===patches?selection.ids:patches.map(p=>p.id);
+  const setSelectedPatchIds=(value:string[]|((prev:string[])=>string[]))=>setSelection({patches,ids:typeof value==='function'?value(selectedPatchIds):value});
 
   if (!isOpen) return null;
 

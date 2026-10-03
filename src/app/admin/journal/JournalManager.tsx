@@ -36,7 +36,6 @@ export default function JournalManager() {
   const [isPublished, setIsPublished] = useState(true);
 
   const fetchArticles = async () => {
-    setLoading(true);
     try {
       // 1. API Route 호출 시도
       const res = await fetch('/api/journal?mode=admin');
@@ -58,7 +57,9 @@ export default function JournalManager() {
   };
 
   useEffect(() => {
-    fetchArticles();
+    let active=true;
+    fetch("/api/journal?mode=admin").then(async r=>{if(!r.ok)throw new Error();const d=await r.json();if(!d.success||!Array.isArray(d.data))throw new Error();if(active)setArticles(d.data);}).catch(()=>{if(active)setToastMessage("자료를 불러오지 못했습니다.");}).finally(()=>{if(active)setLoading(false);});
+    return()=>{active=false;};
   }, []);
 
   const showToast = (msg: string) => {
@@ -349,7 +350,7 @@ export default function JournalManager() {
                   </label>
                   <select
                     value={category}
-                    onChange={(e) => setCategory(e.target.value as any)}
+                    onChange={(e) => setCategory(e.target.value as 'News' | 'Event' | 'Architecture' | 'Design')}
                     className="w-full px-3.5 py-2.5 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
                   >
                     <option value="News">News</option>

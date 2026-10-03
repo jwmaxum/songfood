@@ -225,7 +225,6 @@ export default function NavigationManager() {
   );
 
   const fetchMenus = async () => {
-    setLoading(true);
     try {
       const res = await fetch('/api/menus?mode=admin');
       if (res.ok) {
@@ -246,7 +245,9 @@ export default function NavigationManager() {
   };
 
   useEffect(() => {
-    fetchMenus();
+    let active=true;
+    fetch("/api/menus?mode=admin").then(async r=>{if(!r.ok)throw new Error();const d=await r.json();if(!d.success||!Array.isArray(d.data))throw new Error();if(active)setItems(d.data);}).catch(()=>{if(active)setToastMessage("자료를 불러오지 못했습니다.");}).finally(()=>{if(active)setLoading(false);});
+    return()=>{active=false;};
   }, []);
 
   const showToast = (msg: string) => {
@@ -523,7 +524,7 @@ export default function NavigationManager() {
                   </label>
                   <select
                     value={newPosition}
-                    onChange={(e) => setNewPosition(e.target.value as any)}
+                    onChange={(e) => setNewPosition(e.target.value as 'header' | 'footer' | 'both')}
                     className="w-full px-3.5 py-2.5 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
                   >
                     <option value="header">Header Navigation</option>

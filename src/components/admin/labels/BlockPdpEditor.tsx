@@ -9,7 +9,7 @@ interface BlockPdpEditorProps {
   netWeightCustom: string;
   claimHighlights: string[];
   certifications: string[];
-  onChange: (field: string, value: any) => void;
+  onChange: (field: string, value: unknown) => void;
 }
 
 const CERT_OPTIONS = [
@@ -180,7 +180,7 @@ export default function BlockPdpEditor({
         />
         {country === 'CN' && claimHighlights.some((c) => c.includes('零添加') || c.includes('不添加') || c.includes('무첨가') || c.includes('0添加')) && (
           <p className="text-[10px] text-rose-400 mt-1 font-semibold">
-            🚨 중국 GB 7718-2025 규정 위반: '零添加', '不添加(무첨가)', '0添加' 클레임은 전면 금지되어 통관 거부 대상입니다.
+            🚨 중국 GB 7718-2025 규정 위반: &apos;零添加&apos;, &apos;不添加(무첨가)&apos;, &apos;0添加&apos; 클레임은 전면 금지되어 통관 거부 대상입니다.
           </p>
         )}
       </div>

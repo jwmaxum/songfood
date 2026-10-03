@@ -21,7 +21,7 @@ interface BlockInfoPanelEditorProps {
   storageConditionTarget: string;
   manufacturerName: string;
   importerDistributorText: string;
-  onChange: (field: string, value: any) => void;
+  onChange: (field: string, value: unknown) => void;
 }
 
 const COMMON_ALLERGENS = [
@@ -76,7 +76,7 @@ export default function BlockInfoPanelEditor({
   };
 
   // 원재료 수정
-  const handleUpdateIngredient = (index: number, field: keyof LabelIngredient, value: any) => {
+  const handleUpdateIngredient = (index: number, field: keyof LabelIngredient, value: unknown) => {
     const updated = ingredients.map((ing, i) => {
       if (i === index) {
         return { ...ing, [field]: value };
@@ -288,11 +288,11 @@ export default function BlockInfoPanelEditor({
                     <td className="p-2">
                       <input
                         type="text"
-                        value={(ing as any).originCountry || ''}
-                        onChange={(e) => handleUpdateIngredient(idx, 'originCountry' as any, e.target.value)}
+                        value={ing.originCountry || ''}
+                        onChange={(e) => handleUpdateIngredient(idx, 'originCountry', e.target.value)}
                         placeholder={country === 'JP' ? '예: 国産 / 韓国' : '예: KR / USA'}
                         className={`w-full px-2 py-1 bg-stone-900 border rounded text-xs text-white focus:outline-none ${
-                          isPrimary && country === 'JP' && !(ing as any).originCountry
+                          isPrimary && country === 'JP' && !ing.originCountry
                             ? 'border-amber-600 animate-pulse placeholder:text-amber-500'
                             : 'border-stone-800'
                         }`}
@@ -416,7 +416,7 @@ export default function BlockInfoPanelEditor({
           />
           {country === 'US' && !containsAllergensStatement && (
             <p className="text-[10px] text-rose-400 mt-1 font-semibold">
-              🚨 미 FDA FALCPA 규정 위반: 9대 알레르겐 함유 시 'CONTAINS:' 박스는 법적 강제 규정입니다.
+              🚨 미 FDA FALCPA 규정 위반: 9대 알레르겐 함유 시 &apos;CONTAINS:&apos; 박스는 법적 강제 규정입니다.
             </p>
           )}
         </div>

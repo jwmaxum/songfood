@@ -1,4 +1,6 @@
 'use client';
+import Feedback from '@/components/storefront/Feedback';
+
 import Link from 'next/link';
 import {useCallback,useEffect,useState} from 'react';
 import {useAuth} from '@/context/AuthContext';
@@ -13,7 +15,7 @@ const money=(n:number)=>formatMoney(n,'KRW');
 const time=(s:string)=>new Date(s).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'});
 export default function OrderWorkspace({staff=false,initialId}:{staff?:boolean;initialId?:string}){
  const auth=useAuth();
- if(!staff&&auth.loading)return <p role="status">회원 정보를 확인하고 있습니다…</p>;
+ if(!staff&&auth.loading)return <Feedback >회원 정보를 확인하고 있습니다…</Feedback>;
  if(!staff&&!auth.user)return <section><h1 className="text-3xl font-bold">내 주문</h1><p className="mt-4">로그인 후 개인·회사 주문을 확인할 수 있습니다.</p><Link href="/account/login" className="mt-5 block underline">로그인 / 회원가입</Link></section>;
  const key=staff?'staff':[auth.user?.id,auth.company?.id,auth.company?.status,auth.membership?.status].join(':');
  return <Workspace key={key} staff={staff} initialId={initialId}/>;
@@ -39,14 +41,14 @@ function Workspace({staff,initialId}:{staff:boolean;initialId?:string}){
  return <div className="space-y-6 text-stone-900"><header className="flex flex-wrap items-center justify-between gap-4"><div><p className="text-sm text-green-800">{staff?'ORDER OPERATIONS':'MY ORDERS'}</p><h1 className="mt-2 text-3xl font-bold">{staff?'국내 주문·입금·출고':'내 주문'}</h1></div><button onClick={()=>void refresh()} disabled={busy} className="rounded border px-4 py-2 disabled:opacity-40">최신 내용 불러오기</button></header>
  <p className="text-stone-600">주문 접수 → 공급·배송비 확인 → 고객 최종 확인 → 계좌입금 확인 → 출고. 카드 결제는 제공하지 않습니다.</p>
  {staff&&<><Link className="block underline" href="/admin?kind=order">담당자·기한·미입금·출고·환불 통합 검색</Link><BankSettings/></>}
- {error&&<p role="alert" className="rounded border border-red-200 bg-red-50 p-4 text-red-800">{error}</p>}
- {message&&<p role="status" className="rounded bg-green-50 p-4">{message} {!staff&&<Link href="/cart" className="ml-3 underline">구매함 확인</Link>}</p>}
+ {error&&<Feedback error className="rounded border border-red-200 bg-red-50 p-4 text-red-800">{error}</Feedback>}
+ {message&&<Feedback  className="rounded bg-green-50 p-4">{message} {!staff&&<Link href="/cart" className="ml-3 underline">구매함 확인</Link>}</Feedback>}
  <section className="rounded-xl border p-4"><div className="flex flex-wrap items-center gap-3"><h2 className="mr-auto text-lg font-bold">주문 목록 ({total})</h2><label>상태 <select value={filter} onChange={e=>{setFilter(e.target.value);setPage(1);}} className="rounded border p-2"><option value="">전체</option>{Object.entries(ORDER_LABELS).map(([k,v])=><option value={k} key={k}>{v}</option>)}</select></label></div>
  <div className="mt-4 grid gap-3 md:grid-cols-2">{orders.map(o=><button key={o.id} onClick={()=>{setSelected(o.id);setDetail(null);setError('');setMessage('');}} className={'rounded-lg border p-4 text-left '+(selected===o.id?'border-green-800 bg-green-50':'bg-white')}>
  <span className="font-bold">{o.number}</span><span className="mt-2 block text-sm">{ORDER_LABELS[o.status]} {o.claim_status==='open'?'· 클레임 확인 필요':''}</span><span className="mt-2 block">{o.total_minor===null?'상품 '+money(o.goods_total_minor)+' · 배송비 미확정':money(payable(o))}</span><span className="mt-2 block text-xs text-stone-500">{time(o.created_at)}{staff?' · '+o.customer.name+' '+o.customer.company:''}</span></button>)}</div>
  {!orders.length&&<p className="py-6 text-stone-600">표시할 주문이 없습니다. {!staff&&<Link href="/shop" className="underline">상품 둘러보기</Link>}</p>}
  <div className="mt-4 flex items-center gap-4"><button disabled={page===1} onClick={()=>setPage(p=>p-1)} className="rounded border px-3 py-2 disabled:opacity-30">이전</button><span>{page} / {Math.max(1,Math.ceil(total/30))}</span><button disabled={page*30>=total} onClick={()=>setPage(p=>p+1)} className="rounded border px-3 py-2 disabled:opacity-30">다음</button></div></section>
- {selected&&!detail&&!error&&<p role="status">주문 상세를 불러오고 있습니다…</p>}
+ {selected&&!detail&&!error&&<Feedback >주문 상세를 불러오고 있습니다…</Feedback>}
  {detail&&<><Details detail={detail} staff={staff}/>
  {!staff&&<div className="flex flex-wrap gap-4"><button disabled={busy} onClick={()=>void reorder()} className="rounded border border-green-800 px-5 py-3 text-green-900 disabled:opacity-40">현재 가격으로 구매함에 다시 담기</button><Link href="/cart" className="rounded border px-5 py-3">구매함 보기</Link><Link href={'/account/orders/'+detail.order.id} className="px-5 py-3 underline">이 주문 바로가기</Link></div>}
  <OrderActions key={detail.order.id+':'+detail.order.revision} detail={detail} staff={staff} busy={busy} act={act}/></>}

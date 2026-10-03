@@ -1,4 +1,5 @@
 'use client';
+import type {DateFormatType} from '@/types/label';
 
 import React, { useState } from 'react';
 import { FoodLabel } from '@/types/label';
@@ -22,45 +23,45 @@ export default function LiveLabelPreview({ label }: LiveLabelPreviewProps) {
     productNameKo: label.productNameLocal || '',
     productNameEn: label.productNameEn || '',
     productNameTarget: label.productNameLocal || label.productNameEn || '',
-    hsCode: label.hsCode || '1902.20-1000',
+    hsCode: label.hsCode || '',
   };
 
   const pdp = label.pdp || {
-    netWeightG: label.netWeightG || 1000,
-    netWeightCustom: `${label.netWeightG || 1000}g`,
+    netWeightG: label.netWeightG || 0,
+    netWeightCustom: `${label.netWeightG || 0}g`,
     claimHighlights: label.claimsBadges || [],
     certifications: [],
   };
 
   const info = label.informationPanel || {
     containsAllergensStatement: '',
-    storageConditionKo: label.storageInstructions || '냉동보관',
-    storageConditionTarget: label.storageInstructions || 'Keep Frozen At or Below -18°C',
-    manufacturerName: label.manufacturerInfo?.name || 'Songyoungmin Food Co., Ltd.',
+    storageConditionKo: label.storageInstructions || '',
+    storageConditionTarget: label.storageInstructions || '',
+    manufacturerName: label.manufacturerInfo?.name || 'Not provided',
     importerDistributorText: label.importerInfo?.name || '[Buyer to Fill in Destination Country]',
   };
 
   const nutrition = label.nutrition || {
     servingSizeG: 100,
     servingsPerContainer: 1,
-    caloriesKcal: 200,
-    totalFatG: 5,
-    saturatedFatG: 2,
-    sodiumMg: 300,
-    totalCarbohydrateG: 20,
-    totalSugarsG: 2,
-    proteinG: 8,
+    caloriesKcal: 0,
+    totalFatG: 0,
+    saturatedFatG: 0,
+    sodiumMg: 0,
+    totalCarbohydrateG: 0,
+    totalSugarsG: 0,
+    proteinG: 0,
   };
 
   const datingLot = label.datingLot || {
-    dateFormat: (label.dateMarkingType || 'YYYY/MM/DD') as any,
-    shelfLifeDays: (label.shelfLifeMonths || 12) * 30,
-    lotFormatTemplate: 'LOT-YYMMDD-01',
+    dateFormat: (label.dateMarkingType || 'YYYY/MM/DD') as DateFormatType,
+    shelfLifeDays: (label.shelfLifeMonths || 0) * 30,
+    lotFormatTemplate: '',
   };
 
   const barcodeMarking = label.barcodeMarking || {
     barcodeType: label.barcodeType || 'EAN-13',
-    barcodeNumber: label.barcodeNumber || '8809123456789',
+    barcodeNumber: label.barcodeNumber || 'Not provided',
     recyclingMarks: label.recyclingSymbols || [],
     registrationNumbers: label.registrationNumbers || {},
   };
@@ -206,11 +207,12 @@ export default function LiveLabelPreview({ label }: LiveLabelPreviewProps) {
 
             {/* 대상국 규격 Nutrition Facts 박스 */}
             <div className="bg-white">
-              {label.country === 'US' && <USNutritionFactsPanel data={nutritionResult.US} />}
-              {label.country === 'CN' && <ChinaNutritionTable data={nutritionResult.CN} />}
-              {label.country === 'JP' && <JapanNutritionList data={nutritionResult.JP} />}
-              {label.country === 'EU' && <EUNutritionTable data={nutritionResult.EU} />}
-              {label.country === 'UAE' && <UAETrafficLightPanel data={nutritionResult.UAE} />}
+              {!label.nutrition && <p>Nutrition data not provided — review required.</p>}
+              {label.nutrition && label.country === 'US' && <USNutritionFactsPanel data={nutritionResult.US} />}
+              {label.nutrition && label.country === 'CN' && <ChinaNutritionTable data={nutritionResult.CN} />}
+              {label.nutrition && label.country === 'JP' && <JapanNutritionList data={nutritionResult.JP} />}
+              {label.nutrition && label.country === 'EU' && <EUNutritionTable data={nutritionResult.EU} />}
+              {label.nutrition && label.country === 'UAE' && <UAETrafficLightPanel data={nutritionResult.UAE} />}
             </div>
 
             {/* 원재료 배합비 내림차순 목록 */}
@@ -224,7 +226,7 @@ export default function LiveLabelPreview({ label }: LiveLabelPreviewProps) {
                         return ing.ratio ? `${name} (${ing.ratio}%)` : name;
                       })
                       .join(', ')
-                  : 'Pork, Wheat Flour, Leek, Onion, Garlic, Salt, Pepper.'}
+                  : 'Ingredients not provided — review required.'}
               </p>
 
               {/* 알레르겐 박스 */}
@@ -243,22 +245,22 @@ export default function LiveLabelPreview({ label }: LiveLabelPreviewProps) {
               </p>
               <p>
                 <span className="font-bold">Manufacturer: </span>
-                {info.manufacturerName || 'Songyoungmin Food Co., Ltd.'}
+                {info.manufacturerName || 'Not provided'}
               </p>
               <p>
                 <span className="font-bold">Importer: </span>
                 {info.importerDistributorText || '[Buyer to Fill]'}
               </p>
-              {(barcodeMarking.registrationNumbers as any)?.gaccRegNo && (
+              {barcodeMarking.registrationNumbers?.gaccRegNo && (
                 <p>
                   <span className="font-bold">GACC Reg No: </span>
-                  <span className="font-mono">{(barcodeMarking.registrationNumbers as any).gaccRegNo}</span>
+                  <span className="font-mono">{barcodeMarking.registrationNumbers.gaccRegNo}</span>
                 </p>
               )}
-              {(barcodeMarking.registrationNumbers as any)?.fdaFacilityNo && (
+              {barcodeMarking.registrationNumbers?.fdaFacilityNo && (
                 <p>
                   <span className="font-bold">FDA Reg No: </span>
-                  <span className="font-mono">{(barcodeMarking.registrationNumbers as any).fdaFacilityNo}</span>
+                  <span className="font-mono">{barcodeMarking.registrationNumbers.fdaFacilityNo}</span>
                 </p>
               )}
             </div>
@@ -270,12 +272,12 @@ export default function LiveLabelPreview({ label }: LiveLabelPreviewProps) {
                   EXP DATE: {datingLot.dateFormat || 'MM/DD/YYYY'}
                 </p>
                 <p className="text-neutral-500 font-mono">
-                  LOT: {datingLot.lotFormatTemplate || 'LOT-260910-01'}
+                  LOT: {datingLot.lotFormatTemplate || 'Not provided'}
                 </p>
               </div>
               <div className="text-right">
                 <div className="font-mono font-bold text-xs tracking-widest border border-neutral-400 px-2 py-1 bg-neutral-50">
-                  ||||| {barcodeMarking.barcodeNumber || '8809123456789'} |||||
+                  ||||| {barcodeMarking.barcodeNumber || 'Not provided'} |||||
                 </div>
                 <span className="text-[9px] text-neutral-500 font-mono">
                   {barcodeMarking.barcodeType || 'EAN-13'}

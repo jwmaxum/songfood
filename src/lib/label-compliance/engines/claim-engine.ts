@@ -76,7 +76,7 @@ export function validateClaims(input: ValidationInput): {
     rawText.includes('无糖');
 
   if (isClaimingSugarFree && nut) {
-    const sugars = nut.totalSugarsG ?? (nut as any).sugarsG ?? 0;
+    const sugars = nut.totalSugarsG ?? nut.sugarsG ?? 0;
     if (sugars >= 0.5) {
       critical.push({
         code: input.country === 'US' ? 'US-CRIT-CLAIM-SUGAR-FREE-EXCEEDED' : 'COMMON-CRIT-CLAIM-SUGAR-FREE-EXCEEDED',
@@ -269,7 +269,7 @@ export function validateClaims(input: ValidationInput): {
   if (isClaimingVegan) {
     const animalConflictIng = input.ingredients.find((ing) => {
       const name = (ing.ingredientNameKo || '').toLowerCase();
-      const target = (ing.ingredientNameTarget || (ing as any).ingredientNameEn || '').toLowerCase();
+      const target = (ing.ingredientNameTarget || ing.ingredientNameEn || '').toLowerCase();
       return ANIMAL_INGREDIENT_KEYWORDS.some((k) => name.includes(k) || target.includes(k));
     });
 

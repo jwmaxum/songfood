@@ -104,9 +104,9 @@ export function validateAdditiveAuthorization(
 
   for (const ing of rawIngredients) {
     const nameKo = ing.ingredientNameKo || '';
-    const nameTarget = (ing as any).ingredientNameTarget || (ing as any).ingredientNameEn || '';
+    const nameTarget = ing.ingredientNameTarget || ing.ingredientNameEn || '';
     const rawName = `${nameKo} ${nameTarget}`;
-    const eCode = (ing as any).insOrENumber || (ing as any).eNumber || rawName;
+    const eCode = ing.insOrENumber || ing.eNumber || rawName;
 
     const entry = lookupAdditive(eCode, country);
     if (!entry) {
@@ -155,7 +155,7 @@ export function validateAdditiveAuthorization(
 
     // 3. Check Maximum Concentration Limit (PPM / mg/kg)
     // 1% ratio = 10,000 ppm
-    const ratioPercent = ing.ratio ?? (ing as any).percentage ?? 0;
+    const ratioPercent = ing.ratio ?? ing.percentage ?? 0;
     const actualPpm = ratioPercent * 10000;
 
     if (!entry.isQuantumSatis && entry.maxLevelPpm > 0 && actualPpm > entry.maxLevelPpm) {

@@ -144,7 +144,7 @@ export function validateAdditives(input: ValidationInput): {
       ingredients: input.ingredients.map((ing) => ({
         ingredientNameKo: ing.ingredientNameKo || '',
         ingredientNameTarget: ing.ingredientNameEn || ing.ingredientNameKo || '',
-        ratio: (ing as any).ratio ?? (ing as any).percentage ?? 0,
+        ratio: ing.ratio ?? ing.percentage ?? 0,
         isAllergen: false,
         insOrENumber: ing.eNumber,
       })),

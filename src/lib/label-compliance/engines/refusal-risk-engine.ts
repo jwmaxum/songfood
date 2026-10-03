@@ -79,7 +79,7 @@ export function assessRefusalRisk(label: FoodLabel): RefusalRiskAssessment {
     const hasAllergens = ingredients.some((i) => i.isAllergen);
     const allergensStatement =
       label.informationPanel?.containsAllergensStatement ||
-      (label as any).blocks?.infoPanel?.allergensText ||
+      label.blocks?.infoPanel?.allergensText ||
       '';
     if (hasAllergens && !allergensStatement.toUpperCase().includes('CONTAINS')) {
       score += 35;
@@ -103,7 +103,7 @@ export function assessRefusalRisk(label: FoodLabel): RefusalRiskAssessment {
     const gaccNo =
       label.registrationNumbers?.gaccCode ||
       label.registrationNumbers?.gaccRegNo ||
-      (label as any).blocks?.header?.gaccRegistrationNumber ||
+      label.blocks?.header?.gaccRegistrationNumber ||
       label.barcodeMarking?.registrationNumbers?.gaccRegNo;
     if (!gaccNo || gaccNo.trim().length < 10) {
       score += 40;
@@ -143,7 +143,7 @@ export function assessRefusalRisk(label: FoodLabel): RefusalRiskAssessment {
     // A. Ambiguous allergen statement ("may contain")
     const allergenNote =
       label.informationPanel?.mayContainStatement ||
-      (label as any).blocks?.infoPanel?.allergensText ||
+      label.blocks?.infoPanel?.allergensText ||
       '';
     if (/들어 있을지도 모름|入っているかもしれない|入っている恐れ|かも/i.test(allergenNote)) {
       score += 30;

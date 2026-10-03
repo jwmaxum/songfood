@@ -1,5 +1,6 @@
 'use client';
 import { createContext, useCallback, useContext, useEffect, useState, useRef } from 'react';
+import {useLanguage} from '@/lib/i18n/LanguageContext';
 import type { CustomerSession } from '@/lib/b2b-types';
 type Result = { success: boolean; message: string };
 type AuthState = {
@@ -18,6 +19,7 @@ async function submit(url: string, body?: object, method = 'POST'): Promise<Resu
   } catch { return { success: false, message: '서버에 연결하지 못했습니다. 다시 시도해 주세요.' }; }
 }
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const {language}=useLanguage();
   const generation = useRef(0);
   const [session, setSession] = useState<CustomerSession | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return result;
   }
   async function requestEmailLink(email: string) {
-    return submit('/api/auth/email', { email });
+    return submit('/api/auth/email', { email, language });
   }
   async function logout() {
     const result = await submit('/api/account/session', undefined, 'DELETE');

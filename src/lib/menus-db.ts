@@ -1,10 +1,11 @@
+import {cache} from 'react';
 import snapshot from '../../data/menus.json';
 import { MenuItem, ReorderItemPayload } from './types';
 import { deleteCms, insertCms, listCms, updateCms } from './cms-repository';
 
-export async function getRawMenus(): Promise<MenuItem[]> {
+export const getRawMenus = cache(async (): Promise<MenuItem[]> => {
   return listCms<MenuItem>('menus', snapshot as MenuItem[]);
-}
+});
 
 function tree(items: MenuItem[]): MenuItem[] {
   const top = items.filter((item) => !item.parent_id).sort((a, b) => a.sort_order - b.sort_order);

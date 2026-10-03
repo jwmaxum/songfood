@@ -1,77 +1,25 @@
-import type { Metadata } from 'next';
+import type {Metadata} from 'next';
 import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import { AppProviders } from '@/components/providers/AppProviders';
+import {AppProviders} from '@/components/providers/AppProviders';
 import CartDrawer from '@/components/cart/CartDrawer';
-
-// Header, footer, catalog and CMS pages read live Supabase data.
-export const dynamic = 'force-dynamic';
-
-export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
-  title: '송영민푸드 (Song Youngmin Food) | Premium K-Food, Korea Food & K-Fresh Food',
-  description:
-    '송영민푸드(Song Youngmin Food) 공식 몰. K-Food, Korea Food, K-Fresh Food, 국내 도매·개인 대용량 식품 구매와 해외 바이어 FOB RFQ. 상품별 포장·최소구매수량·공급 조건을 확인하세요.',
-  keywords: [
-    'K-Food',
-    'Korea Food',
-    'K-Fresh Food',
-    '송영민푸드',
-    'Song Youngmin Food',
-    'K-Frozen Food',
-    'K-Liquor',
-    '원소주',
-    '비비고만두',
-    '생막걸리',
-    '전통주',
-    '떡볶이 밀키트',
-  ],
-  openGraph: {
-    title: '송영민푸드 | Song Youngmin Food - Premium K-Food & Korea Food',
-    description: '대한민국 대표 프리미엄 K-Food, Korea Food, K-Fresh Food 및 K-주류 전문 몰',
-    images: ['/logo.png'],
-  },
-};
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="ko" dir="ltr">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;0,9..40,800;1,9..40,400;1,9..40,700&family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'Organization',
-              name: '송영민푸드 (Song Youngmin Food)',
-              url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-              logo: '/logo.png',
-              description: 'K-Food, Korea Food, K-Fresh Food Premium Marketplace',
-            }),
-          }}
-        />
-      </head>
-      <body className="min-h-screen flex flex-col bg-[#FAFAF8] text-stone-800 antialiased selection:bg-[#14532D] selection:text-white">
-        <AppProviders>
-          {/* RSC Header with Active Menu Engine & Multi-language Selector */}
-          <Header />
-          <CartDrawer />
-          <div id="main-content" tabIndex={-1} className="min-w-0 flex-grow">{children}</div>
-          {/* RSC Footer */}
-          <Footer />
-        </AppProviders>
-      </body>
-    </html>
-  );
+import {serverLanguage} from '@/lib/i18n/server';
+import {localizedHref} from '@/lib/i18n/locale';
+export const dynamic='force-dynamic';
+export async function generateMetadata():Promise<Metadata>{
+ const {language,text,path}=await serverLanguage();
+ const privatePage=/^\/(admin|account|checkout)(\/|$)/.test(path);
+ const title=text('송영민푸드 | 국내 도매·대용량 식품·해외 RFQ','Song Youngmin Food | Bulk Food & Export RFQ');
+ const description=text('개인·사업자 대용량 구매와 해외 FOB 견적 문의. 상품별 포장 단위와 최소수량을 확인하세요.','Bulk food for individuals and businesses, and FOB quotations for overseas buyers. Review packaging and minimum quantities.');
+ return {metadataBase:new URL(process.env.NEXT_PUBLIC_APP_URL||'http://localhost:3000'),title,description,
+   alternates:{canonical:localizedHref(path,language),languages:{ko:localizedHref(path,'ko'),en:localizedHref(path,'en')}},
+   robots:privatePage?{index:false,follow:false}:undefined,
+   openGraph:{title,description,url:localizedHref(path,language),locale:language==='en'?'en_US':'ko_KR',images:['/logo.png']}};
+}
+export default async function RootLayout({children}:{children:React.ReactNode}){
+ const {language}=await serverLanguage();
+ return <html lang={language} dir="ltr"><body className="min-h-screen flex flex-col bg-[#FAFAF8] text-stone-800 antialiased selection:bg-[#14532D] selection:text-white">
+ <AppProviders initialLanguage={language}><Header/><CartDrawer/><div id="main-content" tabIndex={-1} className="min-w-0 flex-grow">{children}</div><Footer/></AppProviders>
+ </body></html>;
 }

@@ -1,4 +1,4 @@
-import { getPublicProducts, getPublicProductById } from '@/lib/products-db';
+import { getPublicProducts } from '@/lib/products-db';
 import ProductDetailClient from './ProductDetailClient';
 import { notFound } from 'next/navigation';
 
@@ -7,7 +7,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const productId = resolvedParams.id;
   const products = await getPublicProducts();
 
-  const product = await getPublicProductById(productId);
+  const product = products.find(p=>p.id===productId);
   if (!product) notFound();
 
   const relatedProducts = products
