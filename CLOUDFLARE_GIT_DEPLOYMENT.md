@@ -82,3 +82,5 @@ Cloudflare와 GitHub Actions는 각각 시작되므로 GitHub CI 결과를 기�
 운영 URL을 지정한 npm run build:cloudflare 전체 명령도 통과했다. 범위 lint 오류 0, 기존 이미지 경고 5건, 334개 테스트, Next.js/TypeScript/112개 페이지 및 OpenNext Worker 번들 생성 성공을 확인했다.
 
 최초 GitHub CI에서 package-lock.json의 선택 의존성 @emnapi/core 1.10.0 및 중첩 @emnapi/runtime 1.10.0 누락을 발견했다. 원래 기준 커밋의 동일 잠금 항목을 복원했으며 버전을 일괄 갱신하지 않았다. 격리 폴더의 npm ci --dry-run --ignore-scripts --legacy-peer-deps 검사도 통과했다. 최종 Linux CI 결과는 GitHub Actions에서 해당 커밋으로 확인한다.
+
+깨끗한 Linux 설치에서 @testing-library/react의 필수 peer인 @testing-library/dom이 빠지는 문제도 확인했다. 로컬 검증에 사용하던 10.4.1을 명시적 devDependency로 고정해 legacy-peer-deps 설치에서도 UI 테스트가 실행되도록 했다. 앱 런타임 의존성 버전은 변경하지 않았다.
