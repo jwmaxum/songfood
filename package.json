@@ -22,7 +22,8 @@
     "lint:storefront": "eslint src/lib/storefront.ts src/context/RFQContext.tsx src/components/storefront src/app/page.tsx src/components/layout/HeaderClient.tsx src/components/layout/FooterClient.tsx src/app/collections/CollectionShowcaseClient.tsx src/app/products src/app/rfq src/app/wholesale src/components/cart src/__tests__/b2b-storefront*.test.*",
     "lint:crm": "eslint src/lib/crm src/lib/commercial-inquiry.ts src/lib/inquiry-client.ts src/lib/customer-auth.ts src/app/api/commercial-inquiries src/app/api/admin/crm src/app/admin/crm src/app/rfq src/app/wholesale src/components/storefront/FieldError.tsx src/components/storefront/AccountActivity.tsx src/__tests__/b2b-crm*.test.*",
     "lint:pi": "eslint src/lib/pi src/components/pi src/app/admin/crm/PiPanel.tsx src/app/api/admin/pi src/app/api/admin/crm src/app/api/account/pi src/__tests__/b2b-pi*.test.*",
-    "build:cloudflare": "node scripts/check-cloudflare-build.cjs && npm run lint:b2b && npm run lint:pricing && npm run lint:storefront && npm run lint:crm && npm run lint:pi && npm test -- --runInBand && npm run build:worker"
+    "build:cloudflare": "node scripts/check-cloudflare-build.cjs && npm run lint:b2b && npm run lint:pricing && npm run lint:storefront && npm run lint:crm && npm run lint:pi && npm test -- --runInBand && npm run build:worker",
+    "build:cloudflar": "npm run build:cloudflare"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

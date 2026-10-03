@@ -96,3 +96,11 @@ API token의 표시 이름만으로 권한 오류를 단정하지 않는다. 실
 깨끗한 Linux 설치에서 @testing-library/react의 필수 peer인 @testing-library/dom이 빠지는 문제도 확인했다. 로컬 검증에 사용하던 10.4.1을 명시적 devDependency로 고정해 legacy-peer-deps 설치에서도 UI 테스트가 실행되도록 했다. 앱 런타임 의존성 버전은 변경하지 않았다.
 
 4046d33 커밋의 [GitHub Linux CI](https://github.com/jwmaxum/songfood/actions/runs/37110095234)는 최종 성공했다. GitHub CI 성공만으로 Cloudflare 배포 완료를 의미하지 않는다.
+
+## 첫 Cloudflare 빌드 실패 원인과 복구
+
+2026-10-03 main의 7ada669 push로 Workers Builds가 처음 실행되어 Git 자동 연결이 작동함을 확인했다. 사용자 제공 로그에서 패키지 설치는 성공했고, 대시보드 Build command가 build:cloudflar로 저장되어 Missing script 오류로 종료된 사실을 확인했다. 마지막 e가 빠진 설정 오타다.
+
+정식 Build command는 npm ci --legacy-peer-deps && npm run build:cloudflare다. 현재 대시보드 명령에서도 자동 배포를 진행할 수 있도록 package.json의 build:cloudflar를 npm run build:cloudflare로 연결하는 호환 명령을 추가했다. 기존 환경변수 검사, lint, 테스트와 Worker 빌드 전체를 그대로 수행한다. 대시보드 명령을 정식 철자로 수정한 뒤 호환 명령 제거를 검토할 수 있다.
+
+같은 7ada669의 GitHub CI는 성공했다. Cloudflare 빌드 토큰과 별개로 제공된 계정 API 토큰은 유효하지만 Builds 및 Worker 조회에서 401을 반환했다. 계정 토큰이나 런타임 비밀값은 저장소에 포함하지 않았다.
