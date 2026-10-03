@@ -2,7 +2,7 @@
 
 작성일: 2026-10-04 (KST)
 
-상태: **8단계 코드·DB 적용 및 자동 QA 완료, Worker 빌드 완료, 자동 배포 확인 중. 실제 운영자료와 사람의 인수는 9단계 오픈 조건이다.**
+상태: **8단계 코드·DB 적용·자동 QA·Worker 자동 배포 검증 완료. 실제 운영자료와 사람의 인수는 9단계 오픈 조건이다.**
 
 ## 사용자 요청 반영
 
@@ -113,7 +113,26 @@ OpenNext는 Node.js proxy/middleware 지원에 실험적 경고를 출력한다.
 
 추가 DB는 이전 코드와 호환된다. 앱 문제 시 이전 Worker 버전으로 되돌리고 회사정보 테이블은 보존한다. 회사정보 오입력은 관리자가 이전 확인값을 변경 사유와 함께 다시 저장한다. 감사 이력을 삭제하거나 운영 테이블을 초기화하지 않는다.
 
-배포 확인: 진행 중. 완료 후 커밋·CI·Cloudflare·운영 HTTP 증거를 추가한다.
+- 소스 커밋: [07e6daa](https://github.com/jwmaxum/songfood/commit/07e6daa872d7afbcdb236148263d22ee3e532455)
+- [GitHub CI 성공](https://github.com/jwmaxum/songfood/actions/runs/37161521704) — Worker 빌드·단위/권한·17개 브라우저 검증 모두 통과.
+- [Cloudflare 자동 배포 성공](https://dash.cloudflare.com/7c88b2d2b3fe9baf32dc744ac0a631b3/workers/services/view/song-food/production/builds/2d36b050-4904-42ca-855d-6a040a07d778)
+- 운영 HTTP 확인: 26. 10. 4. 08:27 KST. 홈/상품/소개/로그인 영어 html·Content-Language=en 및 실제 연락처 확인. 국내 주문은 lang=ko로 이동한다.
+- 공개 상품 53개, 비공개 도매가·재고 필드 비노출. 고객 주문/PI 비로그인 401, 관리자 설정·업무 403, 외부 출처 설정 PUT 403.
+- /labeling → /catalogues, /why-kfood → /about에서 영어 선택을 유지한다.
+- 실제 DB 공개 설정 revision 1, 확인된 연락처 일치, 테스트 주문/PI/설정 변경 감사 잔여 0건. 승인 가격은 여전히 0건이다.
+- 로컬 개발 서버 http://127.0.0.1:3000 재실행. 검증·성능 원본은 .npm-cache/b2b-phase8/verification.json, production-smoke.json, production-after.json.
+
+경로별 HTTP 전체 응답시간 3회 중앙값(동일 PC, 캐시·네트워크 제어 없음):
+
+| 경로 | 배포 전 | 배포 후 |
+| --- | --- | --- |
+| /?lang=en | 751 ms | 886 ms |
+| /shop?mode=export&lang=en | 504 ms | 588 ms |
+| /about?lang=en | 348 ms | 396 ms |
+| /account/login?lang=en | 320 ms | 457 ms |
+| /api/products | 806 ms | 965 ms |
+
+이 표는 초기 운영 기준이며 개선율·부하 수용량·SLA의 증거가 아니다.
 
 ## 다음 단계 요청
 
