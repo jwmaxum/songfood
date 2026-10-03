@@ -2,7 +2,7 @@
 
 작성일: 2026-10-04
 
-상태: 구현 및 Supabase 적용 완료. 로컬 Worker 빌드·HTTP·접근 차단 검증 통과. GitHub main → Cloudflare 자동 배포 검증을 이어 진행한다.
+상태: 구현·Supabase 적용·GitHub CI·Cloudflare 자동 배포·운영 HTTP 검증 완료. 실제 직원·고객 계정의 브라우저 인수는 8단계에서 진행한다.
 
 ## 반영 범위
 
@@ -82,6 +82,19 @@
 - `scripts/check-b2b-env.cjs`: 7단계 적용 마커 포함.
 - `supabase/tests/b2b_operations.sql`: 테스트 트랜잭션 후 반드시 ROLLBACK.
 - `scripts/test-operations-concurrency.cjs --allow-sandbox-schema`: 환경 변수 `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF` 필요. 임시 격리 스키마 이외의 운영 주문·고객·가격을 변경하지 않는다.
+
+## 배포 증거
+
+- 소스 커밋: [7c953f5](https://github.com/jwmaxum/songfood/commit/7c953f5deef3ed6fedde2801013680de823e43be)
+- [GitHub CI 성공](https://github.com/jwmaxum/songfood/actions/runs/37138888869)
+- [Cloudflare Workers Builds 성공](https://dash.cloudflare.com/7c88b2d2b3fe9baf32dc744ac0a631b3/workers/services/view/song-food/production/builds/eb2eb498-db5a-40de-a5dd-d5b7840375f3)
+- 운영 주소: [관리자](https://song-food.jwmaxum.workers.dev/admin)
+- 2026-10-04 02:03 KST 운영 HTTP: 관리자 신규 7개 경로 200(비로그인은 로그인 화면), 업무/문서/상품점검/거래처/감사/이력 및 기존 KPI API 403, 고객 주문 API 401, 잘못된 출처의 배정 POST 403.
+- 공개 상품 API 200 / 53개 상품. 내부 도매가·재고·가격 필드 비노출.
+- 실제 DB RPC: 문의·주문 업무 0건, PI 0건, 고객 계정 1개, 감사 이력 53건(첫 페이지 30건). 집계를 위해 예시 거래를 삽입하지 않았다.
+- 실제 상품 53개, 승인 가격 버전 0개, 환율 없음, 국내 입금 계좌 설정 0개. 누락 상태를 운영 점검에 그대로 표시한다.
+- 익명 REST에서 새 업무 view와 snapshot RPC를 실제 호출해 permission_denied 확인.
+- 로컬 개발 서버: `http://127.0.0.1:3000`. 자동 배포는 GitHub main 연결을 유지한다.
 
 ## 배포·운영 제한
 

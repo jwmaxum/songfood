@@ -406,7 +406,7 @@ API 경로 예시는 /api/pricing/preview, /api/quotes, /api/quotes/:id/approve,
 | B2B-04 | 4단계 | RFQ·견적 작성·CRM 업무 흐름 | 1, 2, 3 | 4~6 | 구현·DB·개발 검증 완료 / 실제 SKU·계정 인수·배포 대기 |
 | B2B-05 | 5단계 | Proforma Invoice 승인·발행·버전 | 2, 4 | 4~6 | 구현·DB·로컬 검증 완료 / 원격 Worker·실계정 인수 대기 |
 | B2B-06 | 6단계 | 국내 주문·입금·출고·반복 발주 | 1, 2, 3 | 5~8 | 구현·DB·자동 검증·운영 배포 완료 / 실제 가격·계좌 등록 및 운영 인수 대기 |
-| B2B-07 | 7단계 | 관리자 통합과 운영 업무 마감 | 4, 5, 6 | 3~5 | 구현·DB 검증 완료 / 실계정 UI 인수는 8단계 |
+| B2B-07 | 7단계 | 관리자 통합과 운영 업무 마감 | 4, 5, 6 | 3~5 | 구현·DB·자동배포 검증 완료 / 실계정 UI 인수는 8단계 |
 | B2B-08 | 8단계 | 언어·모바일·접근성·통합 품질 검증 | 3~7 | 4~6 | 미착수 |
 | B2B-09 | 9단계 | 스테이징 검수·운영 오픈 | 0~8 완료 조건 충족 | 3~5 | 미착수 |
 
@@ -707,7 +707,7 @@ API 경로 예시는 /api/pricing/preview, /api/quotes, /api/quotes/:id/approve,
 
 요청 문장: **“B2B 개발계획의 7단계를 진행해 주세요. 거래처·가격·RFQ/PI·주문 업무를 역할별 관리자 화면으로 통합해 주세요.”**
 
-구현 기록: [B2B_07_IMPLEMENTATION.md](B2B_07_IMPLEMENTATION.md). 운영 매뉴얼: [B2B_OPERATIONS_MANUAL.md](B2B_OPERATIONS_MANUAL.md). 2026-10-04 Supabase 적용, 1,005건 집계·동시 배정·내부 메모 비노출 검증 완료. 샘플 KPI를 제거했고 실제 가격·계좌·환율 입력은 운영 인수 조건이다.
+구현 기록: [B2B_07_IMPLEMENTATION.md](B2B_07_IMPLEMENTATION.md). 운영 매뉴얼: [B2B_OPERATIONS_MANUAL.md](B2B_OPERATIONS_MANUAL.md). 2026-10-04 Supabase 적용, 1,005건 집계·동시 배정·내부 메모 비노출 검증 완료. 소스 7c953f5의 GitHub CI·Cloudflare 자동 배포 및 운영 HTTP 검증을 완료했다. 샘플 KPI를 제거했고 실제 가격·계좌·환율 입력은 운영 인수 조건이다.
 
 ### 6.10 B2B-08 / 8단계 — 다국어·모바일·접근성·통합 QA
 
