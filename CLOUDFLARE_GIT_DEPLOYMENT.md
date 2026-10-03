@@ -80,3 +80,5 @@ Cloudflare와 GitHub Actions는 각각 시작되므로 GitHub CI 결과를 기�
 46개 테스트 묶음·334개 테스트를 통과했다. Cloudflare Build의 실제 환경값이 단위 테스트에 유입되어 외부 Supabase를 호출하지 않도록 jest.environment.ts에서 운영 주소/자격증명을 분리했다. 개별 권한/설정 테스트는 명시적인 fixture 값을 사용한다.
 
 운영 URL을 지정한 npm run build:cloudflare 전체 명령도 통과했다. 범위 lint 오류 0, 기존 이미지 경고 5건, 334개 테스트, Next.js/TypeScript/112개 페이지 및 OpenNext Worker 번들 생성 성공을 확인했다.
+
+최초 GitHub CI에서 package-lock.json의 선택 의존성 @emnapi/core 1.10.0 및 중첩 @emnapi/runtime 1.10.0 누락을 발견했다. 원래 기준 커밋의 동일 잠금 항목을 복원했으며 버전을 일괄 갱신하지 않았다. 격리 폴더의 npm ci --dry-run --ignore-scripts --legacy-peer-deps 검사도 통과했다. 최종 Linux CI 결과는 GitHub Actions에서 해당 커밋으로 확인한다.
