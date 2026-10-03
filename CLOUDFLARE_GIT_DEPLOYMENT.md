@@ -120,3 +120,5 @@ GitHub Worker 빌드에는 공개용 테스트 설정과 실제 연결되지 않
 08e7aec의 GitHub CI 및 Cloudflare build de79e595-b505-4de5-9202-dec66dcbff28 성공을 확인했다. Build command의 build:cloudflar alias와 서버 비밀키 없는 빌드는 정상 동작하며 Deploy command 앞의 잘못된 파이프(|)가 제거된 뒤 배포됐다. Workers 프로젝트의 표시 형태는 Pages와 다르지만 Git 자동 배포가 정상 동작한다.
 
 6단계는 lint:orders와 주문 권한/금액/상태 테스트를 Cloudflare Build command 및 GitHub CI에 포함한다. 추가 환경변수는 없으며 기존 Supabase 런타임 비밀키를 사용한다. 실제 국내 계좌는 관리자 → 주문·입금·출고 → 국내 계좌입금 설정에서 저장한다. 상세는 [6단계 구현 기록](B2B_06_IMPLEMENTATION.md)을 따른다.
+
+6단계 구현 커밋 26d2367의 [GitHub CI](https://github.com/jwmaxum/songfood/actions/runs/37121866251) 및 [Cloudflare c82dd93d 빌드/배포](https://dash.cloudflare.com/7c88b2d2b3fe9baf32dc744ac0a631b3/workers/services/view/song-food/production/builds/c82dd93d-5360-4c96-af6c-9a8c857612e1)가 성공했다. 운영 /checkout·/account/orders·/admin/orders는 200, 비로그인 주문 API는 401/403, 상품 API는 공개 상품 53개를 반환하며 비공개 가격/재고 필드를 제외한다. 상세 증빙은 6단계 기록을 따른다.

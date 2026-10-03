@@ -2,7 +2,7 @@
 
 작성: 2026-10-03
 작업 저장소: C:\Users\Microsoft\Projects\songfood
-상태: 기능 구현·Supabase 적용·개발 검증 완료. Git push와 Cloudflare 자동 배포 결과는 아래 배포 기록에 추가한다.
+상태: 기능 구현·Supabase 적용·396개 테스트·GitHub CI·Cloudflare 자동 배포 및 운영 HTTP 검증 완료. 실제 가격/계좌 등록과 실계정 운영 인수는 아래 잔여 항목을 따른다.
 
 ## 적용 범위와 결정
 
@@ -116,7 +116,9 @@
 | 실제 동시 연결 | 같은 접수 2건 → 주문 1건, 같은 입금 2건 → 원장 1건, 동시 6개 출고 2건(주문 10개) → 한 요청만 성공, 출고/전체취소 경합 → 출고 이력 유지 |
 | 테스트 데이터 | 롤백 또는 별도 비공개 임시 스키마 제거 완료. 실제 고객/가격/주문/재고 변경 없음 |
 | Supabase 환경 검사 | 1·2·4·5·6단계 스키마 마커 확인 |
-| Worker 빌드 | 서버 비밀키 없는 공개 설정으로 Next/OpenNext 빌드 통과. 최종 UI 변경은 CI에서 재확인 |
+| Worker 빌드 | 서버 비밀키 없는 공개 설정으로 Next/OpenNext 빌드 통과. 최종 코드도 GitHub CI와 Cloudflare 빌드/배포 통과 |
+| 운영 HTTP 검사 | checkout/내 주문/관리자 주문 200, 고객 주문 API 401, 직원 주문/설정 API 403, 잘못된 Origin 403, 카드 승인 차단 503, 공개 상품 53개·비공개 가격/재고 필드 제외 확인 |
+| 공개 Supabase REST | products/orders/user_profiles/신규 주문/입금 직접 조회 거부, 실제 주문 RPC 미등록 사용자 차단 확인 |
 | 브라우저 수동 인수 | 이 세션의 UI 제어 도구 실행 불가. 실제 다중 기기·모바일 시각 검증과 운영자 사용성 인수는 8·9단계에서 수행 |
 
 동시 연결 검증은 SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_REF를 환경변수로 설정한 뒤 다음을 실행한다. 별도 테스트 스키마 생성 권한이 필요하며, 실제 운영 테이블의 고객·주문을 테스트용으로 수정하지 않는다.
@@ -130,7 +132,11 @@ node scripts/test-orders-concurrency.cjs --allow-sandbox-schema
 - 이전 08e7aec의 GitHub CI 및 Cloudflare build de79e595-b505-4de5-9202-dec66dcbff28 성공을 확인했다.
 - 기존 build:cloudflar 오타는 호환 alias로 대응하며, 배포 명령 맨 앞의 잘못된 파이프 문자를 제거한 뒤 자동 배포가 정상화됐다.
 - 6단계는 GitHub main push → GitHub CI와 Cloudflare Workers Builds 자동 실행 방식이다. 수동 Wrangler 배포는 실행하지 않는다.
-- 최종 6단계 푸시/배포 및 운영 API 확인 결과는 작업 종료 검증에 반영한다.
+- 구현 커밋: [26d2367](https://github.com/jwmaxum/songfood/commit/26d2367e3091b78a4cd222e8d9125e9714938a57). 원격 main 일치 확인.
+- [GitHub CI 37121866251](https://github.com/jwmaxum/songfood/actions/runs/37121866251): success.
+- [Cloudflare build c82dd93d](https://dash.cloudflare.com/7c88b2d2b3fe9baf32dc744ac0a631b3/workers/services/view/song-food/production/builds/c82dd93d-5360-4c96-af6c-9a8c857612e1): success.
+- 운영 화면: [국내 주문 접수](https://song-food.jwmaxum.workers.dev/checkout), [내 주문](https://song-food.jwmaxum.workers.dev/account/orders), [주문·입금·출고 관리자](https://song-food.jwmaxum.workers.dev/admin/orders).
+- 운영 API와 공개 필드, 인증·CSRF 차단까지 확인했다. 실제 회원의 주문부터 은행 거래·택배 수령까지 수행한 검증으로 확대 해석하지 않는다.
 
 ## 운영 인수에 남은 항목
 
