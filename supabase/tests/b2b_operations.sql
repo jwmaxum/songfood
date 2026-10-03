@@ -1,0 +1,71 @@
+-- Run in a transaction with migration; caller ROLLBACKs all fixtures.
+DO $$
+DECLARE a uuid:=gen_random_uuid();s uuid:=gen_random_uuid();o uuid:=gen_random_uuid();p uuid:=gen_random_uuid();b uuid:=gen_random_uuid();
+ marker text:=gen_random_uuid()::text;i uuid;ord uuid;quote_id uuid;company_id uuid;lid uuid;k uuid:=gen_random_uuid();r jsonb; sig text;n integer;
+BEGIN
+ FOR sig IN SELECT pr.oid::regprocedure::text FROM pg_proc pr JOIN pg_namespace ns ON ns.oid=pr.pronamespace WHERE ns.nspname='public' AND pr.proname LIKE 'b2b_ops_%' LOOP
+ IF has_function_privilege('anon',sig,'EXECUTE') OR has_function_privilege('authenticated',sig,'EXECUTE') THEN RAISE EXCEPTION 'RPC exposed';END IF;END LOOP;
+ IF has_table_privilege('anon','public.b2b_ops_work','SELECT') OR has_table_privilege('authenticated','public.b2b_ops_work','SELECT') THEN RAISE EXCEPTION 'view exposed';END IF;
+ INSERT INTO auth.users(id,email,aud,role,email_confirmed_at,created_at,updated_at) SELECT u,u||'@example.invalid','authenticated','authenticated',now(),now(),now() FROM unnest(ARRAY[a,s,o,p,b])u;
+ INSERT INTO public.user_profiles(id,email,name,role,status) VALUES(a,a||'@example.invalid','Ops admin','admin','active'),(s,s||'@example.invalid','Ops inquiry','inquiry_staff','active'),(o,o||'@example.invalid','Ops orders','order_staff','active'),(p,p||'@example.invalid','Ops product','product_staff','active');
+ INSERT INTO public.customer_accounts(id,email,name) VALUES(b,b||'@example.invalid',marker);
+ IF (SELECT status FROM public.customer_accounts WHERE id=b)<>'active' THEN RAISE EXCEPTION 'signup hurdle regression';END IF;
+ INSERT INTO public.commercial_inquiries(kind,company,contact_name,email,items,status) SELECT 'export_rfq',marker,'Ops','ops@example.invalid','[]','new' FROM generate_series(1,1005);
+ SELECT id INTO i FROM public.commercial_inquiries WHERE company=marker ORDER BY id LIMIT 1;
+ r:=public.b2b_ops_snapshot(s,'work',marker,'rfq','','',1,'');
+ IF (r->>'total')::int<>1005 OR jsonb_array_length(r->'items')<>30 OR (r->'counts'->>'rfq')::int<>1005 THEN RAISE EXCEPTION 'count/page truncation';END IF;
+ r:=public.b2b_ops_snapshot(s,'work',marker,'rfq','','',99,'');
+ IF (r->>'total')::int<>1005 OR jsonb_array_length(r->'items')<>0 THEN RAISE EXCEPTION 'empty page total lost';END IF;
+ r:=public.b2b_ops_snapshot(o,'work',marker);
+ IF (r->>'total')::int<>0 THEN RAISE EXCEPTION 'inquiry data leaked to order staff';END IF;
+ r:=public.b2b_ops_snapshot(p,'work',marker);
+ IF (r->>'total')::int<>0 THEN RAISE EXCEPTION 'inquiry data leaked to product staff';END IF;
+ BEGIN PERFORM public.b2b_ops_snapshot(p,'documents');RAISE EXCEPTION 'documents allowed';EXCEPTION WHEN insufficient_privilege THEN NULL;END;
+ BEGIN PERFORM public.b2b_ops_snapshot(s,'contacts');RAISE EXCEPTION 'contacts allowed';EXCEPTION WHEN insufficient_privilege THEN NULL;END;
+ BEGIN PERFORM public.b2b_ops_snapshot(o,'audit');RAISE EXCEPTION 'audit allowed';EXCEPTION WHEN insufficient_privilege THEN NULL;END;
+ BEGIN PERFORM public.b2b_ops_snapshot(s,'quality');RAISE EXCEPTION 'prices allowed';EXCEPTION WHEN insufficient_privilege THEN NULL;END;
+ BEGIN PERFORM public.b2b_ops_snapshot(b,'work');RAISE EXCEPTION 'customer allowed';EXCEPTION WHEN insufficient_privilege THEN NULL;END;
+ PERFORM public.b2b_ops_plan(s,'inquiry',i,1,s,now()-interval '1 hour','PRIVATE OPS HANDOFF',k,repeat('a',64));
+ PERFORM public.b2b_ops_plan(s,'inquiry',i,1,s,now()-interval '1 hour','PRIVATE OPS HANDOFF',k,repeat('a',64));
+ IF (SELECT revision FROM public.commercial_inquiries WHERE id=i)<>2 OR (SELECT count(*) FROM public.b2b_inquiry_activities WHERE inquiry_id=i)<>1 THEN RAISE EXCEPTION 'duplicate plan';END IF;
+ BEGIN PERFORM public.b2b_ops_plan(s,'inquiry',i,1,s,NULL,'stale handoff',gen_random_uuid(),repeat('b',64));RAISE EXCEPTION 'stale allowed';EXCEPTION WHEN serialization_failure THEN NULL;END;
+ BEGIN PERFORM public.b2b_ops_plan(s,'inquiry',i,2,o,NULL,'wrong domain',gen_random_uuid(),repeat('c',64));RAISE EXCEPTION 'wrong assignee';EXCEPTION WHEN invalid_parameter_value THEN NULL;END;
+ UPDATE public.user_profiles SET status='suspended' WHERE id=s;
+ BEGIN PERFORM public.b2b_ops_plan(a,'inquiry',i,2,s,NULL,'inactive staff',gen_random_uuid(),repeat('d',64));RAISE EXCEPTION 'inactive assignee';EXCEPTION WHEN invalid_parameter_value THEN NULL;END;
+ UPDATE public.user_profiles SET status='active' WHERE id=s;
+ r:=public.b2b_ops_snapshot(s,'work',marker,'rfq','mine','overdue',1,'');
+ IF (r->>'total')::int<>1 OR (r->'counts'->>'rfq')::int<>1 THEN RAISE EXCEPTION 'filtered count mismatch';END IF;
+ r:=public.b2b_ops_history(s,'inquiry',i);
+ IF r->'items'->0->>'visibility'<>'internal' OR (r->>'total')::int<>1 THEN RAISE EXCEPTION 'internal inquiry history missing';END IF;
+ INSERT INTO public.b2b_orders(number,submitted_by,request_key,request_hash,customer,delivery,evidence_request,net_minor,tax_minor,goods_total_minor,status)
+ VALUES(marker,b,gen_random_uuid(),repeat('e',64),jsonb_build_object('name',marker,'email','ops@example.invalid'), '{}','{}',100,0,100,'requested') RETURNING id INTO ord;
+ PERFORM public.b2b_ops_plan(o,'order',ord,1,o,now(),'PRIVATE ORDER HANDOFF',k,repeat('f',64));
+ r:=public.b2b_order_detail(b,ord,false);
+ IF r::text LIKE '%PRIVATE ORDER HANDOFF%' OR r->'order'?'assigned_to' OR r->'order'?'due_at' THEN RAISE EXCEPTION 'internal order planning leaked';END IF;
+ r:=public.b2b_order_detail(o,ord,true);
+ IF jsonb_array_length(r->'events')<>1 OR r->'order'->>'assigned_to'<>o::text THEN RAISE EXCEPTION 'staff history missing';END IF;
+ BEGIN PERFORM public.b2b_ops_plan(s,'order',ord,2,o,NULL,'wrong domain',gen_random_uuid(),repeat('g',64));RAISE EXCEPTION 'wrong role assigned';EXCEPTION WHEN insufficient_privilege THEN NULL;END;
+ UPDATE public.b2b_orders SET status='confirmed',accepted_at=now(),shipping_net_minor=0,shipping_tax_minor=0,total_minor=100,paid_minor=100 WHERE id=ord;
+ INSERT INTO public.b2b_order_items(order_id,position,snapshot) VALUES(ord,0,'{"quantity":3}');
+ r:=public.b2b_ops_snapshot(o,'work',marker,'shipping');
+ IF (r->>'total')::int<>1 THEN RAISE EXCEPTION 'fully paid shipping queue';END IF;
+ UPDATE public.b2b_order_items SET shipped_quantity=1 WHERE order_id=ord;
+ UPDATE public.b2b_orders SET claim_status='open' WHERE id=ord;
+ r:=public.b2b_ops_snapshot(o,'work',marker,'shipping');IF (r->>'total')::int<>0 THEN RAISE EXCEPTION 'claim shipping allowed';END IF;
+ UPDATE public.b2b_orders SET credit_minor=40,status='cancelled' WHERE id=ord;
+ r:=public.b2b_ops_snapshot(o,'work',marker,'refund');IF (r->>'total')::int<>1 THEN RAISE EXCEPTION 'cancelled refund hidden';END IF;
+ r:=public.b2b_ops_snapshot(o,'work',marker,'claim');IF (r->>'total')::int<>1 THEN RAISE EXCEPTION 'cancelled claim hidden';END IF;
+ INSERT INTO public.b2b_quote_drafts(inquiry_id,version,snapshot,created_by,request_key,request_hash) VALUES(i,1,'{"kind":"quotation_draft"}',s,gen_random_uuid(),repeat('h',64)) RETURNING id INTO quote_id;
+ INSERT INTO public.b2b_pi_documents(number,inquiry_id,quote_id,version,snapshot,status,created_by,issued_at,accepted_at,pdf_path,pdf_sha256,pdf_bytes,request_key,request_hash)
+ VALUES(marker,i,quote_id,1,jsonb_build_object('kind','proforma_invoice','valid_until',now()-interval '1 hour'),'issued',a,now()-interval '2 hour',now()-interval '90 minute','rollback-only',repeat('a',64),10,gen_random_uuid(),repeat('i',64));
+ r:=public.b2b_ops_snapshot(s,'work',marker,'pi_expired');IF (r->>'total')::int<>0 THEN RAISE EXCEPTION 'accepted PI expired incorrectly';END IF;
+ r:=public.b2b_ops_snapshot(s,'documents',marker,'accepted');IF (r->>'total')::int<>1 THEN RAISE EXCEPTION 'document state mismatch';END IF;
+ INSERT INTO public.companies(name,kind,country,created_by) VALUES(marker,'domestic','KR',b) RETURNING id INTO company_id;
+ lid:=(public.b2b_ops_create_list(a,marker,'company',company_id,'actual contract review')).id;
+ IF NOT EXISTS(SELECT 1 FROM public.b2b_pricing_audit WHERE record_id=lid AND action='assign_price_list') THEN RAISE EXCEPTION 'assignment audit missing';END IF;
+ PERFORM public.b2b_review_access(a,company_id,'suspended','company suspended',NULL);
+ BEGIN PERFORM public.b2b_ops_create_list(a,marker,'company',company_id,'suspended contract');RAISE EXCEPTION 'suspended company assignment';EXCEPTION WHEN invalid_parameter_value THEN NULL;END;
+ r:=public.b2b_ops_snapshot(a,'contacts',marker);IF (r->>'total')::int<>1 THEN RAISE EXCEPTION 'individual directory';END IF;
+ r:=public.b2b_ops_snapshot(a,'audit','PRIVATE ORDER HANDOFF','order');IF (r->>'total')::int<>1 THEN RAISE EXCEPTION 'audit target missing';END IF;
+ r:=public.b2b_ops_snapshot(p,'quality');IF jsonb_array_length(r->'products')<1 THEN RAISE EXCEPTION 'quality snapshot unavailable';END IF;
+END $$;

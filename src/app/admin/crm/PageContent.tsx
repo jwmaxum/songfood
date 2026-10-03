@@ -1,17 +1,19 @@
 'use client';
+import Link from 'next/link';
 import {useEffect,useState} from 'react';
 import {INQUIRY_STATUSES,INQUIRY_STATUS_LABELS} from '@/lib/commercial-inquiry';
 import type {CrmInquiry} from '@/lib/crm/types';
 import CrmWorkspace from './CrmWorkspace';
 type List={inquiries:CrmInquiry[];staff:{id:string;name:string;role:string}[];total:number;page:number;page_size:number};
 const input='rounded border border-stone-700 bg-stone-900 p-2 text-sm text-white';
-export default function AdminCRMPage() {
-  const [params,setParams]=useState('page=1'),[revision,setRevision]=useState(0),[data,setData]=useState<List|null>(null),[error,setError]=useState(''),[selected,setSelected]=useState<string|null>(null);
+export default function AdminCRMPage({initialId}:{initialId?:string}) {
+  const [params,setParams]=useState('page=1'),[revision,setRevision]=useState(0),[data,setData]=useState<List|null>(null),[error,setError]=useState(''),[selected,setSelected]=useState<string|null>(initialId||null);
   useEffect(()=>{const c=new AbortController();fetch('/api/admin/crm?'+params,{cache:'no-store',signal:c.signal}).then(async r=>{const b=await r.json();if(!r.ok)throw new Error(b.error);setData(b);setError('');}).catch(e=>{if(!c.signal.aborted)setError(e.message);});return()=>c.abort();},[params,revision]);
   const query=new URLSearchParams(params),page=Number(query.get('page'))||1;
   function changePage(n:number){const next=new URLSearchParams(params);next.set('page',String(n));setParams(next.toString());}
   return <main className="min-h-screen min-w-0 bg-[#0a0a0c] px-3 py-6 text-stone-100 sm:p-8"><div className="mx-auto max-w-[1500px] space-y-6">
     <header><p className="text-xs tracking-widest text-amber-400">SONGFOOD · INQUIRY CRM</p><h1 className="mt-2 text-3xl font-bold">RFQ·구매 문의 관리</h1><p className="mt-3 text-sm text-stone-400">접수 → 담당자 검토 → 견적 초안. 내부 메모와 고객 공개 회신을 구분해 기록합니다.</p></header>
+    <Link href="/admin?kind=inquiry" className="inline-block underline">담당자·기한·견적 대기 통합 검색</Link>
     <form key={params} onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget),p=new URLSearchParams();for(const[k,v]of f.entries())if(String(v))p.set(k,String(v));p.set('page','1');setParams(p.toString());}} className="flex flex-wrap gap-3 rounded-xl border border-stone-800 p-4">
       <label className="min-w-0 flex-1 text-xs">상호·고객 담당자·이메일·국가·접수번호<input name="q" defaultValue={query.get('q')||''} maxLength={120} className={input+' mt-1 w-full min-w-0'}/></label>
       <label className="text-xs">종류<select name="kind" defaultValue={query.get('kind')||''} className={input+' mt-1 block'}><option value="">전체</option><option value="export_rfq">해외 RFQ</option><option value="domestic_wholesale">국내 구매</option></select></label>

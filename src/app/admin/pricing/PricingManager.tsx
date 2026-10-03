@@ -18,7 +18,7 @@ export default function PricingManager() {
     if(!r.ok)throw new Error(body.error || '가격 관리 연결 실패');setData(body);
   },[]);
   useEffect(()=>{const c=new AbortController();fetch('/api/admin/pricing',{cache:'no-store',signal:c.signal}).then(async r=>{
-    const b=await r.json();if(!r.ok)throw new Error(b.error);setData(b);setSearch(new URLSearchParams(window.location.search).get('sku')||'');
+    const b=await r.json();if(!r.ok)throw new Error(b.error);setData(b);const params=new URLSearchParams(window.location.search);setSearch(params.get('sku')||'');if(b.lists.some((l:PriceList)=>l.id===params.get('list')))setListId(params.get('list')!);
   }).catch(e=>{if(e.name!=='AbortError')setMessage(e.message);});return()=>c.abort();},[]);
   async function send(body:object) {
     setBusy(true);setMessage('');
@@ -87,7 +87,7 @@ export default function PricingManager() {
       <ul className="mt-3 max-h-64 space-y-2 overflow-y-auto text-xs">{csvRows.map(r=><li key={r.row} className={r.errors.length?'text-red-300':'text-stone-300'}>행 {r.row} · {r.sku} · {r.errors.length?r.errors.join(', '):r.missing.length?'초안 / 미확정: '+r.missing.join(', '):'필수값 입력 완료'}</li>)}</ul>
     </section>
     <ExchangeRateWidget/>
-    {data?.canApprove&&<details className="rounded border border-stone-700 p-5"><summary>별도 가격표 추가</summary><form className="mt-4 grid gap-3 sm:grid-cols-2" onSubmit={e=>{e.preventDefault();void send({action:'create_list',...Object.fromEntries(new FormData(e.currentTarget))});}}><label>이름<input name="name" required className={input}/></label><label>대상<select name="scope" className={input}><option value="company">특정 회사 계약가</option><option value="personal">개인회원</option><option value="business">사업자회원</option></select></label><label>특정 회사 코드 (회사 계약가만)<input name="company_id" className={input}/></label><button disabled={busy} className="rounded border px-4 py-2">가격표 추가</button></form></details>}
+    {data?.canApprove&&<details className="rounded border border-stone-700 p-5"><summary>별도 가격표 추가</summary><form className="mt-4 grid gap-3 sm:grid-cols-2" onSubmit={e=>{e.preventDefault();void send({action:'create_list',...Object.fromEntries(new FormData(e.currentTarget))});}}><label>이름<input name="name" required className={input}/></label><label>대상<select name="scope" className={input}><option value="company">특정 회사 계약가</option><option value="personal">개인회원</option><option value="business">사업자회원</option></select></label><label>특정 회사 코드 (회사 계약가만)<input name="company_id" className={input}/></label><label>가격표 배정 사유<input name="reason" required minLength={3} maxLength={1000} className={input}/></label><button disabled={busy} className="rounded border px-4 py-2">가격표 추가</button></form></details>}
     <details className="rounded border border-stone-700 p-5"><summary>최근 변경·승인 기록</summary>{data?.audit.map(a=><p key={a.id} className="mt-2 break-all text-xs text-stone-400">{new Date(a.created_at).toLocaleString('ko-KR')} · {a.action} · {a.record_id}</p>)}</details>
   </main>;
 }

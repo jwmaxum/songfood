@@ -28,6 +28,8 @@ jobs:
         run: npm run lint:pi
       - name: Domestic order workflow lint
         run: npm run lint:orders
+      - name: Operations integration lint
+        run: npm run lint:operations
       - name: Unit and authorization tests
         run: npm test -- --runInBand
       - name: Type check

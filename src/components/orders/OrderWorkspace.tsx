@@ -38,7 +38,7 @@ function Workspace({staff,initialId}:{staff:boolean;initialId?:string}){
  }
  return <div className="space-y-6 text-stone-900"><header className="flex flex-wrap items-center justify-between gap-4"><div><p className="text-sm text-green-800">{staff?'ORDER OPERATIONS':'MY ORDERS'}</p><h1 className="mt-2 text-3xl font-bold">{staff?'국내 주문·입금·출고':'내 주문'}</h1></div><button onClick={()=>void refresh()} disabled={busy} className="rounded border px-4 py-2 disabled:opacity-40">최신 내용 불러오기</button></header>
  <p className="text-stone-600">주문 접수 → 공급·배송비 확인 → 고객 최종 확인 → 계좌입금 확인 → 출고. 카드 결제는 제공하지 않습니다.</p>
- {staff&&<BankSettings/>}
+ {staff&&<><Link className="block underline" href="/admin?kind=order">담당자·기한·미입금·출고·환불 통합 검색</Link><BankSettings/></>}
  {error&&<p role="alert" className="rounded border border-red-200 bg-red-50 p-4 text-red-800">{error}</p>}
  {message&&<p role="status" className="rounded bg-green-50 p-4">{message} {!staff&&<Link href="/cart" className="ml-3 underline">구매함 확인</Link>}</p>}
  <section className="rounded-xl border p-4"><div className="flex flex-wrap items-center gap-3"><h2 className="mr-auto text-lg font-bold">주문 목록 ({total})</h2><label>상태 <select value={filter} onChange={e=>{setFilter(e.target.value);setPage(1);}} className="rounded border p-2"><option value="">전체</option>{Object.entries(ORDER_LABELS).map(([k,v])=><option value={k} key={k}>{v}</option>)}</select></label></div>
@@ -55,7 +55,7 @@ function Workspace({staff,initialId}:{staff:boolean;initialId?:string}){
 export function Details({detail,staff}:{detail:OrderDetail;staff:boolean}){
  const {order:o,items,payments,shipments,events}=detail;
  return <article className="space-y-6 rounded-xl border bg-white p-5 sm:p-7">
- <header><h2 className="break-all text-2xl font-bold">{o.number}</h2><p className="mt-3 font-semibold">{ORDER_LABELS[o.status]} · {fulfillment(items)}</p><p className="mt-2 text-sm">{time(o.created_at)} · 처리 버전 {o.revision} · {o.claim_status==='open'?'클레임 확인 중':o.claim_status==='resolved'?'클레임 해결 기록 있음':'클레임 없음'}</p></header>
+ <header><h2 className="break-all text-2xl font-bold">{o.number}</h2>{staff&&<div className="mt-3 flex gap-4 text-sm"><Link className="underline" href={'/admin?kind=order&q='+o.id}>담당자·기한·인수인계 관리</Link><Link className="underline" href={'/admin/history/order/'+o.id}>전체 업무 이력</Link></div>}<p className="mt-3 font-semibold">{ORDER_LABELS[o.status]} · {fulfillment(items)}</p><p className="mt-2 text-sm">{time(o.created_at)} · 처리 버전 {o.revision} · {o.claim_status==='open'?'클레임 확인 중':o.claim_status==='resolved'?'클레임 해결 기록 있음':'클레임 없음'}</p></header>
  <div className="grid gap-5 lg:grid-cols-2"><section className="rounded-lg bg-stone-50 p-4"><h3 className="font-bold">배송지·요청</h3><p className="mt-3">{o.delivery.recipient} · {o.delivery.phone}</p><p className="mt-2">({o.delivery.postal_code}) {o.delivery.address} {o.delivery.address_detail}</p><p className="mt-2">희망일: {o.delivery.desired_date||'별도 협의'}</p><p className="mt-2">요청 온도: {TEMPERATURES[o.delivery.temperature]}</p><p className="mt-2 whitespace-pre-wrap">{o.delivery.note}</p></section>
  <section className="rounded-lg bg-green-50 p-4"><h3 className="font-bold">금액·입금 상태</h3><p className="mt-3">상품 공급가액 {money(o.net_minor)} + VAT {money(o.tax_minor)}</p><p className="mt-2">상품 합계 {money(o.goods_total_minor)}</p><p className="mt-2">{o.shipping_net_minor===null?'배송비 미확정':'배송 공급가액 '+money(o.shipping_net_minor)+' + VAT '+money(o.shipping_tax_minor||0)}</p>
  <p className="mt-3 text-lg font-bold">{o.total_minor===null?'최종 금액 확인 대기':'최초 확정 대상 '+money(o.total_minor)}</p>

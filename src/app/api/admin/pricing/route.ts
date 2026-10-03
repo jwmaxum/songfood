@@ -59,11 +59,12 @@ export async function POST(request:Request) {
     } else if(body.action==='create_list') {
       if(actor.role!=='admin')throw new ApiError(403,'가격표 생성은 관리자만 가능합니다.');
       if(!['common','personal','business','company'].includes(String(body.scope)))throw new ApiError(400,'가격표 구분을 확인해 주세요.');
-      result=await supabaseAdmin.from('b2b_price_lists').insert({name:textField(body.name,'가격표 이름',100),scope:body.scope,
-        company_id:body.scope==='company'?uuidField(body.company_id):null,created_by:actor.id}).select('*');
+      result=await supabaseAdmin.rpc('b2b_ops_create_list',{p_actor:actor.id,p_name:textField(body.name,'가격표 이름',100),p_scope:body.scope,
+        p_company:body.scope==='company'?uuidField(body.company_id):null,p_reason:textField(body.reason,'배정 사유',1000,3)});
     } else throw new ApiError(400,'지원하지 않는 작업입니다.');
     if(result.error) {
       if(result.error.code==='40001')throw new ApiError(409,'다른 가격 버전이 먼저 승인되었습니다. 최신 버전을 기준으로 새 초안을 작성해 주세요.');
+      if(result.error.code==='42501')throw new ApiError(403,'현재 계정으로 가격을 변경할 수 없습니다.');
       if(result.error.code==='23505')throw new ApiError(409,'같은 대상의 활성 가격표가 이미 있습니다.');
       if(result.error.code==='22023' || result.error.code==='23514')throw new ApiError(422,'필수 검수 정보·적용기간·포장 환산을 다시 확인해 주세요.');
       throw new ApiError(503,'가격 변경을 저장하지 못했습니다.');

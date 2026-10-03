@@ -6,9 +6,12 @@ export async function GET(request: Request) {
   const denied = await requireStaff(request);
   if (denied) return denied;
   try {
-    const { data, error } = await supabaseAdmin.from('companies')
+    const company=new URL(request.url).searchParams.get('company');
+    let query=supabaseAdmin.from('companies')
       .select('id,name,kind,country,registration_no,status,created_at,review_reason,company_members(user_id,role,status,customer_accounts(name,email))')
       .order('created_at',{ascending:false}).limit(200);
+    if(company)query=query.eq('id',uuidField(company));
+    const {data,error}=await query;
     if (error) throw error;
     return json({ success: true, companies: data });
   } catch (error) { return failure(error); }

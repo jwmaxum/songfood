@@ -1,6 +1,6 @@
 import type {ParsedInquiry,InquiryStatus} from '../commercial-inquiry';
 import type {PriceLine,PriceRevision,ExchangeRate} from '../pricing/types';
-export type CrmInquiry=ParsedInquiry & {id:string;status:InquiryStatus;company_id:string|null;submitted_by:string|null;assigned_to:string|null;revision:number;created_at:string;updated_at:string};
+export type CrmInquiry=ParsedInquiry & {id:string;status:InquiryStatus;company_id:string|null;submitted_by:string|null;assigned_to:string|null;due_at?:string|null;revision:number;created_at:string;updated_at:string};
 export type Activity={id:string;event:string;visibility:'internal'|'customer';message:string;details:Record<string,unknown>;created_at:string;actor_id:string|null};
 export type ReviewInput={
  stock_status:'unreviewed'|'available'|'unavailable'; documents_status:'unreviewed'|'ready'|'missing';
