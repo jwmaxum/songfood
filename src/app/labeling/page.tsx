@@ -1,7 +1,7 @@
 import React from 'react';
 import { Metadata } from 'next';
 import { getAllFoodLabels } from '@/lib/labels-db';
-import { getProducts } from '@/lib/products-db';
+import { getPublicProducts } from '@/lib/products-db';
 import LabelingShowcaseClient from './LabelingShowcaseClient';
 
 export const metadata: Metadata = {
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 export default async function FoodLabelingPage() {
   const [initialLabels, products] = await Promise.all([
     getAllFoodLabels(),
-    getProducts()
+    getPublicProducts()
   ]);
 
   return (

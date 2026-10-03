@@ -3,7 +3,9 @@
   "name": "song-food",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-09-28",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
@@ -14,5 +16,9 @@
       "NEXT_PUBLIC_SUPABASE_URL",
       "NEXT_PUBLIC_SUPABASE_ANON_KEY"
     ]
+  },
+  "vars": {
+    "NEXT_PUBLIC_APP_URL": "https://song-food.jwmaxum.workers.dev",
+    "TRUST_CLOUDFLARE_IP": "1"
   }
 }

@@ -93,3 +93,7 @@
     transform: translateY(0);
   }
 }
+
+/* Keyboard focus for purchase, catalogue and account controls. */
+:where(a,button,input,select,textarea,summary):focus-visible { outline: 3px solid #b7791f; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }

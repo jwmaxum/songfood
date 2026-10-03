@@ -1,3 +1,4 @@
+import { staffPageAccess } from '@/lib/staff-page';
 import React from 'react';
 import Link from 'next/link';
 import {
@@ -27,7 +28,7 @@ export const metadata = {
 async function fetchKpi(): Promise<KpiData & { configured: boolean }> {
   try {
     const token = (await cookies()).get('sf_admin_access')?.value || '';
-    const res = await getKpiResponse(new Request('https://admin.local/api/kpi', { headers: { Authorization: `Bearer ${token}` } }));
+    const res = await getKpiResponse(new Request('https://admin.local/api/kpi', { headers: { Cookie: `sf_admin_access=${token}` } }));
     if (!res.ok) throw new Error('KPI fetch failed');
     const json = await res.json();
     return { ...json.data, configured: json.configured };
@@ -54,6 +55,8 @@ function formatCurrency(value: number) {
 }
 
 export default async function AdminDashboardPage() {
+  if (!(await staffPageAccess('/admin')).allowed) return <p className="p-8">이 페이지를 볼 수 있는 직원 권한이 필요합니다.</p>;
+
   const kpi = await fetchKpi();
 
   const kpiCards = [
@@ -155,6 +158,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Business KPI Cards */}
+      <p className="rounded border border-amber-800 bg-amber-950/30 p-4 text-sm text-amber-200">주문·결제·배송 등록 기능은 준비 중입니다. 기존 DB의 주문 통계는 6단계에서 정합성을 확인합니다. {kpi.configured ? '' : '현재 DB 통계를 확인할 수 없습니다.'}</p>
       <section>
         <h2 className="text-xs uppercase tracking-[0.2em] font-mono text-stone-500 mb-4">
           Business KPIs — Real-time DB
@@ -173,9 +177,9 @@ export default async function AdminDashboardPage() {
                 </div>
                 <div className="flex items-baseline space-x-2">
                   <span className="font-serif-luxury text-3xl text-white font-semibold">
-                    {card.value}
+                    {kpi.configured ? card.value : '—'}
                   </span>
-                  <span className={`text-xs font-mono ${card.subColor}`}>{card.sub}</span>
+                  <span className={`text-xs font-mono ${card.subColor}`}>{kpi.configured ? card.sub : '조회 불가'}</span>
                 </div>
               </div>
             );

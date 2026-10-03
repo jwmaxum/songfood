@@ -1,3 +1,4 @@
+import { readJson, ApiError, failure } from '@/lib/request-security';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireStaff } from '@/lib/admin-auth';
 import {
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest) {
     const articles = await getJournalArticles(isPublishedOnly);
     return NextResponse.json({ success: true, count: articles.length, data: articles });
   } catch (error) {
-    console.error('API GET /api/journal error:', error);
+    if (error instanceof ApiError) return failure(error);
     return NextResponse.json({ success: false, error: 'Failed to fetch journal articles' }, { status: 500 });
   }
 }
@@ -42,17 +43,17 @@ export async function PATCH(req: NextRequest) {
   const denied = await requireStaff(req, ['admin', 'product_staff']);
   if (denied) return denied;
   try {
-    const body = await req.json();
+    const body = await readJson(req, 131072);
     const { id, is_published } = body;
 
-    if (!id || typeof is_published !== 'boolean') {
+    if (typeof id !== 'string' || !id || typeof is_published !== 'boolean') {
       return NextResponse.json({ success: false, error: 'Invalid parameters' }, { status: 400 });
     }
 
     const ok = await toggleJournalPublishStatus(id, is_published);
     return NextResponse.json({ success: ok });
   } catch (error) {
-    console.error('API PATCH /api/journal error:', error);
+    if (error instanceof ApiError) return failure(error);
     return NextResponse.json({ success: false, error: 'Failed to update publish status' }, { status: 500 });
   }
 }
@@ -61,11 +62,11 @@ export async function POST(req: NextRequest) {
   const denied = await requireStaff(req, ['admin', 'product_staff']);
   if (denied) return denied;
   try {
-    const body = await req.json();
+    const body = await readJson(req, 131072);
     const saved = await saveJournalArticle(body);
     return NextResponse.json({ success: true, data: saved });
   } catch (error) {
-    console.error('API POST /api/journal error:', error);
+    if (error instanceof ApiError) return failure(error);
     return NextResponse.json({ success: false, error: 'Failed to save journal article' }, { status: 500 });
   }
 }
@@ -84,7 +85,7 @@ export async function DELETE(req: NextRequest) {
     const ok = await deleteJournalArticle(id);
     return NextResponse.json({ success: ok });
   } catch (error) {
-    console.error('API DELETE /api/journal error:', error);
+    if (error instanceof ApiError) return failure(error);
     return NextResponse.json({ success: false, error: 'Failed to delete journal article' }, { status: 500 });
   }
 }

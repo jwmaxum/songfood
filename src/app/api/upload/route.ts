@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { addMediaItem } from '@/lib/media-db';
 import { requireStaff } from '@/lib/admin-auth';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: mediaItem });
   } catch (error) {
-    console.error('File Upload Error:', error);
+    console.error('File upload failed');
     return NextResponse.json({ success: false, error: 'File upload failed' }, { status: 500 });
   }
 }

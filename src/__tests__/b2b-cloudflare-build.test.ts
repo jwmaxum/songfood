@@ -1,0 +1,8 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+const {checkCloudflareBuild} = require('../../scripts/check-cloudflare-build.cjs');
+const env = {NEXT_PUBLIC_APP_URL:'https://song-food.jwmaxum.workers.dev',NEXT_PUBLIC_SUPABASE_URL:'https://example.supabase.co',NEXT_PUBLIC_SUPABASE_ANON_KEY:'sb_publishable_'+'x'.repeat(24)};
+test('Cloudflare accepts public production variables without a local file or server key',()=>{expect(()=>checkCloudflareBuild(env)).not.toThrow();});
+test.each(['http://127.0.0.1:3000','https://localhost','https://127.0.0.1','https://[::1]','https://example.com/path','https://example.com?secret=value','https://user:pass@example.com'])('Cloudflare rejects unsafe build origin %s',origin=>{expect(()=>checkCloudflareBuild({...env,NEXT_PUBLIC_APP_URL:origin})).toThrow('NEXT_PUBLIC_APP_URL');});
+test('Cloudflare rejects missing or placeholder configuration',()=>{expect(()=>checkCloudflareBuild({})).toThrow();expect(()=>checkCloudflareBuild({...env,NEXT_PUBLIC_SUPABASE_URL:'https://your-project.supabase.co'})).toThrow('SUPABASE_URL');});
+test.each(['service_role','authenticated'])('Cloudflare rejects legacy %s keys in a public variable',role=>{const token='e30.'+Buffer.from(JSON.stringify({role})).toString('base64url')+'.signature';expect(()=>checkCloudflareBuild({...env,NEXT_PUBLIC_SUPABASE_ANON_KEY:token})).toThrow('never a server secret');});
+test('Cloudflare accepts a legacy anon key and rejects a secret key',()=>{const token='e30.'+Buffer.from(JSON.stringify({role:'anon'})).toString('base64url')+'.signature';expect(()=>checkCloudflareBuild({...env,NEXT_PUBLIC_SUPABASE_ANON_KEY:token})).not.toThrow();expect(()=>checkCloudflareBuild({...env,NEXT_PUBLIC_SUPABASE_ANON_KEY:'sb_secret_'+'x'.repeat(30)})).toThrow();});

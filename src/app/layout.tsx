@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: '송영민푸드 (Song Youngmin Food) | Premium K-Food, Korea Food & K-Fresh Food',
   description:
-    '송영민푸드(Song Youngmin Food) 공식 몰. K-Food, Korea Food, K-Fresh Food, 대한민국 대표 K-냉동식품(비비고 왕교자, 떡볶이, 치킨) 및 프리미엄 K-주류/전통주(원소주, 생막걸리) 24시간 프레시 에어 배송.',
+    '송영민푸드(Song Youngmin Food) 공식 몰. K-Food, Korea Food, K-Fresh Food, 국내 도매·개인 대용량 식품 구매와 해외 바이어 FOB RFQ. 상품별 포장·최소구매수량·공급 조건을 확인하세요.',
   keywords: [
     'K-Food',
     'Korea Food',
@@ -55,7 +55,7 @@ export default function RootLayout({
               '@context': 'https://schema.org',
               '@type': 'Organization',
               name: '송영민푸드 (Song Youngmin Food)',
-              url: 'https://www.anatolia.com',
+              url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
               logo: '/logo.png',
               description: 'K-Food, Korea Food, K-Fresh Food Premium Marketplace',
             }),
@@ -67,7 +67,7 @@ export default function RootLayout({
           {/* RSC Header with Active Menu Engine & Multi-language Selector */}
           <Header />
           <CartDrawer />
-          <main className="flex-grow">{children}</main>
+          <div id="main-content" tabIndex={-1} className="min-w-0 flex-grow">{children}</div>
           {/* RSC Footer */}
           <Footer />
         </AppProviders>

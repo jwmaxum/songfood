@@ -1,9 +1,9 @@
 'use client';
+import { ProductPrice } from '@/components/pricing/ProductPrice';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ProductItem } from '@/lib/types';
-import { supabase } from '@/lib/supabase';
 import { useCart } from '@/context/CartContext';
 import { Clock, ShoppingBag, Star, Zap } from 'lucide-react';
 
@@ -28,20 +28,10 @@ export default function TodaysDeals({ products }: TodaysDealsProps) {
     return () => clearInterval(timer);
   }, []);
 
-  const [currentProducts, setCurrentProducts] = useState<ProductItem[]>(products);
-
-  useEffect(() => {
-    let active = true;
-    supabase.from('products').select('*').then(({ data, error }) => {
-      if (active && !error && data?.length) setCurrentProducts(data as ProductItem[]);
-    });
-    return () => { active = false; };
-  }, [products]);
+  const currentProducts = products;
 
   // Filter products that are designated as Today's Deals by Admin or fallback to discounted items
-  const dealProducts = currentProducts.filter((p) => p.is_todays_deal === true).length > 0
-    ? currentProducts.filter((p) => p.is_todays_deal === true)
-    : currentProducts.filter((p) => p.original_price && p.original_price > (p.price || 0));
+  const dealProducts = currentProducts.filter(p=>p.is_todays_deal===true);
 
   if (dealProducts.length === 0) return null;
 
@@ -84,9 +74,6 @@ export default function TodaysDeals({ products }: TodaysDealsProps) {
         {/* Deal Products Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {dealProducts.slice(0, 3).map((product) => {
-            const discountPercent = product.deal_discount_percent || Math.round(
-              (((product.original_price || 0) - (product.price || 0)) / (product.original_price || 1)) * 100
-            ) || 20;
 
             return (
               <div
@@ -96,7 +83,7 @@ export default function TodaysDeals({ products }: TodaysDealsProps) {
                 <div className="relative overflow-hidden aspect-[4/3] bg-stone-100">
                   {/* Discount Badge */}
                   <div className="absolute top-3 left-3 z-10 bg-[#DC2626] text-white font-extrabold text-xs px-2.5 py-1 rounded-md shadow-md">
-                    🔥 {discountPercent}% 특가 할인
+                    추천 상품
                   </div>
 
                   {/* Product Image */}
@@ -127,18 +114,8 @@ export default function TodaysDeals({ products }: TodaysDealsProps) {
                   </div>}
 
                   <div className="pt-3 border-t border-stone-100 space-y-2">
-                    <div className="flex flex-col text-xs font-mono">
-                      <div className="flex justify-between items-center text-[#14532D] font-bold">
-                        <span>소량 특가 개별가:</span>
-                        <span>₩{(product.price || 10000).toLocaleString()}원</span>
-                      </div>
-                      <div className="flex justify-between items-center text-amber-700 font-bold">
-                        <span>📦 대용량(10개입):</span>
-                        <span>₩{Math.round((product.price || 10000) * (product.carton_qty || 10) * 0.85).toLocaleString()}원</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-1 gap-2">
+                    <ProductPrice product={product}/>
+                  <div className="flex items-center justify-between pt-1 gap-2">
                       <button
                         onClick={() => addToCart(product, 1)}
                         className="flex-1 flex items-center justify-center space-x-1 bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-300 px-3 py-2.5 rounded-xl font-bold text-xs transition-all"
@@ -154,7 +131,7 @@ export default function TodaysDeals({ products }: TodaysDealsProps) {
                         }}
                         className="flex-1 flex items-center justify-center space-x-1 bg-[#14532D] hover:bg-emerald-800 text-white font-extrabold text-xs px-3 py-2.5 rounded-xl transition-all shadow"
                       >
-                        <span>⚡ 바로 결제</span>
+                        <span>구매 문의</span>
                       </button>
                     </div>
                   </div>

@@ -1,3 +1,4 @@
+import { staffPageAccess } from '@/lib/staff-page';
 import React from 'react';
 import MediaLabUnifiedManager from '../media-lab/MediaLabUnifiedManager';
 
@@ -6,6 +7,8 @@ export const metadata = {
   description: '뉴스&이벤트 에디터, 자료실 카탈로그 관리 및 미디어 라이브러리 CDN 통합 관리 센터.',
 };
 
-export default function AdminJournalPage() {
+export default async function AdminJournalPage() {
+  if (!(await staffPageAccess('/admin/journal')).allowed) return <p className="p-8">이 페이지를 볼 수 있는 직원 권한이 필요합니다.</p>;
+
   return <MediaLabUnifiedManager />;
 }

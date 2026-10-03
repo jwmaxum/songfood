@@ -1,7 +1,7 @@
 import { getStaffIdentity, requireStaff } from '@/lib/admin-auth';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
-jest.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase-admin', () => ({
   supabaseAdmin: { auth: { getUser: jest.fn() }, from: jest.fn() },
 }));
 
@@ -12,7 +12,7 @@ const originalKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 beforeEach(() => {
   process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key';
   jest.clearAllMocks();
-  getUser.mockResolvedValue({ data: { user: { id: 'user-1', email: 'staff@example.com' } }, error: null });
+  getUser.mockResolvedValue({ data: { user: { id: 'user-1', email: 'staff@example.com', email_confirmed_at: '2026-01-01T00:00:00Z' } }, error: null });
   from.mockReturnValue({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { role: 'product_staff', status: 'active' }, error: null }) }) }) });
 });
 

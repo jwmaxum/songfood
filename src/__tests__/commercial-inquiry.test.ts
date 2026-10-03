@@ -22,3 +22,7 @@ test('domestic wholesale inquiry requires a phone and does not trust submitted i
   const inquiry = parseCommercialInquiry({ kind: 'domestic_wholesale', company: 'Shop', contact_name: 'Owner', email: 'owner@example.com', phone: '010-1234-5678', items: exportInquiry.items });
   expect(inquiry.items).toEqual([]);
 });
+
+test('FOB inquiry can defer the loading port to the reviewed product quotation',()=>{
+ expect(parseCommercialInquiry({...exportInquiry,incoterms:'FOB'}).incoterms).toBe('FOB');
+});

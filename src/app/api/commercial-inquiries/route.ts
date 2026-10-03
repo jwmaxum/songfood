@@ -1,60 +1,39 @@
-import { NextResponse } from 'next/server';
-import { requireStaff } from '@/lib/admin-auth';
-import { INQUIRY_STATUSES, parseCommercialInquiry } from '@/lib/commercial-inquiry';
-import { getProducts } from '@/lib/products-db';
-import { supabaseAdmin } from '@/lib/supabase';
-
-export const dynamic = 'force-dynamic';
-
-export async function GET(request: Request) {
-  const denied = await requireStaff(request, ['admin', 'inquiry_staff']);
-  if (denied) return denied;
-  const { data, error } = await supabaseAdmin.from('commercial_inquiries').select('*').order('created_at', { ascending: false }).limit(500);
-  if (error) return NextResponse.json({ success: false, error: '문의 목록 조회에 실패했습니다.' }, { status: 503 });
-  return NextResponse.json({ success: true, inquiries: data }, { headers: { 'Cache-Control': 'no-store' } });
+import {requireStaff} from '@/lib/admin-auth';
+import {InquiryValidationError,parseCommercialInquiry,inquiryFingerprint} from '@/lib/commercial-inquiry';
+import {getProducts} from '@/lib/products-db';
+import {supabaseAdmin} from '@/lib/supabase-admin';
+import {cookieToken} from '@/lib/auth-session';
+import {assertApproved,requireCustomer} from '@/lib/customer-auth';
+import {ApiError,digest,json,rateLimit,readJson,requireSameOrigin,uuidField} from '@/lib/request-security';
+import {crmFailure,databaseError,listInquiries,crmStaff,changeInquiry} from '@/lib/crm/repository';
+export const dynamic='force-dynamic';
+export async function GET(request:Request) {
+  const denied=await requireStaff(request,['admin','inquiry_staff']);if(denied)return denied;
+  try{return json({success:true,...await listInquiries(request)});}catch(e){return crmFailure(e);}
 }
-
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    if (body.website) return NextResponse.json({ success: true }, { status: 201 });
-    const inquiry = parseCommercialInquiry(body);
-    if (inquiry.kind === 'export_rfq') {
-      const products = await getProducts();
-      const names = new Map(products.map((product) => [product.id, product.name_en || product.name]));
-      inquiry.items = inquiry.items.map((item) => {
-        const name = names.get(item.product_id);
-        if (!name) throw new Error('등록되지 않은 상품이 포함되어 있습니다.');
-        return { ...item, product_name: name };
-      });
+export async function POST(request:Request) {
+  try{
+    requireSameOrigin(request);
+    const key=uuidField(request.headers.get('Idempotency-Key')),body=await readJson(request);
+    if(body.website)throw new ApiError(400,'문의 내용을 확인해 주세요.');
+    const inquiry=parseCommercialInquiry(body);
+    let companyId:string|null=null,submittedBy:string|null=null;
+    if(cookieToken(request,'customer')){const session=await requireCustomer(request);if(session.company)companyId=assertApproved(session);submittedBy=session.user.id;}
+    const scope=await digest(JSON.stringify({user:submittedBy,company:companyId,email:inquiry.email}));
+    const hash=await digest(inquiryFingerprint(inquiry));
+    const previous=await supabaseAdmin.from('b2b_inquiry_requests').select('inquiry_id,request_hash').eq('scope_hash',scope).eq('request_key',key).maybeSingle();databaseError(previous.error);
+    if(previous.data){if(previous.data.request_hash!==hash)throw new ApiError(409,'같은 요청 키에 다른 문의 내용이 있습니다.');return json({success:true,id:previous.data.inquiry_id,replayed:true});}
+    await rateLimit(request,'inquiry',10,3600);
+    if(inquiry.kind==='export_rfq'){
+      const products=await getProducts(),names=new Map(products.map(p=>[p.id,p.name_en||p.name]));
+      inquiry.items=inquiry.items.map((item,i)=>{const name=names.get(item.product_id);if(!name)throw new InquiryValidationError({['items.'+i]:'등록되지 않은 상품입니다. / Product unavailable.'});return {...item,product_name:name};});
     }
-    const { data, error } = await supabaseAdmin.from('commercial_inquiries').insert(inquiry).select('id').single();
-    if (error) throw error;
-    return NextResponse.json({ success: true, id: data.id }, { status: 201 });
-  } catch (error) {
-    if (error instanceof Error && /확인|선택|포함|올바르/.test(error.message)) {
-      return NextResponse.json({ success: false, error: error.message }, { status: 400 });
-    }
-    console.error('Commercial inquiry submission failed', error);
-    return NextResponse.json({ success: false, error: '문의 접수에 실패했습니다.' }, { status: 503 });
-  }
+    const result=await supabaseAdmin.rpc('b2b_submit_inquiry',{p_scope:scope,p_key:key,p_hash:hash,p_data:{...inquiry,company_id:companyId,submitted_by:submittedBy}});
+    databaseError(result.error);return json({success:true,...result.data},result.data.replayed?200:201);
+  }catch(e){return crmFailure(e);}
 }
-
-export async function PATCH(request: Request) {
-  const denied = await requireStaff(request, ['admin', 'inquiry_staff']);
-  if (denied) return denied;
-  try {
-    const body = await request.json();
-    if (typeof body.id !== 'string' || !/^[0-9a-f-]{36}$/i.test(body.id) || !INQUIRY_STATUSES.includes(body.status)) {
-      return NextResponse.json({ success: false, error: '문의 번호 또는 상태가 올바르지 않습니다.' }, { status: 400 });
-    }
-    const { data, error } = await supabaseAdmin.from('commercial_inquiries')
-      .update({ status: body.status, updated_at: new Date().toISOString() }).eq('id', body.id).select('id,status').maybeSingle();
-    if (error) throw error;
-    if (!data) return NextResponse.json({ success: false, error: '문의를 찾을 수 없습니다.' }, { status: 404 });
-    return NextResponse.json({ success: true, inquiry: data });
-  } catch (error) {
-    console.error('Commercial inquiry update failed', error);
-    return NextResponse.json({ success: false, error: '문의 상태 변경에 실패했습니다.' }, { status: 503 });
-  }
+export async function PATCH(request:Request) {
+  try{const staff=await crmStaff(request),body=await readJson(request,8192);
+    return json({success:true,result:await changeInquiry(staff.id,uuidField(body.id),{...body,action:'status'})});
+  }catch(e){return crmFailure(e);}
 }

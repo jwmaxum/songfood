@@ -1,6 +1,6 @@
 import labelsSnapshot from '../../data/food-labels.json';
 import { FoodLabel, ExportCountry, LabelSummaryItem } from '@/types/label';
-import { supabaseAdmin, isSupabaseConfigured } from './supabase';
+import { supabaseAdmin, isSupabaseConfigured } from './supabase-admin';
 import { getProducts } from './products-db';
 
 function readLocalLabels(): FoodLabel[] {

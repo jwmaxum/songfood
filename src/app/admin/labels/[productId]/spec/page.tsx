@@ -1,3 +1,4 @@
+import { staffPageAccess } from '@/lib/staff-page';
 import React from 'react';
 import { notFound } from 'next/navigation';
 import { getProducts, getProductById } from '@/lib/products-db';
@@ -135,6 +136,8 @@ export default async function SpecSheetPage({
 }: {
   params: Promise<{ productId: string }>;
 }) {
+  if (!(await staffPageAccess('/admin/labels/[productId]/spec')).allowed) return <p className="p-8">이 페이지를 볼 수 있는 직원 권한이 필요합니다.</p>;
+
   const { productId } = await params;
   const product = await getProductById(productId);
 

@@ -1,649 +1,89 @@
 'use client';
-
-import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { useWishlist } from '@/context/WishlistContext';
-import { useCart } from '@/context/CartContext';
-import {
-  LayoutDashboard,
-  ShoppingBag,
-  MapPin,
-  User,
-  Heart,
-  LogOut,
-  ChevronRight,
-  Package,
-  Truck,
-  Plus,
-  Trash2,
-  CheckCircle,
-  ExternalLink,
-  ShieldCheck,
-} from 'lucide-react';
-
-import { useLanguage } from '@/lib/i18n/LanguageContext';
-
-function MyAccountContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const initialTab = searchParams.get('tab') || 'dashboard';
-  const { t } = useLanguage();
-
-  const { user, orders, logout, isLoggedIn, updateProfile } = useAuth();
-  const { wishlist, removeFromWishlist } = useWishlist();
-  const { addToCart } = useCart();
-
-  const [activeTab, setActiveTab] = useState<string>(initialTab);
-
-  // Profile Edit State
-  const [profileName, setProfileName] = useState(user?.name || '');
-  const [profilePhone, setProfilePhone] = useState(user?.phone || '');
-  const [profileCompany, setProfileCompany] = useState(user?.company || '');
-  const [profileMsg, setProfileMsg] = useState(false);
-
-  useEffect(() => {
-    const tabParam = searchParams.get('tab');
-    if (tabParam) setActiveTab(tabParam);
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (user) {
-      setProfileName(user.name);
-      setProfilePhone(user.phone || '');
-      setProfileCompany(user.company || '');
-    }
-  }, [user]);
-
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen bg-[#FAFAF8] flex flex-col justify-center items-center p-6 text-center space-y-4 font-sans">
-        <h2 className="font-jakarta text-2xl font-bold text-stone-900">{t('access_restricted', '접근이 제한되었습니다')}</h2>
-        <p className="text-xs text-stone-500">{t('login_required', '송영민푸드 고객 계정 로그인이 필요합니다.')}</p>
-        <Link
-          href="/account/login"
-          className="bg-[#14532D] hover:bg-[#1b6a3b] text-white font-semibold text-xs px-6 py-3 rounded-md transition-colors"
-        >
-          {t('go_to_login', '고객 로그인 페이지로 이동')}
-        </Link>
-      </div>
-    );
+import AccountActivity from '@/components/storefront/AccountActivity';
+import { COMPANY_STATUS_LABELS } from '@/lib/b2b-types';
+type Member = { user_id: string; role?: string; status?: string; customer_accounts: { name: string; email: string } };
+const input = 'mt-2 w-full rounded border border-stone-300 bg-white p-3';
+export default function AccountPage() {
+  const { user, company, membership, loading, error, logout, refresh } = useAuth();
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const [members, setMembers] = useState<Member[]>([]);
+  const [requests, setRequests] = useState<Member[]>([]);
+  const [join, setJoin] = useState(false);
+  const [showCompany, setShowCompany] = useState(false);
+  async function send(url: string, body: object) {
+    setBusy(true); setMessage('');
+    try {
+      const response = await fetch(url, { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify(body) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || '저장에 실패했습니다.');
+      setMessage(result.message || '저장되었습니다.');
+      await refresh();
+      return true;
+    } catch (e) { setMessage(e instanceof Error ? e.message : '요청에 실패했습니다.'); return false; }
+    finally { setBusy(false); }
   }
-
-  const handleLogout = () => {
-    logout();
-    router.push('/account/login');
-  };
-
-  const handleSaveProfile = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateProfile({
-      name: profileName,
-      phone: profilePhone,
-      company: profileCompany,
-    });
-    setProfileMsg(true);
-    setTimeout(() => setProfileMsg(false), 3000);
-  };
-
-  return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 font-sans">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        {/* Left Navigation Sidebar */}
-        <aside className="lg:col-span-3 bg-white border border-stone-200 rounded-xl p-4 space-y-1 h-fit shadow-sm">
-          <div className="p-3 mb-2 border-b border-stone-100">
-            <div className="text-xs text-stone-400 font-medium">{t('account_signed_in_as', '로그인 계정')}</div>
-            <div className="font-jakarta text-base font-bold text-stone-900 truncate">{user?.name}</div>
-            <div className="text-[11px] text-[#14532D] font-mono font-semibold truncate">{user?.email}</div>
-          </div>
-
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === 'dashboard'
-                ? 'bg-[#14532D] text-white shadow'
-                : 'text-stone-700 hover:bg-stone-100 hover:text-[#14532D]'
-            }`}
-          >
-            <LayoutDashboard size={16} />
-            <span>{t('account_dashboard', '마이페이지 대시보드')}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('orders')}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === 'orders'
-                ? 'bg-[#14532D] text-white shadow'
-                : 'text-stone-700 hover:bg-stone-100 hover:text-[#14532D]'
-            }`}
-          >
-            <div className="flex items-center space-x-3">
-              <ShoppingBag size={16} />
-              <span>{t('account_orders', '주문 및 실시간 배송 내역')}</span>
-            </div>
-            <span className="font-mono text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full">
-              {orders.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('wholesale')}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === 'wholesale'
-                ? 'bg-[#14532D] text-white shadow'
-                : 'text-stone-700 hover:bg-stone-100 hover:text-[#14532D]'
-            }`}
-          >
-            <div className="flex items-center space-x-3">
-              <ShieldCheck size={16} className="text-[#EAB308]" />
-              <span>📦 대용량/식자재 구매 가이드</span>
-            </div>
-            <span className="font-mono text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
-              전체회원 적용
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('addresses')}
-            className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === 'addresses'
-                ? 'bg-[#14532D] text-white shadow'
-                : 'text-stone-700 hover:bg-stone-100 hover:text-[#14532D]'
-            }`}
-          >
-            <MapPin size={16} />
-            <span>{t('account_addresses', '배송지 관리')}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('profile')}
-            className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === 'profile'
-                ? 'bg-[#14532D] text-white shadow'
-                : 'text-stone-700 hover:bg-stone-100 hover:text-[#14532D]'
-            }`}
-          >
-            <User size={16} />
-            <span>{t('account_details', '회원 정보 수정')}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('wishlist')}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === 'wishlist'
-                ? 'bg-[#14532D] text-white shadow'
-                : 'text-stone-700 hover:bg-stone-100 hover:text-[#14532D]'
-            }`}
-          >
-            <div className="flex items-center space-x-3">
-              <Heart size={16} />
-              <span>{t('account_wishlist', '위시리스트')}</span>
-            </div>
-            <span className="font-mono text-[10px] bg-stone-200 text-stone-800 font-bold px-2 py-0.5 rounded-full">
-              {wishlist.length}
-            </span>
-          </button>
-
-          <div className="pt-4 border-t border-stone-100">
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs text-red-600 hover:bg-red-50 hover:text-red-700 transition-all font-bold"
-            >
-              <LogOut size={16} />
-              <span>{t('account_logout', '로그아웃')}</span>
-            </button>
-          </div>
-        </aside>
-
-        {/* Right Tab Content View */}
-        <main className="lg:col-span-9 space-y-6">
-          
-          {/* Tab 1: Dashboard Overview */}
-          {activeTab === 'dashboard' && (
-            <div className="space-y-6">
-              <div className="bg-white border border-stone-200 rounded-xl p-6 sm:p-8 space-y-4 shadow-sm">
-                <h2 className="font-jakarta text-2xl text-stone-900 font-bold">
-                  {t('account_welcome', '안녕하세요')}, <span className="text-[#14532D]">{user?.name}</span>님!
-                </h2>
-                <p className="text-xs text-stone-600 leading-relaxed">
-                  송영민푸드 고객 마이페이지에서 고객님의{' '}
-                  <button onClick={() => setActiveTab('orders')} className="text-[#14532D] font-bold underline">
-                    {t('recent_orders', '최근 주문 내역')}
-                  </button>
-                  을 확인하시고,{' '}
-                  <button onClick={() => setActiveTab('addresses')} className="text-[#14532D] font-bold underline">
-                    {t('shipping_address', '기본 배송지 주소')}
-                  </button>
-                  와{' '}
-                  <button onClick={() => setActiveTab('profile')} className="text-[#14532D] font-bold underline">
-                    {t('account_details', '회원 정보')}
-                  </button>
-                  를 관리하실 수 있습니다.
-                </p>
-              </div>
-
-              {/* Dashboard Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-white border border-stone-200 p-5 rounded-xl space-y-1 shadow-sm">
-                  <div className="text-stone-500 text-xs font-bold font-mono">총 주문 건수</div>
-                  <div className="font-mono text-3xl font-bold text-[#14532D]">{orders.length}</div>
-                  <div className="text-[11px] text-stone-400">누적 구매 횟수</div>
-                </div>
-                <div className="bg-white border border-stone-200 p-5 rounded-xl space-y-1 shadow-sm">
-                  <div className="text-stone-500 text-xs font-bold font-mono">위시리스트 저장</div>
-                  <div className="font-mono text-3xl font-bold text-[#EAB308]">{wishlist.length}</div>
-                  <div className="text-[11px] text-stone-400">관심 상품 목록</div>
-                </div>
-                <div className="bg-white border border-stone-200 p-5 rounded-xl space-y-1 shadow-sm">
-                  <div className="text-stone-500 text-xs font-bold font-mono">회원 등급</div>
-                  <div className="font-jakarta text-lg font-bold text-[#14532D] flex items-center space-x-1">
-                    <ShieldCheck size={18} className="text-[#EAB308]" />
-                    <span>송영민푸드 VIP 멤버</span>
-                  </div>
-                  <div className="text-[11px] text-emerald-700 font-bold">24시간 에어 냉장배송 혜택 적용</div>
-                </div>
-              </div>
-
-              {/* Recent Order Preview */}
-              {orders.length > 0 && (
-                <div className="bg-white border border-stone-200 rounded-xl p-6 space-y-4 shadow-sm">
-                  <div className="flex justify-between items-center border-b border-stone-100 pb-3">
-                    <h3 className="font-jakarta text-base font-bold text-stone-900">최근 주문</h3>
-                    <button
-                      onClick={() => setActiveTab('orders')}
-                      className="text-xs text-[#14532D] font-bold hover:underline font-mono"
-                    >
-                      전체 주문 내역 보기 &rarr;
-                    </button>
-                  </div>
-                  <div className="flex justify-between items-center text-xs font-mono">
-                    <div>
-                      <span className="text-stone-500">주문 번호: </span>
-                      <span className="text-stone-900 font-bold">{orders[0].id}</span>
-                    </div>
-                    <span className="bg-emerald-100 text-[#14532D] font-bold px-2.5 py-1 rounded-full text-[11px]">
-                      {orders[0].status}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Tab 2: Orders List */}
-          {activeTab === 'orders' && (
-            <div className="bg-[#101411] border border-emerald-900/30 rounded-lg p-6 space-y-6">
-              <h2 className="font-serif-luxury text-xl text-white font-medium border-b border-emerald-900/30 pb-3">
-                Order History ({orders.length})
-              </h2>
-
-              {orders.length === 0 ? (
-                <div className="text-center py-12 space-y-3">
-                  <Package size={36} className="mx-auto text-stone-600" />
-                  <p className="text-xs text-stone-400">No order has been made yet.</p>
-                  <Link
-                    href="/shop"
-                    className="inline-block bg-[#c59b27] text-black font-semibold text-xs px-4 py-2 rounded uppercase"
-                  >
-                    Browse Products
-                  </Link>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {orders.map((ord) => (
-                    <div
-                      key={ord.id}
-                      className="border border-emerald-900/40 rounded-lg p-5 bg-[#141815] space-y-4"
-                    >
-                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-emerald-900/30 pb-3 font-mono text-xs">
-                        <div>
-                          <span className="text-stone-400">주문 번호: </span>
-                          <span className="text-[#c59b27] font-bold">{ord.id}</span>
-                          <span className="text-stone-500 ml-3">({ord.createdAt})</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span className="bg-[#3182f6]/20 text-[#3182f6] border border-[#3182f6]/40 px-2 py-0.5 rounded text-[10px] font-bold">
-                            {ord.tossMethod || '토스페이먼츠 승인'}
-                          </span>
-                          <span
-                            className={`px-2.5 py-0.5 rounded text-[11px] font-bold ${
-                              ord.status === 'PAID'
-                                ? 'bg-blue-950 text-blue-400 border border-blue-800'
-                                : ord.status === 'Shipped'
-                                ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
-                                : 'bg-amber-950 text-amber-400 border border-amber-800'
-                            }`}
-                          >
-                            {ord.status === 'PAID'
-                              ? '결제완료 (배송준비중)'
-                              : ord.status === 'Shipped'
-                              ? '배송중 (택배출고)'
-                              : ord.status}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="divide-y divide-emerald-900/20">
-                        {ord.items.map((it, idx) => (
-                          <div key={idx} className="py-2.5 flex items-center space-x-3 text-xs">
-                            <img
-                              src={it.image_url}
-                              alt={it.name}
-                              className="w-12 h-12 object-cover rounded border border-emerald-900/30"
-                            />
-                            <div className="flex-1">
-                              <div className="font-serif-luxury font-medium text-stone-200">{it.name}</div>
-                              <div className="text-[10px] text-stone-500 font-mono">수량: {it.quantity}개</div>
-                            </div>
-                            <span className="font-mono font-semibold text-[#c59b27]">
-                              ₩{(it.price * it.quantity).toLocaleString()}원
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Courier Tracking Section */}
-                      {ord.trackingNumber ? (
-                        <div className="bg-[#1a221d] border border-emerald-700/40 p-3 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs gap-2">
-                          <div className="flex items-center space-x-2">
-                            <Truck size={16} className="text-emerald-400" />
-                            <span className="text-stone-300 font-bold">
-                              {ord.carrier || 'CJ대한통운'} 운송장번호: <span className="font-mono text-amber-400">{ord.trackingNumber}</span>
-                            </span>
-                          </div>
-                          <a
-                            href={
-                              ord.carrier === '로젠택배'
-                                ? `https://www.ilogen.com/web/personal/trace/`
-                                : ord.carrier === '한진택배'
-                                ? `https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillResult.do?mCode=MN038&wblnum=${ord.trackingNumber}`
-                                : ord.carrier === '우체국택배'
-                                ? `https://service.epost.go.kr/trace.RetrieveDomRcvInvoiceTrace.comm?sid1=${ord.trackingNumber}`
-                                : `https://trace.cjlogistics.com/next/tracking.html?wblNo=${ord.trackingNumber}`
-                            }
-                            target="_blank"
-                            rel="noreferrer"
-                            className="bg-[#14532D] hover:bg-emerald-700 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg flex items-center space-x-1 shadow transition-all"
-                          >
-                            <span>🚚 실시간 택배 배송 추적</span>
-                            <ExternalLink size={12} />
-                          </a>
-                        </div>
-                      ) : (
-                        <div className="text-[11px] text-stone-500 font-mono italic">
-                          ℹ 신선 포장 준비 중입니다. 송장 등록 시 실시간 추적 버튼이 활성화됩니다.
-                        </div>
-                      )}
-
-                      <div className="border-t border-emerald-900/30 pt-3 flex justify-between items-center text-xs">
-                        <span className="text-stone-400">총 결제 금액: <strong className="text-white font-mono text-sm">₩{ord.total.toLocaleString()}원</strong></span>
-                        <Link
-                          href={`/checkout/success?orderId=${ord.id}`}
-                          className="text-[#c59b27] hover:underline flex items-center space-x-1 font-mono text-[11px]"
-                        >
-                          <span>구매 영수증 / 승인서</span>
-                          <ExternalLink size={12} />
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Tab: Bulk Box & RFQ Guide */}
-          {activeTab === 'wholesale' && (
-            <div className="bg-[#101411] border border-emerald-900/40 rounded-xl p-6 sm:p-8 space-y-6 text-xs font-sans shadow-xl">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-emerald-900/30 pb-4 gap-2">
-                <div>
-                  <h2 className="font-serif-luxury text-xl text-white font-bold flex items-center space-x-2">
-                    <ShieldCheck className="text-[#EAB308]" size={22} />
-                    <span>📦 대용량 박스 구매 &amp; 식자재 RFQ 가이드</span>
-                  </h2>
-                  <p className="text-stone-400 text-xs mt-1">
-                    송영민푸드의 모든 가입 회원은 제한 없이 개별 낱개 상품 또는 대용량 박스팩을 자유롭게 구매하실 수 있습니다.
-                  </p>
-                </div>
-                <span className="bg-emerald-950 text-emerald-400 border border-emerald-700 px-3 py-1 rounded-full text-xs font-mono font-bold">
-                  모든 회원 구매가능
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-[#18221b] border border-emerald-900/30 p-4 rounded-lg space-y-1">
-                  <div className="text-stone-400 font-mono text-[11px]">🛒 소량 개별상품 구매</div>
-                  <div className="font-mono font-bold text-white text-sm">개별 단위 주문 (5만원 이상 무료배송)</div>
-                  <div className="text-stone-400 text-[10px]">5만원 미만 결제 시 배송비 3,000원 적용</div>
-                </div>
-
-                <div className="bg-[#18221b] border border-emerald-900/30 p-4 rounded-lg space-y-1">
-                  <div className="text-stone-400 font-mono text-[11px]">📦 대용량 박스팩 구매</div>
-                  <div className="font-mono font-extrabold text-[#EAB308] text-sm">Master Box 입수량 (대량 할인 적용)</div>
-                  <div className="text-emerald-400 text-[10px]">박스 단위 구매 시 상시 대량할인 혜택</div>
-                </div>
-              </div>
-
-              <div className="space-y-3 pt-2">
-                <h3 className="font-bold text-stone-200 text-sm">도매 주문 및 견적 신청 Quick Link</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Link
-                    href="/rfq"
-                    className="p-4 bg-[#14532D] hover:bg-emerald-700 text-white rounded-xl font-bold flex items-center justify-between shadow transition-all"
-                  >
-                    <div>
-                      <div className="text-sm">🌎 15% 할인 RFQ 견적서 즉시 발행</div>
-                      <div className="text-[10px] font-normal text-emerald-200">Shop 상품 선택 &amp; Pro Forma Invoice 생성</div>
-                    </div>
-                    <ChevronRight size={18} />
-                  </Link>
-
-                  <Link
-                    href="/wholesale"
-                    className="p-4 bg-stone-900 border border-stone-700 hover:border-amber-500 text-stone-200 hover:text-white rounded-xl font-bold flex items-center justify-between transition-all"
-                  >
-                    <div>
-                      <div className="text-sm">🏬 국내 식자재 공급 문의 (B2B)</div>
-                      <div className="text-[10px] font-normal text-stone-400">대용량 업소용 냉동식품 &amp; 소스 상담</div>
-                    </div>
-                    <ChevronRight size={18} />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Tab 3: Addresses */}
-          {activeTab === 'addresses' && (
-            <div className="bg-[#101411] border border-emerald-900/30 rounded-lg p-6 space-y-6">
-              <div className="flex justify-between items-center border-b border-emerald-900/30 pb-3">
-                <h2 className="font-serif-luxury text-xl text-white font-medium">
-                  Address Book
-                </h2>
-                <button
-                  onClick={() => alert('New address added.')}
-                  className="bg-[#c59b27]/15 border border-[#c59b27]/40 text-[#c59b27] text-xs px-3 py-1.5 rounded flex items-center space-x-1 hover:bg-[#c59b27] hover:text-black transition-all"
-                >
-                  <Plus size={14} />
-                  <span>Add New Address</span>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {user?.addresses?.map((addr) => (
-                  <div
-                    key={addr.id}
-                    className="border border-emerald-900/40 bg-[#141815] rounded-lg p-5 space-y-2 text-xs font-light"
-                  >
-                    <div className="flex justify-between items-center border-b border-emerald-900/30 pb-2">
-                      <span className="font-semibold text-[#c59b27]">{addr.title}</span>
-                      {addr.isDefault && (
-                        <span className="bg-emerald-950 text-emerald-400 text-[10px] px-2 py-0.5 rounded font-mono">
-                          Default
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-stone-200 font-medium">{addr.fullName}</div>
-                    <div className="text-stone-400">{addr.addressLine1} {addr.addressLine2}</div>
-                    <div className="text-stone-400">{addr.city}, {addr.postalCode}</div>
-                    <div className="text-stone-400">{addr.country}</div>
-                    <div className="text-stone-500 font-mono pt-1">Tel: {addr.phone}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Tab 4: Profile & Account Details */}
-          {activeTab === 'profile' && (
-            <div className="bg-[#101411] border border-emerald-900/30 rounded-lg p-6 space-y-6">
-              <h2 className="font-serif-luxury text-xl text-white font-medium border-b border-emerald-900/30 pb-3">
-                Account Details
-              </h2>
-
-              {profileMsg && (
-                <div className="bg-emerald-950 border border-emerald-700 text-emerald-400 text-xs p-3 rounded flex items-center space-x-2">
-                  <CheckCircle size={16} />
-                  <span>Account details updated successfully!</span>
-                </div>
-              )}
-
-              <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
-                <div className="space-y-1">
-                  <label className="text-stone-300 font-medium">Full Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={profileName}
-                    onChange={(e) => setProfileName(e.target.value)}
-                    className="w-full bg-stone-900 border border-emerald-900/40 rounded px-3 py-2 text-stone-200 focus:outline-none focus:border-[#c59b27]"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-stone-300 font-medium">Email Address (Read only)</label>
-                  <input
-                    type="email"
-                    disabled
-                    value={user?.email || ''}
-                    className="w-full bg-stone-950 border border-emerald-900/20 rounded px-3 py-2 text-stone-500 cursor-not-allowed"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-stone-300 font-medium">Phone Number</label>
-                    <input
-                      type="text"
-                      value={profilePhone}
-                      onChange={(e) => setProfilePhone(e.target.value)}
-                      className="w-full bg-stone-900 border border-emerald-900/40 rounded px-3 py-2 text-stone-200 focus:outline-none focus:border-[#c59b27]"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-stone-300 font-medium">Company Name</label>
-                    <input
-                      type="text"
-                      value={profileCompany}
-                      onChange={(e) => setProfileCompany(e.target.value)}
-                      className="w-full bg-stone-900 border border-emerald-900/40 rounded px-3 py-2 text-stone-200 focus:outline-none focus:border-[#c59b27]"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="bg-[#c59b27] hover:bg-[#b08820] text-black font-semibold py-2.5 px-6 rounded text-xs uppercase tracking-wider transition-all"
-                >
-                  Save Changes
-                </button>
-              </form>
-            </div>
-          )}
-
-          {/* Tab 5: Wishlist */}
-          {activeTab === 'wishlist' && (
-            <div className="bg-[#101411] border border-emerald-900/30 rounded-lg p-6 space-y-6">
-              <h2 className="font-serif-luxury text-xl text-white font-medium border-b border-emerald-900/30 pb-3">
-                Saved Wishlist ({wishlist.length})
-              </h2>
-
-              {wishlist.length === 0 ? (
-                <div className="text-center py-12 space-y-3">
-                  <Heart size={36} className="mx-auto text-stone-600" />
-                  <p className="text-xs text-stone-400">Your wishlist is currently empty.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {wishlist.map((item) => (
-                    <div
-                      key={item.id}
-                      className="border border-emerald-900/40 bg-[#141815] rounded-lg p-4 flex space-x-4 items-center"
-                    >
-                      <img
-                        src={item.image_url}
-                        alt={item.name}
-                        className="w-16 h-16 object-cover rounded border border-emerald-900/30"
-                      />
-                      <div className="flex-1 space-y-1">
-                        <Link
-                          href={`/products/${item.id}`}
-                          className="font-serif-luxury text-xs font-medium text-stone-200 hover:text-[#c59b27] block line-clamp-1"
-                        >
-                          {item.name}
-                        </Link>
-                        <div className="font-mono text-xs font-bold text-[#c59b27]">
-                          ${(item.price || 50).toFixed(2)}
-                        </div>
-                        <div className="flex items-center space-x-2 pt-1">
-                          <button
-                            onClick={() => addToCart(item, 1)}
-                            className="bg-[#c59b27] text-black font-semibold text-[10px] uppercase px-2.5 py-1 rounded"
-                          >
-                            Add to Cart
-                          </button>
-                          <button
-                            onClick={() => removeFromWishlist(item.id)}
-                            className="text-stone-500 hover:text-red-400 p-1"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </main>
-      </div>
-    </main>
-  );
-}
-
-export default function MyAccountPage() {
-  return (
-    <div className="min-h-screen bg-[#141815] text-stone-100 pb-24">
-      {/* Header Banner */}
-      <div className="bg-[#0d110e] border-b border-emerald-900/30 py-10 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto space-y-2">
-          <div className="flex items-center space-x-2 text-xs text-stone-500 font-mono">
-            <Link href="/" className="hover:text-stone-300">Home</Link>
-            <ChevronRight size={12} />
-            <span className="text-[#c59b27]">My Account</span>
-          </div>
-          <h1 className="font-serif-luxury text-3xl font-light text-white">
-            Customer Dashboard
-          </h1>
-        </div>
-      </div>
-
-      <Suspense fallback={<div className="p-8 text-center text-xs text-stone-400">Loading Account Dashboard...</div>}>
-        <MyAccountContent />
-      </Suspense>
-    </div>
-  );
+  async function apply(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const fields = Object.fromEntries(new FormData(event.currentTarget).entries());
+    await send('/api/account/company', { ...fields, action: join ? 'join' : 'apply' });
+  }
+  async function loadMembers() {
+    setBusy(true); setMessage('');
+    try {
+      const response = await fetch('/api/account/members', { cache:'no-store' });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setMembers(result.members); setRequests(result.requests);
+    } catch(e) { setMessage(e instanceof Error ? e.message : '담당자를 확인하지 못했습니다.'); }
+    finally { setBusy(false); }
+  }
+  if (loading) return <main className="mx-auto max-w-4xl px-6 py-20" role="status">계정을 확인하고 있습니다…</main>;
+  if (!user) return <main className="mx-auto max-w-3xl px-6 py-20"><h1 className="text-3xl font-bold">회원 로그인</h1>
+    <p className="mt-5 text-stone-600">로그인이 필요하거나 세션이 만료되었습니다. 개인과 사업자 모두 이메일 인증으로 간편하게 가입할 수 있습니다.</p>
+    {error && <p role="alert" className="mt-4 text-red-700">{error}</p>}
+    <Link href="/account/login" className="mt-8 inline-block rounded bg-green-900 px-6 py-3 text-white">로그인 / 회원가입</Link></main>;
+  return <main className="mx-auto max-w-4xl px-6 py-14">
+    <div className="flex flex-wrap items-center justify-between gap-4"><div><p className="text-sm text-green-800">MY ACCOUNT</p><h1 className="mt-2 text-3xl font-bold">{user.name}님의 계정</h1><p className="mt-2 break-all text-stone-500">{user.email}</p></div>
+      <button disabled={busy} onClick={async () => { setBusy(true); const result = await logout(); setMessage(result.message); setBusy(false); }} className="rounded border px-4 py-2">로그아웃</button></div>
+    {(message || error) && <p role="status" className="mt-6 rounded border bg-amber-50 p-4">{message || error}</p>}
+    <section className="mt-8 rounded-xl border border-green-200 bg-green-50 p-6"><h2 className="text-xl font-bold">이메일 인증 완료 · 바로 이용 가능</h2><p className="mt-3 text-stone-600">별도 가입 승인이나 사업자번호가 필요하지 않습니다. 개인도 상품을 둘러보고 대용량 구매 문의를 남길 수 있습니다.</p><Link href="/shop" className="mt-4 inline-block rounded bg-green-900 px-5 py-3 text-white">대용량 상품 둘러보기</Link></section>
+    <AccountActivity key={user.id+String(company?.id)+String(membership?.status)+String(company?.status)}/>
+    {company ? <section className="mt-8 rounded-xl border bg-stone-50 p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-bold">{company.name}</h2><span className="rounded bg-white px-3 py-1 text-sm font-semibold">{COMPANY_STATUS_LABELS[company.status]}</span></div>
+      <p className="mt-3">{company.kind === 'domestic' ? '국내 도매' : '해외 바이어'} · {company.country}</p>
+      <p className="mt-2 text-sm text-stone-600">담당자: {membership?.role === 'owner' ? '대표 담당자' : '일반 담당자'} / {membership?.status === 'active' ? '활성' : '이용 중지'}</p>
+      <p className="mt-4 text-sm text-stone-600">{company.status === 'approved' && membership?.status === 'active' ? '등록된 회사 정보입니다. 사업자 인증을 의미하지 않으며, 견적·주문 조건은 별도로 확정됩니다.' : '현재 거래 자료에 접근할 수 없습니다. 회사 또는 소속 상태를 담당자에게 확인해 주세요.'}</p>
+      {membership?.role === 'owner' && company.status === 'approved' && membership.status === 'active' && <div className="mt-6 border-t pt-5">
+        <h3 className="font-bold">회사 담당자 관리</h3><p className="mt-2 break-all text-sm">회사 코드: <code>{company.id}</code></p>
+        <p className="mt-2 text-sm text-stone-600">동료에게 회사 코드를 전달해 주세요. 동료가 이메일 인증·로그인 후 소속 요청을 보내면 아래에서 승인할 수 있습니다. 담당자 중지는 관리자에게 요청해 주세요.</p>
+        <button disabled={busy} className="mt-4 rounded border bg-white px-4 py-2" onClick={() => void loadMembers()}>담당자·소속 요청 확인</button>
+        {members.map(member => <p key={member.user_id} className="mt-3 text-sm">{member.customer_accounts.name} · {member.customer_accounts.email} · {member.status}</p>)}
+        {requests.map(member => <div key={member.user_id} className="mt-3 flex flex-wrap items-center gap-3 rounded border bg-white p-3"><span>{member.customer_accounts.name} · {member.customer_accounts.email}</span>
+          <button disabled={busy} className="rounded bg-green-900 px-3 py-2 text-white" onClick={async () => { if (await send('/api/account/members', {email:member.customer_accounts.email})) await loadMembers(); }}>소속 승인</button></div>)}
+      </div>}
+    </section> : <section className="mt-8 rounded-xl border p-6">
+      <h2 className="text-xl font-bold">{join ? '기존 회사에 소속 요청' : '회사 정보 추가 (선택)'}</h2>
+      <p className="mt-3 text-sm text-stone-600">회사 정보 없이도 개인회원으로 이용할 수 있습니다. 새 회사는 등록 즉시 이용 가능하며, 기존 회사의 자료 공유는 대표 담당자가 소속을 확인합니다.</p>
+      <button type="button" onClick={() => setShowCompany(!showCompany)} className="mt-4 text-green-800 underline">{showCompany ? '나중에 등록하기' : '회사 정보 추가하기'}</button>
+      {showCompany && <form onSubmit={apply} className="mt-6 space-y-4">
+        {join ? <label className="block">회사 코드<input name="companyId" required maxLength={36} className={input} /></label> : <>
+          <label className="block">회사명<input name="name" required maxLength={200} className={input} /></label>
+          <label className="block">거래 유형<select name="kind" className={input}><option value="domestic">국내 도매고객</option><option value="overseas">Overseas buyer / 해외 바이어</option></select></label>
+          <label className="block">국가<input name="country" required minLength={2} maxLength={100} placeholder="대한민국 / Republic of Korea" className={input} /></label>
+          <label className="block">사업자·법인 등록번호 (선택)<input name="registrationNo" maxLength={100} className={input} /></label>
+        </>}
+        <button disabled={busy} className="rounded bg-green-900 px-6 py-3 text-white disabled:opacity-50">{busy ? '저장 중…' : join ? '소속 요청 보내기' : '회사 정보 저장'}</button>
+        <button disabled={busy} type="button" onClick={() => setJoin(!join)} className="block py-2 text-sm text-green-800 underline">{join ? '새 회사 등록하기' : '기존 회사에 소속 요청하기'}</button>
+      </form>}
+    </section>}
+    <section className="mt-8 rounded-xl border p-6"><h2 className="text-xl font-bold">견적·주문 안내</h2>
+      <p className="mt-3 text-stone-600">온라인 주문·결제 및 견적서 조회는 순차적으로 제공됩니다. 현재는 개인의 대용량 구매 문의, 국내 도매 문의와 해외 RFQ를 접수할 수 있습니다.</p>
+      <div className="mt-5 flex flex-wrap gap-4"><Link href="/wholesale" className="text-green-800 underline">개인·국내 도매 구매 문의</Link><Link href="/rfq" className="text-green-800 underline">해외 RFQ 요청</Link></div>
+      <p className="mt-5 text-sm text-stone-500">해외 기본 조건은 FOB이며 국내 운송·수출통관·본선 적재 비용은 VAT 제외 도매가에 포함합니다. 조건에 따라 금액이 조정될 수 있으며, 변경 조건은 사전 안내 후 합의합니다. 추후 발행 견적 문서는 Proforma Invoice로, 최종 Invoice가 아닙니다.</p>
+    </section>
+  </main>;
 }

@@ -1,9 +1,9 @@
 'use client';
+import { ProductPrice } from '@/components/pricing/ProductPrice';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { ProductItem } from '@/lib/types';
-import { supabase } from '@/lib/supabase';
 import { useCart } from '@/context/CartContext';
 import { ShoppingBag, Star, Award, ChevronRight } from 'lucide-react';
 import { PRODUCT_COLLECTIONS } from '@/lib/product-taxonomy';
@@ -18,15 +18,7 @@ export default function BestSellers({ products }: BestSellersProps) {
 
   const categories = ['전체', ...PRODUCT_COLLECTIONS];
 
-  const [currentProducts, setCurrentProducts] = useState<ProductItem[]>(products);
-
-  useEffect(() => {
-    let active = true;
-    supabase.from('products').select('*').then(({ data, error }) => {
-      if (active && !error && data?.length) setCurrentProducts(data as ProductItem[]);
-    });
-    return () => { active = false; };
-  }, [products]);
+  const currentProducts = products;
 
   // Filter products by admin is_best_seller selection
   const bestSellerPool = currentProducts.filter((p) => p.is_best_seller === true).length > 0
@@ -112,17 +104,7 @@ export default function BestSellers({ products }: BestSellersProps) {
                 </div>}
 
                 <div className="pt-2 border-t border-stone-100 space-y-2">
-                  <div className="flex flex-col text-xs font-mono">
-                    <div className="flex justify-between items-center text-[#14532D] font-bold">
-                      <span>소량 개별가:</span>
-                      <span>₩{(product.price || 10000).toLocaleString()}원</span>
-                    </div>
-                    <div className="flex justify-between items-center text-amber-700 font-bold">
-                      <span>📦 대용량(10개입):</span>
-                      <span>₩{Math.round((product.price || 10000) * (product.carton_qty || 10) * 0.85).toLocaleString()}원</span>
-                    </div>
-                  </div>
-
+                  <ProductPrice product={product}/>
                   <div className="flex items-center justify-between pt-1 gap-2">
                     <button
                       onClick={() => addToCart(product, 1)}
@@ -139,7 +121,7 @@ export default function BestSellers({ products }: BestSellersProps) {
                       }}
                       className="flex-1 flex items-center justify-center space-x-1 bg-[#14532D] hover:bg-emerald-800 text-white font-extrabold text-xs px-2 py-2 rounded-xl transition-all shadow"
                     >
-                      <span>⚡ 바로 결제</span>
+                      <span>구매 문의</span>
                     </button>
                   </div>
                 </div>

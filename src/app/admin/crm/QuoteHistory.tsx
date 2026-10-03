@@ -1,0 +1,14 @@
+import type {QuoteDraft} from '@/lib/crm/types';
+import {formatMoney} from '@/lib/pricing/types';
+export default function QuoteHistory({quotes}:{quotes:QuoteDraft[]}) {
+  return <section className="space-y-3"><h3 className="text-xl font-bold">견적 초안 이력</h3>{!quotes.length&&<p className="text-sm text-stone-400">저장한 견적 초안이 없습니다.</p>}{quotes.map(q=><details key={q.id} className="rounded-xl border border-stone-700 p-4"><summary className="cursor-pointer font-semibold">v{q.version} · {q.snapshot.base_total_minor===null?'가격 자료 보완 필요':formatMoney(q.snapshot.proposed_total_minor!,'USD')} · {q.snapshot.issues.length?'검토 미완료':'발행 전 검토 대상'}</summary><div className="mt-4 space-y-4 text-sm">
+    <p className="break-all text-xs text-stone-400">{new Date(q.created_at).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})} KST · {q.id}</p><p>작성 사유: {q.snapshot.review.change_reason}</p>
+    <p className="rounded bg-amber-950 p-3 text-amber-100">내부 견적 초안 · Proforma Invoice 또는 최종 Commercial Invoice가 아닙니다.</p>
+    {!!q.snapshot.issues.length&&<ul className="list-inside list-disc space-y-2 text-amber-300">{q.snapshot.issues.map((v,n)=><li key={n}>{v}</li>)}</ul>}
+    <div className="overflow-x-auto"><table className="w-full min-w-[540px] text-left text-xs"><thead><tr><th className="p-2">SKU / 상품</th><th className="p-2">수량</th><th className="p-2">기준 단가</th><th className="p-2">제안 단가</th><th className="p-2">포장·항구</th></tr></thead><tbody>{q.snapshot.lines.map(l=><tr key={l.product_id} className="border-t border-stone-700"><td className="p-2">{l.sku}<br/>{l.name}<br/>가격 v{l.price_source?.version||'—'}</td><td className="p-2">{l.quantity} CTN</td><td className="p-2">{l.base?formatMoney(l.base.unit_net_minor,'USD'):'미확정'}</td><td className="p-2">{l.proposed_unit_minor===null?'미확정':formatMoney(l.proposed_unit_minor,'USD')}<br/>{l.adjustment_reason}</td><td className="p-2">{l.base?.ea_per_unit||'—'} EA / CTN<br/>FOB {l.base?.loading_port||'미확정'}</td></tr>)}</tbody></table></div>
+    <p>기준 합계: {q.snapshot.base_total_minor===null?'미확정':formatMoney(q.snapshot.base_total_minor,'USD')} · 제안 합계: {q.snapshot.proposed_total_minor===null?'미확정':formatMoney(q.snapshot.proposed_total_minor,'USD')}</p>
+    <p>기준 환율: {q.snapshot.exchange_rate? q.snapshot.exchange_rate.krw_per_usd+' KRW/USD · '+q.snapshot.exchange_rate.source:'미확정'}<br/>가격 유효기간: {q.snapshot.valid_until?new Date(q.snapshot.valid_until).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})+' KST':'미확정'}</p>
+    <p className="whitespace-pre-wrap">납기: {q.snapshot.review.lead_time_note||'미확인'}<br/>검토 메모: {q.snapshot.review.review_note||'없음'}<br/>협의 상태: {q.snapshot.review.consultation_status}<br/>{q.snapshot.review.consultation_note}</p>
+    <p className="text-xs leading-6 text-stone-400">{q.snapshot.notice}</p>
+  </div></details>)}<p className="text-xs text-stone-500">최근 30개 버전을 표시합니다. 저장한 버전은 덮어쓰지 않습니다.</p></section>;
+}

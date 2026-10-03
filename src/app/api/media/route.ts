@@ -1,3 +1,4 @@
+import { readJson, ApiError, failure } from '@/lib/request-security';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireStaff } from '@/lib/admin-auth';
 import { getMediaItems, addMediaItem, deleteMediaItem } from '@/lib/media-db';
@@ -12,7 +13,7 @@ export async function GET(req: NextRequest) {
     const items = await getMediaItems(type);
     return NextResponse.json({ success: true, data: items });
   } catch (error) {
-    console.error('API GET /api/media error:', error);
+    if (error instanceof ApiError) return failure(error);
     return NextResponse.json({ success: false, error: 'Failed to fetch media items' }, { status: 500 });
   }
 }
@@ -21,10 +22,12 @@ export async function POST(req: NextRequest) {
   const denied = await requireStaff(req, ['admin', 'product_staff']);
   if (denied) return denied;
   try {
-    const body = await req.json();
+    const body = await readJson(req, 131072);
     const { name, url, type, size } = body;
 
-    if (!name || !url) {
+    if (typeof name !== 'string' || typeof url !== 'string' || !name || !url
+      || (type !== undefined && type !== 'image' && type !== 'video')
+      || (size !== undefined && typeof size !== 'string')) {
       return NextResponse.json({ success: false, error: 'Name and URL are required' }, { status: 400 });
     }
 
@@ -37,7 +40,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: newItem });
   } catch (error) {
-    console.error('API POST /api/media error:', error);
+    if (error instanceof ApiError) return failure(error);
     return NextResponse.json({ success: false, error: 'Failed to add media item' }, { status: 500 });
   }
 }
@@ -56,7 +59,7 @@ export async function DELETE(req: NextRequest) {
     const ok = await deleteMediaItem(id);
     return NextResponse.json({ success: ok });
   } catch (error) {
-    console.error('API DELETE /api/media error:', error);
+    if (error instanceof ApiError) return failure(error);
     return NextResponse.json({ success: false, error: 'Failed to delete media item' }, { status: 500 });
   }
 }

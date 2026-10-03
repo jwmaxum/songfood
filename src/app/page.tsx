@@ -1,65 +1,18 @@
-import React from 'react';
 import Link from 'next/link';
-import { getActiveHeroSlides } from '@/lib/cms-db';
-import { getProducts } from '@/lib/products-db';
-
-// Home Section Components
-import HeroSlider from '@/components/home/HeroSlider';
-import DualPortalSection from '@/components/home/DualPortalSection';
-import TodaysDeals from '@/components/home/TodaysDeals';
-import CategoryIcons from '@/components/home/CategoryIcons';
-import BestSellers from '@/components/home/BestSellers';
-
-import { ShieldCheck, Layers, FileText } from 'lucide-react';
-
+import {getPublicProducts} from '@/lib/products-db';
+import {ProductPrice} from '@/components/pricing/ProductPrice';
 export default async function Home() {
-  // RSC: Parallel DB fetches for max performance
-  const [heroSlides, products] = await Promise.all([
-    getActiveHeroSlides(),
-    getProducts(),
-  ]);
-
-  return (
-    <div className="w-full bg-[#FAFAF8] text-stone-800 overflow-hidden font-sans">
-      
-      {/* 1. Hero Visual Banner */}
-      <HeroSlider initialSlides={heroSlides} />
-
-      {/* Dual Entrance Portal (Domestic Consumers vs Global B2B Export Hub) */}
-      <DualPortalSection />
-
-      {/* Admin Quick Control Banner */}
-      <div className="bg-[#14532D] text-emerald-100 border-b border-emerald-800/40 py-2 px-4 sm:px-8 text-xs font-medium">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
-          <div className="flex items-center space-x-2">
-            <ShieldCheck size={16} className="text-[#EAB308]" />
-            <span>
-              <strong className="text-white font-semibold">CMS Admin Engine:</strong> Live Navigation, Hero Slider CMS &amp; Product Management.
-            </span>
-          </div>
-          <div className="flex items-center space-x-4 text-[11px] font-bold">
-            <Link href="/admin/navigation" className="text-[#EAB308] hover:text-white flex items-center space-x-1 transition-colors">
-              <Layers size={13} />
-              <span>Menu Engine</span>
-            </Link>
-            <span className="text-emerald-700">|</span>
-            <Link href="/admin/products" className="text-[#EAB308] hover:text-white flex items-center space-x-1 transition-colors">
-              <FileText size={13} />
-              <span>Products CRUD</span>
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Today's Special Deals (Time-sale & Countdown) */}
-      <TodaysDeals products={products} />
-
-      {/* 3. Category Icons (Quick category circles) */}
-      <CategoryIcons products={products} />
-
-      {/* 4. Best Sellers Collection */}
-      <BestSellers products={products} />
-
-    </div>
-  );
+  const products=await getPublicProducts();
+  const featured=[...products.filter(p=>p.is_featured),...products.filter(p=>!p.is_featured)].slice(0,4);
+  return <main className="bg-[#fafaf8]">
+    <section className="border-b border-green-900/10 bg-[#eef2eb] px-4 py-12 sm:px-6 lg:py-20"><div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1.1fr_1fr]">
+      <div className="self-center"><p className="text-xs font-bold tracking-[.2em] text-green-800">SONGFOOD · KOREAN FOOD SUPPLY</p><h1 className="mt-5 max-w-2xl text-4xl font-bold leading-tight text-green-950 sm:text-5xl">필요한 식품을,<br/>알맞은 공급 단위로.</h1><p className="mt-6 max-w-xl text-base leading-8 text-stone-600">국내 도매고객, 해외 바이어, 대용량 식품을 찾는 개인을 위한 카탈로그입니다. 상품별 포장·최소수량을 확인하고 구매 조건을 문의하세요.</p><Link href="/shop" className="mt-7 inline-block border-b border-green-800 pb-1 font-semibold text-green-900">전체 상품 살펴보기 →</Link></div>
+      <div className="grid gap-4"><Link href="/shop" className="group rounded-2xl bg-green-950 p-7 text-white shadow-sm"><p className="text-xs tracking-widest text-emerald-200">01 · DOMESTIC WHOLESALE</p><h2 className="mt-4 text-2xl font-bold">국내 도매·대용량 구매</h2><p className="mt-3 text-sm leading-7 text-emerald-100">개인·사업자 모두 가능 · EA / BOX / CTN<br/>상품 선택 → 구매함 → 공급·배송 조건 확인</p><span className="mt-6 block font-bold">국내 상품 찾기 →</span></Link>
+      <Link href="/shop?mode=export" className="group rounded-2xl border border-amber-300 bg-[#f2e6c9] p-7 text-stone-900"><p className="text-xs tracking-widest text-amber-900">02 · OVERSEAS BUYERS</p><h2 className="mt-4 text-2xl font-bold">K-Food Export RFQ</h2><p className="mt-3 text-sm leading-7">Select products in cartons, review MOQ and request FOB terms. A quotation is subject to review.</p><span className="mt-6 block font-bold">Explore export products →</span></Link></div>
+    </div></section>
+    <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6"><div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold tracking-widest text-green-800">CATALOGUE</p><h2 className="mt-2 text-2xl font-bold">공급 상품 둘러보기</h2></div><Link href="/shop" className="text-sm text-green-800 underline">전체 {products.length}개 상품</Link></div>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{featured.map(p=><article key={p.id} className="overflow-hidden rounded-xl border border-stone-200 bg-white"><Link href={'/products/'+encodeURIComponent(p.id)}><img src={p.image_url} alt={p.name} loading="lazy" className="aspect-[4/3] w-full object-cover"/></Link><div className="space-y-3 p-5"><p className="text-xs text-stone-500">{p.category} · {p.sku}</p><Link className="block font-bold leading-6" href={'/products/'+encodeURIComponent(p.id)}>{p.name}</Link><ProductPrice product={p}/></div></article>)}</div>
+    </section>
+    <section className="mx-auto grid max-w-7xl gap-7 border-t border-stone-200 px-4 py-12 sm:px-6 md:grid-cols-3">{[['01','이메일로 간편 가입','개인도 이용할 수 있습니다. 회사 정보와 사업자번호는 선택입니다.'],['02','포장·최소수량 확인','확인된 가격은 로그인 후 표시됩니다. 미확정 상품은 공급 조건을 문의해 주세요.'],['03','조건 검토 후 거래','국내 배송비와 해외 선적 조건을 확인합니다. RFQ 접수는 주문·결제 완료가 아닙니다.']].map(([n,title,body])=><div key={n}><p className="text-sm font-bold text-amber-800">{n}</p><h2 className="mt-2 text-lg font-bold">{title}</h2><p className="mt-3 text-sm leading-7 text-stone-600">{body}</p></div>)}</section>
+  </main>;
 }

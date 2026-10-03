@@ -1,102 +1,43 @@
 'use client';
-
-import React, { useState, useEffect } from 'react';
-import { getStoredExchangeRate, saveStoredExchangeRate, DEFAULT_EXCHANGE_RATE } from '@/lib/exchange-rate';
-import { RefreshCw, CheckCircle2, DollarSign } from 'lucide-react';
-
+import { useEffect, useState } from 'react';
+import type { ExchangeRate } from '@/lib/pricing/types';
 export default function ExchangeRateWidget() {
-  const [rate, setRate] = useState<number>(DEFAULT_EXCHANGE_RATE);
-  const [inputVal, setInputVal] = useState<string>('1450');
-  const [savedSuccess, setSavedSuccess] = useState(false);
-
-  useEffect(() => {
-    const current = getStoredExchangeRate();
-    setRate(current);
-    setInputVal(current.toString());
-  }, []);
-
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    const num = parseFloat(inputVal);
-    if (isNaN(num) || num < 500 || num > 3000) {
-      alert('유효한 환율 금액(예: 1450)을 입력해주세요.');
-      return;
-    }
-    saveStoredExchangeRate(num);
-    setRate(num);
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3000);
-  };
-
-  const handleReset = () => {
-    saveStoredExchangeRate(DEFAULT_EXCHANGE_RATE);
-    setRate(DEFAULT_EXCHANGE_RATE);
-    setInputVal(DEFAULT_EXCHANGE_RATE.toString());
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3000);
-  };
-
-  return (
-    <div className="bg-[#121218] border border-amber-500/40 rounded-2xl p-6 shadow-xl space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-stone-800 pb-4">
-        <div>
-          <div className="inline-flex items-center space-x-1.5 text-xs font-mono uppercase tracking-widest text-[#EAB308] bg-amber-950/60 border border-amber-500/30 px-2.5 py-0.5 rounded-full mb-1">
-            <DollarSign size={13} />
-            <span>DAILY USD / KRW EXCHANGE RATE</span>
-          </div>
-          <h3 className="text-lg font-bold text-white flex items-center space-x-2">
-            <span>💱 해외 수출 &amp; RFQ 일일 적용 환율 설정</span>
-          </h3>
-          <p className="text-xs text-stone-400">
-            해외바이어 RFQ 견적 신청 페이지 및 Pro Forma Invoice 발행 시 적용되는 환율입니다. (기본값: ₩1,450원)
-          </p>
-        </div>
-
-        <div className="text-right bg-stone-900 px-4 py-2 rounded-xl border border-stone-800 font-mono">
-          <span className="text-[10px] text-stone-400 block uppercase font-bold">현재 적용 환율</span>
-          <span className="text-xl font-extrabold text-[#EAB308]">₩{rate.toLocaleString()}원 / $1 USD</span>
-        </div>
-      </div>
-
-      <form onSubmit={handleSave} className="flex flex-col sm:flex-row items-center gap-3 pt-2">
-        <div className="relative flex-1 w-full">
-          <span className="absolute left-3 top-2.5 text-xs font-bold text-stone-400 font-mono">₩</span>
-          <input
-            type="number"
-            step="1"
-            value={inputVal}
-            onChange={(e) => setInputVal(e.target.value)}
-            className="w-full bg-[#0A0A0C] border border-stone-700 rounded-xl py-2 pl-8 pr-16 text-xs text-white font-bold font-mono focus:border-amber-400 focus:outline-none"
-            placeholder="1450"
-          />
-          <span className="absolute right-3 top-2.5 text-xs font-bold text-stone-400 font-mono">KRW / $1 USD</span>
-        </div>
-
-        <div className="flex items-center space-x-2 w-full sm:w-auto">
-          <button
-            type="submit"
-            className="flex-1 sm:flex-none px-5 py-2 bg-[#EAB308] hover:bg-amber-400 text-black font-extrabold rounded-xl text-xs transition-all shadow-md"
-          >
-            환율 변경 저장
-          </button>
-          <button
-            type="button"
-            onClick={handleReset}
-            className="px-3 py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-xl text-xs font-bold transition-all flex items-center space-x-1"
-            title="기본값 1,450원으로 초기화"
-          >
-            <RefreshCw size={13} />
-            <span>기본값(1,450원)</span>
-          </button>
-        </div>
-      </form>
-
-      {savedSuccess && (
-        <div className="text-xs text-emerald-400 font-bold flex items-center space-x-1.5 bg-emerald-950/40 border border-emerald-500/30 p-2.5 rounded-lg animate-in fade-in duration-200">
-          <CheckCircle2 size={14} />
-          <span>환율이 ₩{rate.toLocaleString()}원 / $1 USD로 성공적으로 저장되었습니다. RFQ 계산기에 즉시 반영됩니다.</span>
-        </div>
-      )}
-    </div>
-  );
+  const [now,setNow]=useState(()=>Date.now());
+  useEffect(()=>{const id=setInterval(()=>setNow(Date.now()),30000);return()=>clearInterval(id);},[]);
+  const [rates,setRates]=useState<ExchangeRate[]>([]);
+  const [allowed,setAllowed]=useState(false),[message,setMessage]=useState(''),[busy,setBusy]=useState(false);
+  useEffect(()=>{
+    const controller=new AbortController();
+    fetch('/api/admin/pricing',{cache:'no-store',signal:controller.signal}).then(async r=>{
+      const data=await r.json();if(!r.ok)throw new Error(data.error);setRates(data.rates);setAllowed(data.canApprove);
+    }).catch(e=>{if(e.name!=='AbortError')setMessage('환율 정보를 확인하지 못했습니다.');});
+    return ()=>controller.abort();
+  },[]);
+  async function save(e:React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();setBusy(true);setMessage('');
+    const form=Object.fromEntries(new FormData(e.currentTarget));
+    try {
+      const response=await fetch('/api/admin/pricing',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        action:'rate',...form,observed_at:new Date(String(form.observed_at)).toISOString(),valid_until:new Date(String(form.valid_until)).toISOString()})});
+      const result=await response.json();if(!response.ok)throw new Error(result.error);
+      setRates(old=>[result.data,...old].slice(0,30));setMessage('환율 승인과 이력을 저장했습니다.');
+    } catch(error) {setMessage(error instanceof Error?error.message:'환율을 저장하지 못했습니다.');}
+    finally {setBusy(false);}
+  }
+  const latest=rates[0],active=latest && Date.parse(latest.observed_at)<=now && Date.parse(latest.valid_until)>now;
+  return <section className="rounded-xl border border-stone-700 bg-stone-900 p-5">
+    <h2 className="text-xl font-bold text-white">USD 환율 관리</h2>
+    <p className="mt-3 text-sm text-stone-300">{active?'1 USD = '+latest.krw_per_usd+' KRW · '+latest.source:'승인된 유효 환율이 없습니다. 해외 자동 가격 계산이 중지됩니다.'}</p>
+    {latest && <p className="mt-2 text-xs text-stone-400">유효 종료: {new Date(latest.valid_until).toLocaleString('ko-KR')}</p>}
+    {allowed && <form onSubmit={save} className="mt-5 grid gap-3 sm:grid-cols-2">
+      <label className="text-sm">KRW / 1 USD<input name="krw_per_usd" type="number" min="0.000001" step="0.000001" required className="mt-1 w-full rounded border border-stone-600 bg-stone-950 p-2" /></label>
+      <label className="text-sm">출처<input name="source" required minLength={3} maxLength={1000} placeholder="실제 환율 출처와 기준" className="mt-1 w-full rounded border border-stone-600 bg-stone-950 p-2" /></label>
+      <label className="text-sm">기준시각<input name="observed_at" type="datetime-local" required className="mt-1 w-full rounded border border-stone-600 bg-stone-950 p-2" /></label>
+      <label className="text-sm">유효 종료 (기준시각부터 최대 7일)<input name="valid_until" type="datetime-local" required className="mt-1 w-full rounded border border-stone-600 bg-stone-950 p-2" /></label>
+      <label className="text-sm sm:col-span-2">승인 사유<input name="reason" required minLength={3} maxLength={1000} className="mt-1 w-full rounded border border-stone-600 bg-stone-950 p-2" /></label>
+      <button disabled={busy} className="rounded bg-amber-300 p-3 font-bold text-black disabled:opacity-50">{busy?'저장 중…':'환율 승인·적용'}</button>
+    </form>}
+    {message && <p role="status" className="mt-3 text-sm text-amber-200">{message}</p>}
+    <details className="mt-4"><summary className="cursor-pointer text-sm">최근 환율 이력 ({rates.length})</summary><ul className="mt-2 space-y-2 text-xs text-stone-400">{rates.map(r=><li key={r.id}>{r.krw_per_usd} KRW/USD · {r.source} · 기준 {new Date(r.observed_at).toLocaleString('ko-KR')}</li>)}</ul></details>
+  </section>;
 }

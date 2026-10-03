@@ -1,3 +1,4 @@
+import { readJson, ApiError, failure } from '@/lib/request-security';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireStaff } from '@/lib/admin-auth';
 import {
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest) {
     const activeTree = await getActiveMenusTree(position);
     return NextResponse.json({ success: true, data: activeTree });
   } catch (error) {
-    console.error('API GET /api/menus error:', error);
+    if (error instanceof ApiError) return failure(error);
     return NextResponse.json({ success: false, error: 'Failed to fetch menus' }, { status: 500 });
   }
 }
@@ -35,10 +36,10 @@ export async function PATCH(req: NextRequest) {
   const denied = await requireStaff(req, ['admin', 'product_staff']);
   if (denied) return denied;
   try {
-    const body = await req.json();
+    const body = await readJson(req, 131072);
     const { id, is_active } = body;
 
-    if (!id || typeof is_active !== 'boolean') {
+    if (typeof id !== 'string' || !id || typeof is_active !== 'boolean') {
       return NextResponse.json({ success: false, error: 'Invalid parameters' }, { status: 400 });
     }
 
@@ -49,7 +50,7 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('API PATCH /api/menus error:', error);
+    if (error instanceof ApiError) return failure(error);
     return NextResponse.json({ success: false, error: 'Failed to update menu' }, { status: 500 });
   }
 }
@@ -58,10 +59,15 @@ export async function POST(req: NextRequest) {
   const denied = await requireStaff(req, ['admin', 'product_staff']);
   if (denied) return denied;
   try {
-    const body = await req.json();
+    const body = await readJson(req, 131072);
     const { title, url, parent_id, sort_order, is_active, position, image_url } = body;
 
-    if (!title || !url) {
+    if (typeof title !== 'string' || typeof url !== 'string' || !title || !url
+      || (parent_id != null && typeof parent_id !== 'string')
+      || (sort_order != null && (typeof sort_order !== 'number' || !Number.isFinite(sort_order)))
+      || (is_active != null && typeof is_active !== 'boolean')
+      || (position != null && position !== 'header' && position !== 'footer' && position !== 'both')
+      || (image_url != null && typeof image_url !== 'string')) {
       return NextResponse.json({ success: false, error: 'Title and URL are required' }, { status: 400 });
     }
 
@@ -77,7 +83,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: newItem });
   } catch (error) {
-    console.error('API POST /api/menus error:', error);
+    if (error instanceof ApiError) return failure(error);
     return NextResponse.json({ success: false, error: 'Failed to create menu' }, { status: 500 });
   }
 }
@@ -96,7 +102,7 @@ export async function DELETE(req: NextRequest) {
     const ok = await deleteMenuItem(id);
     return NextResponse.json({ success: true, deleted: ok });
   } catch (error) {
-    console.error('API DELETE /api/menus error:', error);
+    if (error instanceof ApiError) return failure(error);
     return NextResponse.json({ success: false, error: 'Failed to delete menu' }, { status: 500 });
   }
 }

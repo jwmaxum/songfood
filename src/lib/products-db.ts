@@ -1,6 +1,9 @@
+import 'server-only';
+import { publicMinimums } from './pricing/repository';
+import { publicProduct } from './public-product';
 import localProducts from '../../data/products.json';
 import { ProductItem } from './types';
-import { supabaseAdmin, isSupabaseConfigured } from './supabase';
+import { supabaseAdmin, isSupabaseConfigured } from './supabase-admin';
 import { isValidProductCategory } from './product-taxonomy';
 
 const snapshot = localProducts as unknown as ProductItem[];
@@ -20,12 +23,12 @@ export type ProductFilters = {
 export async function getProducts(filters?: ProductFilters): Promise<ProductItem[]> {
   let products = snapshot;
   if (isSupabaseConfigured()) {
-    const { data, error } = await supabaseAdmin.from('products').select('*');
-    if (error) {
-      console.error('Supabase products read failed:', error.message);
-      throw error;
-    } else {
-      products = data as ProductItem[];
+    products=[];
+    for(let start=0;;start+=500) {
+      const {data,error}=await supabaseAdmin.from('products').select('*').order('id').range(start,start+499);
+      if(error)throw error;
+      products.push(...data as ProductItem[]);
+      if(data.length<500)break;
     }
   }
   if (!filters) return products;
@@ -40,7 +43,7 @@ export async function getProducts(filters?: ProductFilters): Promise<ProductItem
     if (filters.targetMarket?.length && !product.target_markets?.some((item) => filters.targetMarket?.includes(item))) return false;
     if (filters.search) {
       const query = filters.search.toLowerCase();
-      if (![product.name, product.name_en, product.description, product.collection, product.category, product.hs_code]
+      if (![product.sku, product.brand, product.name, product.name_en, product.description, product.collection, product.category, product.hs_code]
         .some((value) => value?.toLowerCase().includes(query))) return false;
     }
     return true;
@@ -51,7 +54,7 @@ export async function getProductById(id: string): Promise<ProductItem | null> {
   if (isSupabaseConfigured()) {
     const { data, error } = await supabaseAdmin.from('products').select('*').eq('id', id).maybeSingle();
     if (!error) return data as ProductItem | null;
-    console.error('Supabase product read failed:', error.message);
+    console.error('Product read failed');
     throw error;
   }
   return snapshot.find((product) => product.id === id) || null;
@@ -63,7 +66,7 @@ const DB_COLUMNS: Array<keyof ProductItem> = [
   'description', 'thickness', 'origin', 'is_featured', 'is_todays_deal', 'is_best_seller',
   'deal_discount_percent', 'brand', 'manufacturer', 'country_of_origin', 'net_weight',
   'package_size', 'shelf_life', 'storage', 'ingredients', 'allergens', 'certifications',
-  'carton_qty', 'wholesale_discount_rate', 'wholesale_price_krw', 'export_price_usd',
+  'carton_qty',
   'carton_size', 'gross_weight', 'cbm', 'moq_cartons', 'hs_code',
   'production_lead_time', 'export_packaging', 'loading_port', 'target_markets',
 ];
@@ -114,3 +117,12 @@ export async function deleteProduct(id: string): Promise<boolean> {
 
 export type { ProductItem } from './types';
 export type Product = ProductItem;
+
+export async function getPublicProducts(filters?: ProductFilters) {
+  const [products,minimums]=await Promise.all([getProducts(filters),isSupabaseConfigured()?publicMinimums():Promise.resolve({} as Awaited<ReturnType<typeof publicMinimums>>)]);
+  return products.map(product=>({...publicProduct(product),purchase_minimum:minimums[product.id]}));
+}
+export async function getPublicProductById(id: string) {
+  const [product,minimums]=await Promise.all([getProductById(id),isSupabaseConfigured()?publicMinimums():Promise.resolve({} as Awaited<ReturnType<typeof publicMinimums>>)]);
+  return product?{...publicProduct(product),purchase_minimum:minimums[id]}:null;
+}

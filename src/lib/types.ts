@@ -65,6 +65,7 @@ export interface JournalArticle {
 }
 
 export interface ProductItem {
+  purchase_minimum?: { unit: 'EA' | 'BOX' | 'CTN'; quantity: number };
   id: string;
   name: string;
   name_en?: string;

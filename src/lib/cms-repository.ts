@@ -1,4 +1,4 @@
-import { isSupabaseConfigured, supabaseAdmin } from './supabase';
+import { isSupabaseConfigured, supabaseAdmin } from './supabase-admin';
 
 type Table = 'menus' | 'hero_slides' | 'content_blocks' | 'journal_articles' | 'media_library';
 
@@ -14,7 +14,7 @@ export async function listCms<T>(table: Table, snapshot: T[]): Promise<T[]> {
     if (error) throw error;
     return data as T[];
   } catch (error) {
-    console.error(`[cms] ${table} read failed`, error);
+    console.error('CMS read failed');
     throw error;
   }
 }

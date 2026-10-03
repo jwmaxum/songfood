@@ -1,6 +1,7 @@
+import { readJson, failure } from '@/lib/request-security';
 import { NextRequest, NextResponse } from 'next/server';
 import { getStaffIdentity, requireStaff } from '@/lib/admin-auth';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,15 +16,16 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   const denied = await requireStaff(request, ['admin']);
   if (denied) return denied;
-  const body = await request.json();
+  let body;
+  try { body = await readJson(request,4096); } catch(error) { return failure(error); }
   if (typeof body.id !== 'string' || !/^[0-9a-f-]{36}$/i.test(body.id)) return NextResponse.json({ error: '직원 ID가 올바르지 않습니다.' }, { status: 400 });
   const update: Record<string, string> = {};
   if (body.role !== undefined) {
-    if (!['admin', 'product_staff', 'inquiry_staff', 'order_staff', 'viewer'].includes(body.role)) return NextResponse.json({ error: '역할이 올바르지 않습니다.' }, { status: 400 });
+    if (typeof body.role !== 'string' || !['admin', 'product_staff', 'inquiry_staff', 'order_staff', 'viewer'].includes(body.role)) return NextResponse.json({ error: '역할이 올바르지 않습니다.' }, { status: 400 });
     update.role = body.role;
   }
   if (body.status !== undefined) {
-    if (!['active', 'suspended'].includes(body.status)) return NextResponse.json({ error: '상태가 올바르지 않습니다.' }, { status: 400 });
+    if (typeof body.status !== 'string' || !['active', 'suspended'].includes(body.status)) return NextResponse.json({ error: '상태가 올바르지 않습니다.' }, { status: 400 });
     update.status = body.status;
   }
   if (!Object.keys(update).length) return NextResponse.json({ error: '변경할 값이 없습니다.' }, { status: 400 });

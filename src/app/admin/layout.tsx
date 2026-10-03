@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const token = (await cookies()).get('sf_admin_access')?.value;
-  const staff = token ? await getStaffIdentity(new Request('https://admin.local/', { headers: { Authorization: `Bearer ${token}` } })) : null;
+  const staff = token ? await getStaffIdentity(new Request('https://admin.local/', { headers: { Cookie: `sf_admin_access=${token}` } })) : null;
   if (!staff) return <AdminLogin />;
   return <AdminShell email={staff.email} role={staff.role}>{children}</AdminShell>;
 }
