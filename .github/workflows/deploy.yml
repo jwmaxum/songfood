@@ -26,6 +26,8 @@ jobs:
         run: npm run lint:crm
       - name: Proforma Invoice lint
         run: npm run lint:pi
+      - name: Domestic order workflow lint
+        run: npm run lint:orders
       - name: Unit and authorization tests
         run: npm test -- --runInBand
       - name: Type check

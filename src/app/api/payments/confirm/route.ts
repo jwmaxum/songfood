@@ -1,6 +1,6 @@
 import { json } from '@/lib/request-security';
 export const dynamic = 'force-dynamic';
-// B2B-06 must implement server-owned orders, amount verification and idempotent settlement first.
+// Bank deposits are confirmed only by authorized staff through the order transaction RPC.
 export async function POST() {
-  return json({ success: false, error: '온라인 결제는 아직 제공하지 않습니다. 도매 주문 문의를 이용해 주세요.' }, 503);
+  return json({ success: false, error: '카드 결제는 제공하지 않습니다. 내 주문에서 확정 금액과 계좌입금 안내를 확인해 주세요.' }, 503);
 }

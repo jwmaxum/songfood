@@ -1,3 +1,5 @@
+> 후속 배포 기록 (2026-10-03): 08e7aec의 GitHub CI와 Cloudflare 자동 배포 성공을 확인했고, 새 운영 앱 확인 후 legacy 직접 DB 접근 차단을 적용했다. 본문 중 미푸시/권한 대기 기록은 당시 이력이다. 실제 승인 SKU 기반 원격 PI 발행·다운로드 인수는 별도로 남아 있다. 현재 결과는 [배포 안내](CLOUDFLARE_GIT_DEPLOYMENT.md), [6단계 기록](B2B_06_IMPLEMENTATION.md)을 따른다.
+
 # B2B 5단계 — Proforma Invoice 구현·검증 기록
 
 - 단계: B2B-05 / 작업일: 2026-10-03 (Asia/Seoul)

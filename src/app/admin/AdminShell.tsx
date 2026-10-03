@@ -16,7 +16,7 @@ const NAVIGATION = [
   { href: '/admin/journal', label: '저널' },
   { href: '/admin/media', label: '미디어' },
   { href: '/admin/crm', label: 'RFQ·도매 문의' },
-  { href: '/admin/orders', label: '주문' },
+  { href: '/admin/orders', label: '주문·입금·출고' },
   { href: '/admin/companies', label: '회사·담당자 관리' },
   { href: '/admin/users', label: '직원 권한' },
   { href: '/admin/account', label: '내 계정' },

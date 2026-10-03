@@ -54,7 +54,7 @@ Cloudflare와 GitHub Actions는 각각 시작되므로 GitHub CI 결과를 기�
 ## 최초 1~5단계 운영 전환
 
 - 회원·가격·CRM·PI 추가형 SQL은 이미 적용돼 있다.
-- 기존 직접 DB 접근 차단 파일 supabase/migrations/20260930_b2b_legacy_access_lockdown.sql은 **새 앱 배포 성공과 연동해** 적용해야 한다. 아직 미적용이며 구 운영 앱에 단독 적용하지 않는다.
+- 기존 직접 DB 접근 차단 파일 supabase/migrations/20260930_b2b_legacy_access_lockdown.sql은 **새 앱 배포 성공과 연동해** 적용해야 한다. 2026-10-03 새 앱 배포 확인 후 적용 완료했다. 전후 상품 API 200, 비로그인 PI API 401 및 직접 접근 차단을 검증했다.
 - 먼저 새 앱 배포와 실제 API 상태를 확인하고, 권한 차단 적용 후 상품/API·회원/직원 권한을 다시 확인한다.
 - Supabase 인증 Redirect URLs에 운영 /account/confirmed 경로가 허용되어 있는지 확인한다.
 - 실제 승인 SKU/환율, 판매자/송금정보, 실계정 인수, 기존 lint/의존성 보안 문제는 개발 배포와 별도 출시 과제로 남는다.
@@ -114,3 +114,9 @@ API token의 표시 이름만으로 권한 오류를 단정하지 않는다. 실
 GitHub Worker 빌드에는 공개용 테스트 설정과 실제 연결되지 않는 .invalid Supabase 주소를 주입한다. 이전의 모든 설정이 없는 빌드는 로컬 데이터 대체 경로를 사용해 이 문제를 발견하지 못했다. 앞으로는 공개 설정이 있으면서 서버 키가 없는 조건에서도 빌드 성공을 검증한다. 관리자 페이지 두 곳의 비인가 접근, 허가된 상품별 조회, 없는 상품의 404 처리를 회귀 테스트로 확인한다.
 
 수정 검증: 47개 테스트 묶음·340개 테스트 통과, B2B 범위 lint 오류 0(기존 이미지 경고 5건). 서버 키를 빈 값으로 고정하고 공개 Supabase 설정을 테스트 값으로 주입한 Next.js 컴파일·TypeScript·페이지 데이터 수집·OpenNext Worker 번들 생성까지 성공했다. 관리자 라벨 두 경로는 요청 시 렌더링되는 동적 경로로 확인했다.
+
+## 자동 배포 정상화 및 6단계 연결 (2026-10-03)
+
+08e7aec의 GitHub CI 및 Cloudflare build de79e595-b505-4de5-9202-dec66dcbff28 성공을 확인했다. Build command의 build:cloudflar alias와 서버 비밀키 없는 빌드는 정상 동작하며 Deploy command 앞의 잘못된 파이프(|)가 제거된 뒤 배포됐다. Workers 프로젝트의 표시 형태는 Pages와 다르지만 Git 자동 배포가 정상 동작한다.
+
+6단계는 lint:orders와 주문 권한/금액/상태 테스트를 Cloudflare Build command 및 GitHub CI에 포함한다. 추가 환경변수는 없으며 기존 Supabase 런타임 비밀키를 사용한다. 실제 국내 계좌는 관리자 → 주문·입금·출고 → 국내 계좌입금 설정에서 저장한다. 상세는 [6단계 구현 기록](B2B_06_IMPLEMENTATION.md)을 따른다.

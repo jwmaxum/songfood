@@ -16,7 +16,7 @@ export default function CartContents() {
   })}</div>
     {loading&&<p role="status">현재 조건으로 가격을 다시 확인하고 있습니다…</p>}
     {error&&<p role="status" className="rounded bg-amber-50 p-4 text-sm text-amber-950">{error}</p>}
-    {preview&&<section className="rounded-xl bg-stone-100 p-5 text-stone-900"><p>공급가액 {formatMoney(preview.net_minor,'KRW')}</p><p className="mt-2">VAT {formatMoney(preview.tax_minor,'KRW')}</p><p className="mt-3 text-lg font-bold">상품 합계 {formatMoney(preview.total_minor,'KRW')}</p><p className="mt-3 text-xs">서버에서 확인한 상품 금액입니다. 배송비는 별도 협의하며 주문·결제는 아직 확정되지 않았습니다.</p></section>}
-    <div className="flex flex-wrap gap-3"><Link onClick={()=>setIsCartOpen(false)} href="/wholesale" className="rounded bg-green-900 px-5 py-3 text-white">개인·도매 구매 문의</Link><Link onClick={()=>setIsCartOpen(false)} href='/shop?mode=export' className="rounded border px-5 py-3">해외 상품·RFQ 선택</Link></div>
+    {preview&&<section className="rounded-xl bg-stone-100 p-5 text-stone-900"><p>공급가액 {formatMoney(preview.net_minor,'KRW')}</p><p className="mt-2">VAT {formatMoney(preview.tax_minor,'KRW')}</p><p className="mt-3 text-lg font-bold">상품 합계 {formatMoney(preview.total_minor,'KRW')}</p><p className="mt-3 text-xs">서버에서 확인한 상품 금액입니다. 배송비는 주문 접수 후 확인하며, 최종 금액 확인 전에는 입금하지 않습니다.</p></section>}
+    <div className="flex flex-wrap gap-3"><Link onClick={()=>setIsCartOpen(false)} href="/checkout" className="rounded bg-green-900 px-5 py-3 text-white">국내 주문 접수</Link><Link onClick={()=>setIsCartOpen(false)} href='/shop?mode=export' className="rounded border px-5 py-3">해외 상품·RFQ 선택</Link></div>
   </div>;
 }

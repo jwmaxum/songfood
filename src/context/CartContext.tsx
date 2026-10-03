@@ -42,8 +42,20 @@ function useCartState() {
     if(!Number.isInteger(quantity)||quantity<1||quantity>100000)return;
     setCartItems(old=>old.map(i=>cartKey(i)===key?{...i,quantity}:i));
   }
+  function addOrderItems(rows:{product:ProductItem;unit:TradeUnit;quantity:number}[]) {
+    const next=[...cartItems];
+    for(const row of rows){
+      if(!Number.isInteger(row.quantity)||row.quantity<1||row.quantity>100000)throw new Error('재주문 수량을 확인해 주세요.');
+      const item:CartItem={product:row.product,quantity:row.quantity,purchaseType:row.unit==='BOX'?'box':row.unit==='CTN'?'carton':'ea'};
+      const index=next.findIndex(i=>cartKey(i)===cartKey(item));
+      if(index>=0){const quantity=next[index].quantity+row.quantity;if(quantity>100000)throw new Error('구매함의 기존 수량과 합산하면 최대 수량을 넘습니다.');next[index]={...next[index],quantity};}
+      else next.push(item);
+    }
+    if(next.length>100)throw new Error('구매함은 최대 100행입니다. 기존 상품을 정리해 주세요.');
+    setCartItems(next);
+  }
   const price=usePricePreview(cartItems.map(i=>({product_id:i.product.id,unit:cartUnit(i),quantity:i.quantity})));
-  return {cartItems,isCartOpen,setIsCartOpen,addToCart,removeFromCart,updateQuantity,clearCart:()=>setCartItems([]),...price};
+  return {cartItems,isCartOpen,setIsCartOpen,addToCart,addOrderItems,removeFromCart,updateQuantity,clearCart:()=>setCartItems([]),...price};
 }
 const CartContext=createContext<ReturnType<typeof useCartState>|null>(null);
 export function CartProvider({children}:{children:React.ReactNode}) {return <CartContext.Provider value={useCartState()}>{children}</CartContext.Provider>;}

@@ -21,6 +21,8 @@ async function check() {
   if(crm.error || !crm.data) throw new Error('B2B-04 migration is not verified');
   const pi = await client.from('b2b_schema_versions').select('id').eq('id','20261003150000_b2b_proforma').maybeSingle();
   if(pi.error || !pi.data) throw new Error('B2B-05 migration is not verified');
+  const orders = await client.from('b2b_schema_versions').select('id').eq('id','20261003190000_b2b_orders').maybeSingle();
+  if(orders.error || !orders.data) throw new Error('B2B-06 migration is not verified');
   console.log('B2B environment and migration marker verified. Email delivery and role/RLS integration still require the acceptance checklist.');
 }
 if(require.main === module) check().catch(error => { console.error(error.message); process.exitCode=1; });
