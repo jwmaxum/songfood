@@ -104,3 +104,13 @@ API token의 표시 이름만으로 권한 오류를 단정하지 않는다. 실
 정식 Build command는 npm ci --legacy-peer-deps && npm run build:cloudflare다. 현재 대시보드 명령에서도 자동 배포를 진행할 수 있도록 package.json의 build:cloudflar를 npm run build:cloudflare로 연결하는 호환 명령을 추가했다. 기존 환경변수 검사, lint, 테스트와 Worker 빌드 전체를 그대로 수행한다. 대시보드 명령을 정식 철자로 수정한 뒤 호환 명령 제거를 검토할 수 있다.
 
 같은 7ada669의 GitHub CI는 성공했다. Cloudflare 빌드 토큰과 별개로 제공된 계정 API 토큰은 유효하지만 Builds 및 Worker 조회에서 401을 반환했다. 계정 토큰이나 런타임 비밀값은 저장소에 포함하지 않았다.
+
+## 관리자 라벨 페이지의 빌드 시 DB 조회 제거
+
+오타 복구 후 ee18747의 Cloudflare 빌드는 Next.js 컴파일과 TypeScript 검사를 통과했으나 /admin/labels/[productId]의 페이지 데이터 수집에서 Invalid API key로 실패했다. 관리자 라벨 편집과 사양서 페이지에 남아 있던 generateStaticParams가 상품 목록을 빌드 중 조회했다. 공개 Supabase 설정이 있어 DB 분기를 탔지만 빌드에는 서버 키가 없어 실패한 것이다.
+
+두 관리자 페이지의 정적 경로 생성 함수를 제거했다. 기존 동적 관리자 레이아웃과 각 페이지의 staffPageAccess 검사는 유지하며, 권한 확인 후 해당 상품과 라벨만 요청 시점에 읽는다. SUPABASE_SERVICE_ROLE_KEY는 계속 Worker Runtime Secret에만 둔다. 빌드 중 Wrangler의 서버 키 누락 경고는 런타임 설정과 구분하며, 경고를 없애기 위해 비밀키를 Build 변수에 추가하지 않는다.
+
+GitHub Worker 빌드에는 공개용 테스트 설정과 실제 연결되지 않는 .invalid Supabase 주소를 주입한다. 이전의 모든 설정이 없는 빌드는 로컬 데이터 대체 경로를 사용해 이 문제를 발견하지 못했다. 앞으로는 공개 설정이 있으면서 서버 키가 없는 조건에서도 빌드 성공을 검증한다. 관리자 페이지 두 곳의 비인가 접근, 허가된 상품별 조회, 없는 상품의 404 처리를 회귀 테스트로 확인한다.
+
+수정 검증: 47개 테스트 묶음·340개 테스트 통과, B2B 범위 lint 오류 0(기존 이미지 경고 5건). 서버 키를 빈 값으로 고정하고 공개 Supabase 설정을 테스트 값으로 주입한 Next.js 컴파일·TypeScript·페이지 데이터 수집·OpenNext Worker 번들 생성까지 성공했다. 관리자 라벨 두 경로는 요청 시 렌더링되는 동적 경로로 확인했다.

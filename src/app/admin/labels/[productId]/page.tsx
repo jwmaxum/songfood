@@ -1,18 +1,12 @@
 import { staffPageAccess } from '@/lib/staff-page';
 import React from 'react';
 import { notFound } from 'next/navigation';
-import { getProducts, getProductById } from '@/lib/products-db';
+import { getProductById } from '@/lib/products-db';
 import { getFoodLabelsByProductId } from '@/lib/labels-db';
 import { FoodLabel, ExportCountry } from '@/types/label';
 import LabelStudioClient from '@/components/admin/labels/LabelStudioClient';
 
-// Next.js output: export 정적 경로 사전 생성
-export async function generateStaticParams() {
-  const products = await getProducts();
-  return products.map((p) => ({
-    productId: p.id,
-  }));
-}
+// Load staff-only product data per request, after the access check.
 
 // 기본 5대국 템플릿 생성기
 function createDefaultLabels(productId: string, product: any): Record<ExportCountry, FoodLabel> {

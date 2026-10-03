@@ -30,5 +30,9 @@ jobs:
         run: npm test -- --runInBand
       - name: Type check
         run: npm run typecheck
-      - name: Build Cloudflare Worker (no live credentials)
+      - name: Build Cloudflare Worker (public config without server secrets)
+        env:
+          NEXT_PUBLIC_APP_URL: https://song-food.jwmaxum.workers.dev
+          NEXT_PUBLIC_SUPABASE_URL: https://supabase-build.example.invalid
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_build_fixture_only_no_access
         run: npm run build:worker
