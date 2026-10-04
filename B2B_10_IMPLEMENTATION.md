@@ -91,7 +91,7 @@
 - 브라우저: loopback 전용 Supabase stand-in, 가짜 키/세션/거래 자료. 외부 요청 차단과 알 수 없는 API 호출 검사를 사용한다. 실제 이메일이나 운영 주문은 만들지 않는다.
 - Windows에서 QA dev 서버가 Worker 출력 폴더를 사용하는 동안 첫 Worker 빌드는 EPERM 파일 잠금으로 중단됐다. QA 서버 종료 후 재실행한 전체 Worker 빌드는 성공했다. 개발 QA 캐시의 API 컴파일 오류는 생성 캐시 정리 후 운영 빌드 브라우저 검사로 검증했다.
 - 운영 dependency audit 취약점 0. 커밋할 변경 파일의 실제 비밀값·토큰 패턴, CJS 구문 및 diff 공백 검사가 통과했다. 공개 프로젝트 ID는 비밀키로 분류하지 않는다.
-- 원격 배포·운영 HTTP·공개 API 권한의 결과는 최종 기록에 추가한다.
+- GitHub CI 및 Cloudflare 자동 배포 성공, 실제 운영 HTTP 8개 점검 통과. 아래 최종 소스 기록 참조.
 
 ## 6. 실제 오픈 전 남은 조건
 
@@ -126,3 +126,14 @@ Pro 전환 후 독립 스테이징·복구 검증은 9단계 후속으로 이어
 - [Nodemailer SMTP·verify](https://nodemailer.com/smtp)
 - [Nodemailer 공식 저장소](https://github.com/nodemailer/nodemailer)
 - [Gmail 발송 제한](https://support.google.com/mail/answer/22839?hl=en)
+
+## 9. 최종 소스 배포 기록
+
+- GitHub 소스: [9208be81ce2559114b71e67183233c715b25a07f](https://github.com/jwmaxum/songfood/commit/9208be81ce2559114b71e67183233c715b25a07f).
+- [GitHub CI 37169079886](https://github.com/jwmaxum/songfood/actions/runs/37169079886) **success**. 실제 로그에서 64개 단위 묶음/508개 테스트, Linux 운영 빌드 브라우저 **20개 통과**를 확인했다.
+- [Cloudflare build 444e5bbd-15e8-438e-b02a-615305f3fa8e](https://dash.cloudflare.com/7c88b2d2b3fe9baf32dc744ac0a631b3/workers/services/view/song-food/production/builds/444e5bbd-15e8-438e-b02a-615305f3fa8e) **success**. GitHub Workers Builds check와 소스 SHA를 대조했다.
+- [운영 Worker](https://song-food.jwmaxum.workers.dev) 2026-10-04 **10:53:19 KST**: health 200, 한영 상품 화면 200 및 HTML 언어 일치, 비회원 주문/PI 401, 관리자 launch/mail/releases 403. 8개 읽기 전용 점검 통과.
+- Edge relay ACTIVE **version 9**. 실제 Gmail SMTP TLS·인증 성공 및 비공개 대상 origin 확인. 무인증 요청 401, 공개 anon 키 요청 403. 서비스키·SMTP 비밀번호는 응답에 출력하지 않았다.
+- 테스트 후 상품 53/승인 가격 0/출시 승인 0/실제 이메일 이벤트 0/거래 제한 비활성 유지.
+- 로컬 개발 서버를 http://127.0.0.1:3000에서 다시 실행했다.
+- 이 배포 기록을 추가하는 후속 문서 커밋은 같은 코드에 문서만 추가하며 GitHub/Cloudflare는 새 SHA로 다시 검사한다.
