@@ -2,8 +2,10 @@ import { POST as emailLink } from '@/app/api/auth/email/route';
 import { POST as verify } from '@/app/api/auth/verify/route';
 import { POST as signup } from '@/app/api/auth/signup/route';
 import { createAuthClient, supabaseAdmin } from '@/lib/supabase-admin';
+import {getStaffIdentity} from '@/lib/admin-auth';
 import { createSession } from '@/lib/auth-session';
 import { parseCommercialInquiry } from '@/lib/commercial-inquiry';
+jest.mock('@/lib/admin-auth',()=>({getStaffIdentity:jest.fn()}));
 jest.mock('@/lib/supabase-admin',()=>({
   isAuthConfigured:()=>true, createAuthClient:jest.fn(),
   supabaseAdmin:{rpc:jest.fn(),from:jest.fn()},
@@ -17,6 +19,7 @@ const req=(path:string,body:object,origin='https://shop.example')=>new Request('
 });
 beforeEach(()=>{
   jest.clearAllMocks();
+  (getStaffIdentity as jest.Mock).mockResolvedValue(null);
   (createAuthClient as jest.Mock).mockReturnValue({auth:{signInWithOtp,getUser}});
   (supabaseAdmin.rpc as jest.Mock).mockResolvedValue({data:true,error:null});
   signInWithOtp.mockResolvedValue({error:null});
@@ -60,4 +63,19 @@ test('verified customer activates immediately without company and cannot claim s
 test('personal bulk inquiry accepts no company and no business number',()=>{
   expect(parseCommercialInquiry({kind:'domestic_wholesale',contact_name:'개인 구매자',email:'buyer@example.com',phone:'01012345678'}))
     .toMatchObject({company:'개인 구매',business_registration_no:null});
+});
+
+test('staff email login reuses approved customer callback and never creates Auth users',async()=>{
+ expect((await emailLink(req('/api/auth/email',{email:'staff@example.com',audience:'staff',language:'ko'}))).status).toBe(202);
+ expect(signInWithOtp).toHaveBeenCalledWith({email:'staff@example.com',options:{shouldCreateUser:false,emailRedirectTo:'https://shop.example/account/confirmed?lang=ko'}});
+});
+test('invalid audience cannot request an email or create a staff account',async()=>{
+ expect((await emailLink(req('/api/auth/email',{email:'staff@example.com',audience:'super_admin'}))).status).toBe(400);
+ expect(signInWithOtp).not.toHaveBeenCalled();
+});
+test('only server-verified registered staff receives an additional staff session',async()=>{
+ getUser.mockResolvedValue({data:{user:{id:'employee',email:'staff@example.com',email_confirmed_at:'2026-01-01',user_metadata:{}}},error:null});
+ (getStaffIdentity as jest.Mock).mockResolvedValue({id:'employee',email:'staff@example.com',role:'order_staff'});
+ const q={upsert:jest.fn().mockResolvedValue({error:null}),select:jest.fn().mockReturnThis(),eq:jest.fn().mockReturnThis(),single:jest.fn().mockResolvedValue({data:{status:'active'},error:null})};(supabaseAdmin.from as jest.Mock).mockReturnValue(q);
+ const r=await verify(req('/api/auth/verify',{accessToken:'not-a-real-token-1234567890'}));expect(r.status).toBe(200);expect(await r.json()).toMatchObject({staff:true});expect(createSession).toHaveBeenCalledWith(expect.any(Request),expect.anything(),'employee','staff');
 });

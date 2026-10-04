@@ -33,7 +33,7 @@ export default function ConfirmedPage() {
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || ui("인증을 완료하지 못했습니다."));
         await refresh();
-        router.replace(localizedHref('/account',language));
+        router.replace(result.staff?'/admin':localizedHref('/account',language));
       } catch (error) { setMessage(error instanceof Error ? error.message : ui("서버에 연결하지 못했습니다.")); }
     }
     void finish();

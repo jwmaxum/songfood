@@ -7,10 +7,12 @@ export async function POST(request: Request) {
     requireSameOrigin(request);
     const body = await readJson(request, 4096);
     const email = emailField(body.email);
+    if(body.audience!==undefined&&!['customer','staff'].includes(String(body.audience)))throw new ApiError(400,'인증 대상을 확인해 주세요.');
+    const staff=body.audience==='staff';
     await rateLimit(request, 'email-link-ip', 10, 3600);
     await rateLimit(request, 'email-link-address', 1, 60, email);
     const { error } = await createAuthClient().auth.signInWithOtp({
-      email, options: { shouldCreateUser: true,
+      email, options: { shouldCreateUser: !staff,
         emailRedirectTo: new URL(body.language===undefined?'/account/confirmed':localizedHref('/account/confirmed',localeOf(body.language)), applicationOrigin(request)).toString() },
     });
     if (error) {

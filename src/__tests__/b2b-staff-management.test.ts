@@ -1,0 +1,22 @@
+import {GET,POST,PATCH,DELETE} from '@/app/api/admin/users/route';
+import {opsStaff} from '@/lib/operations/repository';
+import {supabaseAdmin} from '@/lib/supabase-admin';
+import {staffMutation,staffError,isSuperAdmin} from '@/lib/staff-management';
+import {ApiError} from '@/lib/request-security';
+jest.mock('@/lib/operations/repository',()=>({opsStaff:jest.fn()}));
+jest.mock('@/lib/supabase-admin',()=>({supabaseAdmin:{rpc:jest.fn()},isAuthConfigured:()=>true}));
+const id='00000000-0000-4000-8000-000000000101';
+const registration={email:'Employee@Example.invalid',name:'운영 직원',role:'order_staff',reason:'운영 담당 등록'};
+const update={id,revision:1,name:'운영 직원',role:'inquiry_staff',status:'active',reason:'업무 배정 수정'};
+function req(method:string,body:unknown){return new Request('https://example.invalid/api/admin/users',{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}
+beforeEach(()=>{jest.clearAllMocks();jest.mocked(opsStaff).mockResolvedValue({id:'chief',email:'jwmaxum@gmail.com',role:'admin'});(supabaseAdmin.rpc as jest.Mock).mockImplementation(async (name:string)=>({data:name==='b2b_is_super_admin'?true:name==='b2b_consume_rate_limit'?true:{data:[],super_admin_id:'chief',events:[]},error:null}) as never);});
+test('unauthorized access never reads staff or Auth',async()=>{jest.mocked(opsStaff).mockRejectedValue(new ApiError(403,'denied'));for(const handler of [GET,POST,PATCH,DELETE])expect((await handler(req('POST',registration))).status).toBe(403);expect(supabaseAdmin.rpc).not.toHaveBeenCalled();});
+test('business subadmin cannot register, edit or delete any staff',async()=>{jest.mocked(supabaseAdmin.rpc).mockResolvedValue({data:false,error:null} as never);for(const handler of [POST,PATCH,DELETE])expect((await handler(req('POST',registration))).status).toBe(403);expect(jest.mocked(supabaseAdmin.rpc).mock.calls.every(([n])=>n==='b2b_is_super_admin')).toBe(true);});
+test('chief registration binds authenticated actor and canonical email without sending mail',async()=>{const r=await POST(req('POST',registration));expect(r.status).toBe(201);expect(r.headers.get('cache-control')).toBe('no-store');expect(supabaseAdmin.rpc).toHaveBeenCalledWith('b2b_manage_staff',{p_actor:'chief',p_action:'register',p_id:null,p_email:'employee@example.invalid',p_revision:null,p_name:'운영 직원',p_role:'order_staff',p_status:'active',p_reason:'운영 담당 등록'});});
+test('chief deletion requires confirmation and expected revision',async()=>{expect((await DELETE(req('DELETE',{id,revision:1,reason:'권한 회수 사유'}))).status).toBe(400);expect((await DELETE(req('DELETE',{id,revision:1,confirmed:true,reason:'권한 회수 사유'}))).status).toBe(200);expect(supabaseAdmin.rpc).toHaveBeenCalledWith('b2b_manage_staff',expect.objectContaining({p_action:'remove',p_id:id,p_revision:1,p_role:null}));});
+test('roster is chief-only in DB and provider failures never disclose details',async()=>{jest.mocked(supabaseAdmin.rpc).mockResolvedValue({data:null,error:{code:'42501',message:'private email/password'}} as never);const r=await GET(new Request('https://example.invalid'));expect(r.status).toBe(403);expect(await r.text()).not.toContain('password');});
+test('stale updates return conflict and do not overwrite',async()=>{(supabaseAdmin.rpc as jest.Mock).mockImplementation(async (name:string)=>({data:name==='b2b_is_super_admin'||name==='b2b_consume_rate_limit'?true:null,error:name==='b2b_manage_staff'?{code:'40001'}:null}) as never);expect((await PATCH(req('PATCH',update))).status).toBe(409);});
+test.each([{role:'viewer'},{role:'super_admin'},{name:'<script>'},{reason:'x'},{id},{email:'no-email'},{confirmed:true},{name:'x\nsecond'}])('registration rejects invalid or privilege-injected fields %j',patch=>{expect(()=>staffMutation({...registration,...patch},'register')).toThrow(ApiError);});
+test.each([{revision:0},{revision:1.5},{id:'not-a-uuid'},{status:'pending'},{email:'other@example.invalid'},{actor:'spoof'}])('update rejects invalid fields %j',patch=>{expect(()=>staffMutation({...update,...patch},'update')).toThrow(ApiError);});
+test.each([['42501',403],['40001',409],['23505',409],['22023',400],['P0002',404],['private',503]])('DB rejection %s has safe status %s',(code,status)=>{expect(()=>staffError({code})).toThrow(expect.objectContaining({status}));});
+test('super administrator lookup fails closed on provider error',async()=>{jest.mocked(supabaseAdmin.rpc).mockResolvedValue({data:true,error:{code:'bad'}} as never);await expect(isSuperAdmin('chief')).rejects.toMatchObject({status:503});});

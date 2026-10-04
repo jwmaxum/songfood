@@ -8,7 +8,7 @@ BEGIN
  INSERT INTO auth.users(id,email,aud,role,email_confirmed_at,created_at,updated_at) SELECT u,u||'@example.invalid','authenticated','authenticated',now(),now(),now() FROM unnest(ARRAY[a,s])u;
  INSERT INTO public.user_profiles(id,email,name,role,status) VALUES(a,a||'@example.invalid','QA admin','admin','active'),(s,s||'@example.invalid','QA staff','product_staff','active');
  SELECT * INTO c FROM public.b2b_service_controls WHERE id=true;
- v:=jsonb_build_object('inquiries_paused',true,'orders_paused',true,'pi_paused',true,'owner','QA rollback operator','response_minutes',30);
+ v:=jsonb_build_object('inquiries_paused',true,'orders_paused',true,'pi_paused',true,'owner_id',a,'response_minutes',30);
  BEGIN PERFORM public.b2b_save_service_controls(s,c.revision,v,'QA role denied');RAISE EXCEPTION 'staff bypass';EXCEPTION WHEN insufficient_privilege THEN NULL;END;
  result:=public.b2b_save_service_controls(a,c.revision,v,'QA pause all new trades');
  IF NOT result.inquiries_paused OR NOT result.orders_paused OR NOT result.pi_paused THEN RAISE EXCEPTION 'pause lost';END IF;

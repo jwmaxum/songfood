@@ -26,7 +26,7 @@ const NAVIGATION = [
  {group:'콘텐츠·신뢰자료',href:'/admin/navigation',label:'사이트 메뉴'},
  {group:'콘텐츠·신뢰자료',href:'/admin/journal',label:'저널'},
  {group:'콘텐츠·신뢰자료',href:'/admin/media',label:'미디어'},
- {group:'직원·감사',href:'/admin/users',label:'직원 권한'},
+ {group:'직원·감사',href:'/admin/users',label:'하위관리자·권한'},
  {group:'직원·감사',href:'/admin/audit',label:'감사 이력'},
  {group:'계정',href:'/admin/account',label:'내 계정'},
 ];

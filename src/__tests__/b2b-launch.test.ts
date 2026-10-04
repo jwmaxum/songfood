@@ -11,8 +11,8 @@ import type {LaunchFacts,ServiceControls} from '@/lib/launch/types';
 jest.mock('@/lib/operations/repository',()=>({opsStaff:jest.fn()}));
 jest.mock('@/lib/business-settings-server',()=>({getBusinessSettings:jest.fn()}));
 jest.mock('@/lib/supabase-admin',()=>({supabaseAdmin:{rpc:jest.fn(),from:jest.fn()},isAuthConfigured:jest.fn(()=>true)}));
-const controls:ServiceControls={revision:1,inquiries_paused:false,orders_paused:false,pi_paused:false,owner:'',response_minutes:null,updated_at:'2026-10-04T00:00:00Z'};
-const state={inquiries_paused:false,orders_paused:false,pi_paused:false,owner:'운영 담당',response_minutes:30};
+const controls:ServiceControls={revision:1,inquiries_paused:false,orders_paused:false,pi_paused:false,owner:'',owner_id:null,response_minutes:null,updated_at:'2026-10-04T00:00:00Z'};
+const state={inquiries_paused:false,orders_paused:false,pi_paused:false,owner_id:'00000000-0000-4000-8000-000000000101',response_minutes:30};
 const facts:LaunchFacts={products:53,priced_products:0,exchange_ready:false,bank_ready:false,issuer_ready:false,private_pi_storage:true,notification_transport:'test_inbox',failed_notifications:0,preparing_pi:0,checked_at:controls.updated_at};
 function chain(data:unknown,error:unknown=null){return {select:jest.fn().mockReturnThis(),eq:jest.fn().mockReturnThis(),order:jest.fn().mockReturnThis(),limit:jest.fn().mockResolvedValue({data,error}),maybeSingle:jest.fn().mockResolvedValue({data,error})};}
 function req(body:unknown){return new Request('https://example.invalid/api/admin/launch',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}
@@ -21,8 +21,8 @@ test('unapproved prices, missing profiles and test document transport block laun
  const c=launchChecks(facts,controls,initialBusinessProfile);expect(c.filter(c=>!c.ready).map(c=>c.id)).toEqual(expect.arrayContaining(['business','prices','fx','bank','issuer','notification','owner']));
  expect(launchChecks({...facts,priced_products:1,exchange_ready:true,bank_ready:true},controls,initialBusinessProfile).find(c=>c.id==='notification')?.ready).toBe(false);
 });
-test.each([{revision:0},{revision:1.5},{reason:'x'},{state:{...state,orders_paused:'false'}},{state:{...state,secret:'x'}},{state:{...state,owner:'<script>'}},{state:{...state,response_minutes:2}},{state:{...state,response_minutes:5.5}},{state:{...state,response_minutes:'30'}}])('invalid controls rejected %j',patch=>{expect(()=>parseServiceControls({revision:1,state,reason:'장애 대응 설정',...patch})).toThrow(ApiError);});
-test('strict valid state permits pause without requiring a newly invented business approval',()=>{expect(parseServiceControls({revision:1,state:{...state,owner:'',response_minutes:null},reason:'긴급 중지'}).state.owner).toBe('');});
+test.each([{revision:0},{revision:1.5},{reason:'x'},{state:{...state,orders_paused:'false'}},{state:{...state,secret:'x'}},{state:{...state,owner_id:'<script>'}},{state:{...state,response_minutes:2}},{state:{...state,response_minutes:5.5}},{state:{...state,response_minutes:'30'}}])('invalid controls rejected %j',patch=>{expect(()=>parseServiceControls({revision:1,state,reason:'장애 대응 설정',...patch})).toThrow(ApiError);});
+test('strict valid state permits pause without requiring a newly invented business approval',()=>{expect(parseServiceControls({revision:1,state:{...state,owner_id:null,response_minutes:null},reason:'긴급 중지'}).state.owner_id).toBeNull();});
 test('all new transaction types fail closed on pause and storage failure',async()=>{
  for(const kind of ['inquiries','orders','pi'] as const){jest.mocked(supabaseAdmin.from).mockReturnValue(chain({...controls,[kind+'_paused']:true}) as never);await expect(assertTradeAvailable(kind)).rejects.toMatchObject({status:503});}
  jest.mocked(supabaseAdmin.from).mockReturnValue(chain(null,{message:'private provider error'}) as never);await expect(serviceControls()).rejects.toMatchObject({status:503});await expect(assertTradeAvailable('orders')).rejects.toMatchObject({status:503});

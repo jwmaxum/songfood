@@ -11,7 +11,7 @@ export function launchChecks(f:LaunchFacts,c:ServiceControls,profile:BusinessPro
  {id:'storage',title:'PI 비공개 저장소',ready:f.private_pi_storage,detail:f.private_pi_storage?'비공개 b2b-proforma 버킷 확인':'PI 저장소 없음 또는 공개 상태',href:'/admin/documents'},
  {id:'release',title:'제한 출시 상품 검수',ready:f.release_enabled===true&&(f.released_products||0)>0,detail:(f.released_products||0)+'개 출시 검수 · 승인 상품 거래 제한 '+(f.release_enabled?'활성':'비활성'),href:'/admin/releases'},
  {id:'notification',title:'바이어 문서 이메일 연결',ready:f.mail_verified===true,detail:f.mail_verified?'Gmail SMTP 인증 점검 통과 · 실제 수신·스팸함과 담당자 운영 인수 확인 필요':'고객 이메일 SMTP 연결 점검 필요 · 회원 인증 메일과 별도',href:'/admin/mail'},
- {id:'owner',title:'장애 대응 담당자·목표 시간',ready:!!c.owner.trim()&&c.response_minutes!==null,detail:c.owner?c.owner+' · '+(c.response_minutes??'미정')+'분 내 대응 목표':'운영 책임자와 대응 목표 미등록',href:'/admin/launch'},
+ {id:'owner',title:'장애 대응 담당자·목표 시간',ready:!!c.owner_id&&!!c.owner.trim()&&c.response_minutes!==null,detail:c.owner?c.owner+' · '+(c.response_minutes??'미정')+'분 내 대응 목표':'등록된 활성 직원과 대응 목표 지정 필요',href:'/admin/launch'},
  {id:'incidents',title:'알림 실패·발행 준비 문서',ready:f.failed_notifications===0&&f.preparing_pi===0,detail:'알림 실패 '+f.failed_notifications+'건 · 발행 준비 '+f.preparing_pi+'건',href:'/admin/documents'},
  ];
 }

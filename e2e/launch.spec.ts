@@ -7,8 +7,8 @@ async function isolated(page:Page){
   return ['127.0.0.1','localhost'].includes(host)?route.continue():route.abort();
  });
 }
-async function signIn(context:BrowserContext,role:'customer'|'admin'|'product_staff'){
- await context.addCookies([{name:role==='customer'?'sf_customer_access':'sf_admin_access',value:(role==='customer'?'c':role==='admin'?'a':'b').repeat(64),url:'http://127.0.0.1:3100',httpOnly:true,sameSite:'Strict'}]);
+async function signIn(context:BrowserContext,role:'customer'|'admin'|'product_staff'|'sub_admin'){
+ await context.addCookies([{name:role==='customer'?'sf_customer_access':'sf_admin_access',value:(role==='customer'?'c':role==='admin'?'a':role==='sub_admin'?'d':'b').repeat(64),url:'http://127.0.0.1:3100',httpOnly:true,sameSite:'Strict'}]);
 }
 async function noOverflow(page:Page){expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);}
 async function accessible(page:Page){
@@ -161,4 +161,43 @@ test('Gmail verification sends nothing, CRM preview confirmation and duplicate-s
  expect((await context.request.post(endpoint,{headers,data:{confirmed:true,request_key:email.key,hash:'a'.repeat(64),reason:'QA same key replay'}})).status()).toBe(200);
  expect((await(await request.get('http://127.0.0.1:4011/__state')).json()).documentEmails).toHaveLength(1);
  await context.clearCookies();await signIn(context,'product_staff');expect((await context.request.get('/api/admin/mail')).status()).toBe(403);expect((await context.request.get(endpoint)).status()).toBe(403);
+});
+
+test('chief manages verified staff, role revisions and directory-linked operating owner',async({page,context,request},info)=>{
+ await signIn(context,'admin');await page.goto('/admin/users');await expect(page.getByRole('heading',{name:'하위관리자·권한',exact:true})).toBeVisible();
+ const chief=page.locator('article').filter({hasText:'최고관리자'});await expect(chief.getByText('보호된 계정입니다.',{exact:false})).toBeVisible();expect(await chief.locator('button').count()).toBe(0);
+ for(const width of [360,390,768,1440]){await page.setViewportSize({width,height:900});await noOverflow(page);await accessible(page);}
+ await page.getByLabel('등록 이메일 *',{exact:true}).fill('buyer@example.invalid');await page.getByLabel('등록 이름 *',{exact:true}).fill('QA new operator');await page.getByLabel('등록 업무 권한',{exact:true}).selectOption('order_staff');await page.getByLabel('등록 사유 *',{exact:true}).fill('QA verified operator registration');
+ await page.getByRole('button',{name:'직원 등록',exact:true}).click();await expect(page.getByRole('status')).toContainText('저장했습니다');
+ const row=page.locator('article').filter({hasText:'buyer@example.invalid'});await expect(row.getByLabel('업무 권한',{exact:true})).toHaveValue('order_staff');
+ await page.goto('/admin/launch');await page.getByLabel('운영 책임자·대응 담당자',{exact:true}).selectOption('00000000-0000-4000-8000-000000000802');await page.getByLabel('장애 확인 후 대응 목표',{exact:false}).fill('30');await page.getByLabel('중지·재개 또는 담당자 변경 사유 *').fill('QA registered operator assignment');await page.getByRole('button',{name:'운영 상태 저장',exact:true}).click();await expect(page.getByRole('status')).toContainText('저장했습니다');await expect(page.getByText('QA new operator · 30분 내 대응 목표',{exact:true})).toBeVisible();await noOverflow(page);await accessible(page);
+ await page.goto('/admin/users');const operator=page.locator('article').filter({hasText:'buyer@example.invalid'});
+ await operator.getByLabel('직원 이름',{exact:true}).fill('QA renamed operator');await operator.getByLabel('업무 권한',{exact:true}).selectOption('inquiry_staff');await operator.getByLabel('수정·삭제 사유 *').fill('QA role and operator name revision');await operator.getByRole('button',{name:'직원 정보 저장',exact:true}).click();await expect(page.getByRole('status')).toContainText('저장했습니다');
+ const headers={Origin:'http://127.0.0.1:3100'};expect((await context.request.patch('/api/admin/users',{headers,data:{id:'00000000-0000-4000-8000-000000000802',revision:1,name:'stale',role:'admin',status:'active',reason:'QA stale update denied'}})).status()).toBe(409);
+ expect((await context.request.delete('/api/admin/users',{headers,data:{id:'00000000-0000-4000-8000-000000000801',revision:1,confirmed:true,reason:'QA protected chief denied'}})).status()).toBe(403);
+ expect((await context.request.post('/api/admin/users',{headers:{Origin:'https://evil.example'},data:{email:'buyer@example.invalid',name:'QA',role:'admin',reason:'QA foreign origin denied'}})).status()).toBe(403);
+ const changed=await(await context.request.get('/api/admin/launch')).json();expect(changed.controls.owner).toBe('QA renamed operator');
+ const edited=page.locator('article').filter({hasText:'buyer@example.invalid'});await edited.getByLabel('수정·삭제 사유 *').fill('QA staff membership removal');await edited.getByLabel('이 직원의 관리자 권한을 삭제합니다.',{exact:true}).check();await edited.getByRole('button',{name:'하위관리자 삭제',exact:true}).click();await expect(page.getByRole('status')).toContainText('삭제했습니다');await expect(page.locator('article').filter({hasText:'buyer@example.invalid'})).toHaveCount(0);
+ const final=await(await context.request.get('/api/admin/launch')).json();expect(final.controls.owner_id).toBeNull();expect(final.controls.owner).toBe('');
+ await page.screenshot({path:info.outputPath('staff-management.png'),fullPage:true});
+ const state=await(await request.get('http://127.0.0.1:4011/__state')).json();expect(state.emails).toHaveLength(0);expect(state.staffEvents).toHaveLength(3);
+ await context.clearCookies();await signIn(context,'sub_admin');expect((await context.request.get('/api/admin/session')).status()).toBe(200);expect((await context.request.get('/api/admin/users')).status()).toBe(403);expect((await context.request.post('/api/admin/users',{headers,data:{email:'buyer@example.invalid',name:'QA denied',role:'admin',reason:'QA subadmin denied'}})).status()).toBe(403);await page.goto('/admin/users');await expect(page.getByText('최고관리자 jwmaxum@gmail.com만',{exact:false})).toBeVisible();
+});
+
+test('suspended staff loses existing session and operating assignment',async({context,page})=>{
+ await signIn(context,'admin');const headers={Origin:'http://127.0.0.1:3100'};
+ const before=await(await context.request.get('/api/admin/launch')).json();
+ expect((await context.request.put('/api/admin/launch',{headers,data:{revision:before.controls.revision,state:{inquiries_paused:false,orders_paused:false,pi_paused:false,owner_id:'00000000-0000-4000-8000-000000000803',response_minutes:15},reason:'QA active product staff owner'}})).status()).toBe(200);
+ expect((await context.request.patch('/api/admin/users',{headers,data:{id:'00000000-0000-4000-8000-000000000803',revision:1,name:'QA product_staff',role:'product_staff',status:'suspended',reason:'QA suspend active owner'}})).status()).toBe(200);
+ const after=await(await context.request.get('/api/admin/launch')).json();expect(after.controls.owner_id).toBeNull();
+ await context.clearCookies();await signIn(context,'product_staff');expect((await context.request.get('/api/admin/session')).status()).toBe(401);expect((await context.request.get('/api/admin/releases')).status()).toBe(403);
+ await page.goto('/admin');await expect(page.getByRole('heading',{name:'관리자 로그인',exact:false})).toBeVisible();
+});
+
+test('staff email login reuses approved callback and clears token before administrator navigation',async({page,context,request},info)=>{
+ await page.goto('/admin');await page.getByLabel('직원 인증 이메일',{exact:true}).fill('product_staff@example.invalid');await page.getByRole('button',{name:'직원 인증 링크 발송',exact:true}).click();await expect(page.getByRole('status')).toContainText('직원 인증 링크를 요청');
+ const state=await(await request.get('http://127.0.0.1:4011/__state')).json();expect(state.emails).toHaveLength(1);expect(state.emails[0].redirect).toBe('http://127.0.0.1:3100/account/confirmed?lang=ko');expect(state.emails[0].createUser).toBe(false);
+ await noOverflow(page);await accessible(page);await page.screenshot({path:info.outputPath('staff-email-login.png'),fullPage:true});
+ await page.goto('/account/confirmed?lang=ko#access_token=qa_staff_verification_token_valid_not_real&token_type=bearer');await expect(page).toHaveURL(/\/admin$/);await expect(page.getByRole('heading',{name:'상품·가격 점검',exact:true})).toBeVisible();expect(page.url()).not.toContain('access_token');
+ const cookies=await context.cookies();expect(cookies.find(c=>c.name==='sf_admin_access')?.httpOnly).toBe(true);expect((await context.request.get('/api/admin/users')).status()).toBe(403);
 });

@@ -1,15 +1,9 @@
-import { staffPageAccess } from '@/lib/staff-page';
-import { cookies } from 'next/headers';
-import { getStaffIdentity } from '@/lib/admin-auth';
+import {staffPageAccess} from '@/lib/staff-page';
+import {isSuperAdmin} from '@/lib/staff-management';
 import UsersManager from './UsersManager';
-
-export const dynamic = 'force-dynamic';
-
-export default async function UsersPage() {
-  if (!(await staffPageAccess('/admin/users')).allowed) return <p className="p-8">이 페이지를 볼 수 있는 직원 권한이 필요합니다.</p>;
-
-  const token = (await cookies()).get('sf_admin_access')?.value;
-  const staff = token ? await getStaffIdentity(new Request('https://admin.local/', { headers: { Authorization: `Bearer ${token}` } })) : null;
-  if (staff?.role !== 'admin') return <main className="p-8">관리자 권한이 필요합니다.</main>;
-  return <UsersManager />;
+export const dynamic='force-dynamic';
+export default async function UsersPage(){
+ const a=await staffPageAccess('/admin/users');
+ if(!a.allowed||!a.staff||!await isSuperAdmin(a.staff.id))return <main className="p-8 text-stone-100"><h1 className="text-2xl font-bold">하위관리자·권한</h1><p className="mt-4">최고관리자 jwmaxum@gmail.com만 직원 등록·권한 수정·삭제를 처리할 수 있습니다.</p></main>;
+ return <UsersManager/>;
 }
