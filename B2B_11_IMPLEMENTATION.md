@@ -1,6 +1,7 @@
 # B2B-11 구현·운영 검증 기록
 
-작업일: 2026-10-04. 기준 소스: 4993974eb47dc23788c58657a8252c41c11cb0ea.
+작업일: 2026-10-04. 작업 시작 소스: 4993974eb47dc23788c58657a8252c41c11cb0ea.
+최종 기능 검증: 2026-10-04 13:14 KST, 소스 354a0ef28992717bc5db3d3ea2ba2d564c7709b3. 기능 구현 커밋은 03fd0aa, 후속 354a0ef는 직원 선택 및 서비스 재개 저장 완료를 확인하는 브라우저 회귀 검증 보정이다.
 사용자 추가 지시에 따라 11단계 범위를 최고관리자 보호, 하위관리자 등록·권한 수정·삭제, 등록 직원 기반 운영 담당자 지정으로 구체화했다.
 상품명·SKU는 /admin/products, 상품별 가격·VAT·MOQ는 /admin/pricing에서 계속 조정한다. 실제 가격·계좌·회사 정책을 임의로 입력하거나 출시 승인하지 않았다.
 
@@ -77,21 +78,25 @@
 | 검증 | 결과 |
 | --- | --- |
 | 단위/권한/회귀 | 65개 묶음, 538개 통과 |
-| 전체 line coverage | 69.50%, 신규 staff-management 라이브러리 line 100%; 전체 80%로 보고하지 않음 |
+| 전체 line coverage | 69.50%, 신규 staff-management 라이브러리 line 100% |
 | 실제 Supabase SQL | 13개 묶음 BEGIN/ROLLBACK 통과. 새 잠금 보정 후 재확인 |
 | 최고 보호·권한 상승·stale | 직접 DB와 API 검증 통과 |
-| 등록/역할/이름·담당자·삭제/정지/이메일 로그인 | 신규 3개 흐름을 별도 운영 빌드에서 통과. 360/390/768/1440px·접근성·외부 요청 차단·JS 오류 검사 포함 |
+| 등록/역할/이름·담당자·삭제/정지/이메일 로그인 | 신규 3개 흐름 포함 GitHub 전체 브라우저 23개 통과. 360/390/768/1440px·접근성·외부 요청 차단·JS 오류 검사 포함 |
 | 전체 lint | 오류 0, 기존 경고 76 |
 | 타입·Worker | 오류 0, 서버 비밀키 없는 전체 Next/OpenNext 빌드 통과 |
 | 운영 dependency·비밀값 검사 | 운영 취약점 0, 변경 27파일 실제 비밀값/토큰 패턴 0, CJS/diff 검사 통과 |
-| GitHub/Cloudflare | main push 후 같은 소스의 CI·자동 배포 완료 확인 예정 |
+| GitHub/Cloudflare | 354a0ef의 전체 CI·Cloudflare 자동 배포 모두 성공 |
+| 배포 후 운영 HTTP | 10개 통과. 한·영 상품 목록 200, 미인증 구매·회원 PI 401, 관리자 API 403, 직원 이메일 로그인 화면 200 |
+| 로컬 개발 서버 | localhost:3000 health 200, 로컬 개발 계속 가능 |
+
+검증 근거: [GitHub CI #37176180341](https://github.com/jwmaxum/songfood/actions/runs/37176180341), [Cloudflare 자동 배포 6ceb966c](https://dash.cloudflare.com/7c88b2d2b3fe9baf32dc744ac0a631b3/workers/services/view/song-food/production/builds/6ceb966c-6892-470b-ae22-6d2bfe4272c1).
 
 실제 DB 검증 후: 최고관리자 확인 true, 등록 직원 1명(기존 최고), 직원 변경 이벤트 0, 상품 53, 승인 가격 0, 출시 승인 0, 실제 이메일 이벤트 0, 운영 담당 미지정.
 가짜 직원·거래 자료를 운영 DB에 남기지 않았다. 실제 하위관리자 이름/이메일을 임의로 만들지 않았다.
 
 ## 7. 배포·운영 주의
 
-앱은 기존 main push → GitHub CI → Cloudflare Workers Builds 경로로 배포한다.
+main push 시 GitHub CI와 Cloudflare Workers Builds가 각각 실행되는 기존 자동 배포 경로를 사용한다.
 새 DB 확장 스키마를 먼저 적용하고 최신 Worker를 배포한다. 신규 Edge 메일 함수 배포나 SMTP 변경은 필요하지 않다.
 구버전 직원 API는 최고 전용 인사 절차와 호환되지 않으므로 원복 시 이 직원 API·담당자 RPC가 호환되는 Worker를 사용한다. 구버전 자유 입력 담당자 저장은 새 owner_id 설정과 호환되지 않는다.
 직원 인사 감사와 최고 UUID 보호 테이블을 삭제해 원복하지 않는다. 수정은 추가 보정 마이그레이션으로 한다.
