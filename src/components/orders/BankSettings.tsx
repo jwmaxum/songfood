@@ -1,12 +1,14 @@
 'use client';
-import {useEffect,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {orderGet} from '@/lib/orders/client';
 import type {BankSettings as Bank} from '@/lib/orders/types';
 import {field} from './OrderActions';
 export default function BankSettings(){
+ const bankDetails=useRef<HTMLDetailsElement>(null);
+ useEffect(()=>{const open=()=>{if(window.location.hash==='#bank-settings'&&bankDetails.current)bankDetails.current.open=true;};open();window.addEventListener('hashchange',open);return()=>window.removeEventListener('hashchange',open);},[]);
  const [settings,setSettings]=useState<{revision:number;data:Bank}|null>(null),[admin,setAdmin]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
  useEffect(()=>{let live=true;orderGet('/api/admin/orders/settings').then(d=>{if(live){setSettings(d.settings);setAdmin(d.is_admin);}}).catch(e=>{if(live)setMessage(e.message);});return()=>{live=false;};},[]);
- return <details className="my-6 rounded-xl border bg-white p-5"><summary className="cursor-pointer font-semibold">국내 계좌입금 설정 {settings?'':'· 등록 필요'}</summary>
+ return <details ref={bankDetails} id="bank-settings" className="my-6 rounded-xl border bg-white p-5"><summary className="cursor-pointer font-semibold">국내 계좌입금 설정 {settings?'':'· 등록 필요'}</summary>
  <p className="mt-4 text-sm">설정한 계좌는 새로 제시하는 주문 조건에 저장됩니다. 기존 주문의 확정 계좌는 바뀌지 않습니다.</p>
  {admin?<form key={settings?.revision||0} className="mt-4" onSubmit={async e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.currentTarget));setBusy(true);setMessage('');try{
  const r=await fetch('/api/admin/orders/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({revision:settings?.revision||0,data})}),d=await r.json();if(!r.ok)throw new Error(d.error);setSettings(d.settings);setMessage('입금 계좌를 저장했습니다.');

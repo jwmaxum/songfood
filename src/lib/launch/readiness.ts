@@ -3,11 +3,11 @@ import type {LaunchFacts,ServiceControls,LaunchCheck} from './types';
 export function launchChecks(f:LaunchFacts,c:ServiceControls,profile:BusinessProfile):LaunchCheck[]{
  const gaps=businessGaps(profile);
  return [
- {id:'business',title:'회사 정보·배송·반품·개인정보 안내',ready:gaps.length===0,detail:gaps.length?gaps.map(k=>businessFields[k][0]).join(', ')+' 미등록':'공개 필수 정보 입력 완료 · 실제 근거는 운영자가 확인',href:'/admin/settings'},
+ {id:'business',title:'회사 정보·배송·반품·개인정보 안내',ready:gaps.length===0,detail:gaps.length?gaps.map(k=>businessFields[k][0]).join(', ')+' 미등록':'공개 필수 정보 입력 완료 · 실제 근거는 운영자가 확인',href:'/admin/settings#business-profile'},
  {id:'prices',title:'개인 구매 가능한 승인 가격',ready:f.priced_products>0,detail:f.priced_products+' / '+f.products+'개 상품에 현재 유효한 공통·개인 가격. 출시 SKU·입수·MOQ·FOB 검수는 가격 점검에서 확인',href:'/admin/quality'},
  {id:'fx',title:'유효한 환율',ready:f.exchange_ready,detail:f.exchange_ready?'최신 승인 환율 유효':'최신 환율 없음 또는 만료',href:'/admin/pricing'},
- {id:'bank',title:'국내 입금 계좌',ready:f.bank_ready,detail:f.bank_ready?'설정 등록 · 계좌 소유·배송비 기준 실제 확인 필요':'실제 입금 계좌 미등록',href:'/admin/orders'},
- {id:'issuer',title:'PI 판매자·결제 조건',ready:f.issuer_ready,detail:f.issuer_ready?'설정 등록 · 실제 판매자·조건 확인 필요':'PI 판매자·결제 조건 미등록',href:'/admin/crm'},
+ {id:'bank',title:'국내 입금 계좌',ready:f.bank_ready,detail:f.bank_ready?'설정 등록 · 계좌 소유·배송비 기준 실제 확인 필요':'실제 입금 계좌 미등록',href:'/admin/orders#bank-settings'},
+ {id:'issuer',title:'PI 판매자·결제 조건',ready:f.issuer_ready,detail:f.issuer_ready?'설정 등록 · 실제 판매자·조건 확인 필요':'PI 판매자·결제 조건 미등록',href:'/admin/settings#pi-issuer'},
  {id:'storage',title:'PI 비공개 저장소',ready:f.private_pi_storage,detail:f.private_pi_storage?'비공개 b2b-proforma 버킷 확인':'PI 저장소 없음 또는 공개 상태',href:'/admin/documents'},
  {id:'release',title:'제한 출시 상품 검수',ready:f.release_enabled===true&&(f.released_products||0)>0,detail:(f.released_products||0)+'개 출시 검수 · 승인 상품 거래 제한 '+(f.release_enabled?'활성':'비활성'),href:'/admin/releases'},
  {id:'notification',title:'바이어 문서 이메일 연결',ready:f.mail_verified===true,detail:f.mail_verified?'Gmail SMTP 인증 점검 통과 · 실제 수신·스팸함과 담당자 운영 인수 확인 필요':'고객 이메일 SMTP 연결 점검 필요 · 회원 인증 메일과 별도',href:'/admin/mail'},

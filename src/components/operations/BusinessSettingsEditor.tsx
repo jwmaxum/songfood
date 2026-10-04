@@ -16,7 +16,7 @@ export default function BusinessSettingsEditor(){
    if(!r.ok)throw new Error(d.error);setSettings(d.settings);setReason('');setSaved('저장했습니다. 회사 소개·하단 연락처·이용 안내에 반영됩니다.');}
   catch(e){setError(e instanceof Error?e.message:'저장하지 못했습니다.');}finally{setBusy(false);}
  }
- return <section className="rounded-xl border bg-white p-5"><h2 className="text-xl font-bold">회사·사업자 공개 정보</h2><p className="mt-3 text-sm leading-7">저장 즉시 고객에게 공개됩니다. 사업자등록증 등 실제 근거를 확인해 입력하세요. 비밀번호·API 키·입금계좌는 입력하지 마세요. 이 설정은 기존 PI 판매자 스냅샷을 바꾸지 않습니다.</p>
+ return <section id="business-profile" className="rounded-xl border bg-white p-5"><h2 className="text-xl font-bold">회사·사업자 공개 정보</h2><p className="mt-3 text-sm leading-7">저장 즉시 고객에게 공개됩니다. 사업자등록증 등 실제 근거를 확인해 입력하세요. 비밀번호·API 키·입금계좌는 입력하지 마세요. 이 설정은 기존 PI 판매자 스냅샷을 바꾸지 않습니다.</p>
  {error&&<p ref={alert} tabIndex={-1} role="alert" className="mt-4 rounded border border-red-400 p-3 text-red-800">{error}</p>}{saved&&<p role="status" className="mt-4 text-green-800">{saved}</p>}
  <button onClick={()=>void load()} disabled={busy} className="my-4 min-h-11 rounded border px-4">저장된 정보 다시 불러오기</button>
  {settings?<form onSubmit={save} className="space-y-5"><p className="text-sm">미등록 항목 {businessGaps(settings.profile).length}개 · 한영 배송·반품·개인정보 세부사항까지 확인해야 공개 운영 검수를 완료할 수 있습니다.</p><div className="grid gap-4 md:grid-cols-2">

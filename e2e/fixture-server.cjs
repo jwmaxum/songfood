@@ -6,8 +6,8 @@ const tokens={admin:'a'.repeat(64),customer:'c'.repeat(64),product_staff:'b'.rep
 const initialProfile={name:'송영민푸드',owner:'',registration:'',ecommerce_registration:'',address:'',address_en:'',phone:'010-3889-3344',email:'3song876@daum.net',export_phone:'+82-10-2143-2120',privacy_contact:'',shipping_ko:'',shipping_en:'',returns_ko:'',returns_en:'',privacy_ko:'',privacy_en:''};
 const future=()=>new Date(Date.now()+86400000*3).toISOString();
 const prices=products.map((p,i)=>({id:'00000000-0000-4000-8000-'+String(1000+i).padStart(12,'0'),product_id:p.id,price_list_id:'00000000-0000-4000-8000-000000000811',version:1,status:'approved',price_unit:'EA',unit_price_krw:'1100',tax_code:'vat10',vat_included:true,ea_per_box:5,boxes_per_carton:2,ea_per_carton:10,minimum_order_unit:'CTN',minimum_order_quantity:2,export_moq_ctn:3,tiers:[],valid_from:'2020-01-01T00:00:00Z',valid_until:future(),fob_status:'included',loading_port:'Busan',review_source:'QA fixture',change_reason:'QA fixture only',cost_review:'QA only',created_by:ids.admin,approved_by:ids.admin,created_at:new Date().toISOString()}));
-let settings,records,emails,unknown,requests,controls,controlEvents,releasePolicy,releaseReviews,releaseEvents,mailTransport,mailDelivery,documentEmails,staffRecords,staffEvents,invalidStaffSessions,sessions,customerAccounts,handoverReviews,handoverEvents;
-function reset(){handoverReviews=[];handoverEvents=[];staffRecords=Object.entries(ids).filter(([r])=>r!=='customer').map(([role,id])=>({id,role:role==='sub_admin'?'admin':role,status:'active',name:'QA '+role,email:role==='admin'?'jwmaxum@gmail.com':role+'@example.invalid',revision:1,verified:true,auth_active:true,created_at:new Date().toISOString()}));staffEvents=[];sessions=[];customerAccounts=[{id:ids.customer,name:'QA Buyer',email:'buyer@example.invalid',status:'active'}];invalidStaffSessions=new Set();releasePolicy={enabled:false,revision:1};releaseReviews={};releaseEvents=[];mailTransport={verified_at:null,last_checked_at:null,last_code:'SMTP_VERIFY_FAILED'};mailDelivery={notification_id:'00000000-0000-4000-8000-000000000930',state:'queued',attempt:0,last_code:null,updated_at:new Date().toISOString()};documentEmails=[];controls={revision:1,inquiries_paused:false,orders_paused:false,pi_paused:false,owner_id:null,owner:"",response_minutes:null,updated_at:new Date().toISOString()};controlEvents=[];settings={profile:{...initialProfile},revision:1,updated_at:new Date().toISOString()};records=[];emails=[];unknown=[];requests=new Map();}
+let piSettings,settings,records,emails,unknown,requests,controls,controlEvents,releasePolicy,releaseReviews,releaseEvents,mailTransport,mailDelivery,documentEmails,staffRecords,staffEvents,invalidStaffSessions,sessions,customerAccounts,handoverReviews,handoverEvents;
+function reset(){piSettings=null;handoverReviews=[];handoverEvents=[];staffRecords=Object.entries(ids).filter(([r])=>r!=='customer').map(([role,id])=>({id,role:role==='sub_admin'?'admin':role,status:'active',name:'QA '+role,email:role==='admin'?'jwmaxum@gmail.com':role+'@example.invalid',revision:1,verified:true,auth_active:true,created_at:new Date().toISOString()}));staffEvents=[];sessions=[];customerAccounts=[{id:ids.customer,name:'QA Buyer',email:'buyer@example.invalid',status:'active'}];invalidStaffSessions=new Set();releasePolicy={enabled:false,revision:1};releaseReviews={};releaseEvents=[];mailTransport={verified_at:null,last_checked_at:null,last_code:'SMTP_VERIFY_FAILED'};mailDelivery={notification_id:'00000000-0000-4000-8000-000000000930',state:'queued',attempt:0,last_code:null,updated_at:new Date().toISOString()};documentEmails=[];controls={revision:1,inquiries_paused:false,orders_paused:false,pi_paused:false,owner_id:null,owner:"",response_minutes:null,updated_at:new Date().toISOString()};controlEvents=[];settings={profile:{...initialProfile},revision:1,updated_at:new Date().toISOString()};records=[];emails=[];unknown=[];requests=new Map();}
 reset();
 function filtered(rows,u){return rows.filter(row=>[...u.searchParams].every(([k,v])=>!v.startsWith('eq.')||String(row[k])===v.slice(3)));}
 const server=http.createServer(async(req,res)=>{
@@ -15,7 +15,7 @@ const server=http.createServer(async(req,res)=>{
  try{const chunks=[];let size=0;for await(const c of req){size+=c.length;if(size>100000)throw Error('too large');chunks.push(c);}if(chunks.length)body=JSON.parse(Buffer.concat(chunks).toString());}catch{res.writeHead(400).end('{}');return;}
  const send=(data,status=200)=>{res.writeHead(status,{'Content-Type':'application/json'});res.end(JSON.stringify(data));};
  if(path==='/__reset'){reset();return send({ok:true});}
- if(path==='/__state')return send({emails,unknown,settings,records,documentEmails,staffEvents,handoverReviews,handoverEvents});
+ if(path==='/__state')return send({emails,unknown,piSettings,settings,records,documentEmails,staffEvents,handoverReviews,handoverEvents});
  if(path==='/health')return send({ok:true});
  if(path==='/auth/v1/otp'){emails.push({redirect:u.searchParams.get('redirect_to'),email:body.email,createUser:body.create_user});return send({});}
  if(path==='/auth/v1/user')return send({id:ids.product_staff,email:'product_staff@example.invalid',email_confirmed_at:'2020-01-01T00:00:00Z',aud:'authenticated',role:'authenticated'});
@@ -33,6 +33,7 @@ const server=http.createServer(async(req,res)=>{
 
  if(path.startsWith('/rest/v1/rpc/')){
   const rpc=path.split('/').pop();
+  if(rpc==='b2b_pi_save_settings'){if(!staffRecords.some(s=>s.id===body.p_actor&&s.role==='admin'&&s.status==='active'&&!s.removed))return send({code:'42501'},403);if(body.p_expected!==(piSettings?.revision||0))return send({code:'40001'},409);piSettings={revision:(piSettings?.revision||0)+1,data:body.p_data};return send(piSettings);}
   if(rpc==='b2b_handover_snapshot'||rpc==='b2b_save_handover'){
    const actor=staffRecords.find(s=>s.id===body.p_actor&&s.status==='active'&&!s.removed);
    if(!actor)return send({code:'42501'},403);
@@ -113,6 +114,7 @@ const server=http.createServer(async(req,res)=>{
   else if(table==='b2b_quote_drafts'||table==='b2b_notification_attempts')rows=[];
 
   else if(table==='products')rows=products;
+  else if(table==='b2b_pi_settings')rows=piSettings?[{id:true,...piSettings}]:[];
   else if(table==='b2b_business_settings')rows=[{id:true,...settings}];
   else if(table==='b2b_sessions'){
    if(req.method==='POST'){sessions.push(body);return send(null,201);}

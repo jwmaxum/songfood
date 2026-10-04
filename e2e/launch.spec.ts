@@ -232,3 +232,26 @@ test('initial operations exposes current priorities and keeps release holds, mob
  await signIn(context,'admin');await page.goto('/admin/operations');await expect(page.getByRole('region',{name:'우선 처리 업무'})).toBeVisible();await page.route('**/api/admin/operations/initial',r=>r.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'QA unavailable'})}));await page.getByRole('button',{name:'최신 운영 상태 불러오기',exact:true}).click();await expect(page.getByRole('alert').filter({hasText:'조회 불가'})).toContainText('QA unavailable');await expect(page.getByRole('region',{name:'우선 처리 업무'})).toHaveCount(0);
  const state=await(await request.get('http://127.0.0.1:4011/__state')).json();expect(state.documentEmails).toHaveLength(0);expect(state.emails).toHaveLength(0);
 });
+
+test('operating registration saves PI without RFQ, preserves conflicting input and respects roles',async({page,context,request},info)=>{
+ await signIn(context,'admin');await page.setViewportSize({width:360,height:900});await page.goto('/admin/settings#pi-issuer');
+ const form=page.locator('#pi-issuer');await expect(form.getByText('저장 버전 0 · 미등록')).toBeVisible();
+ await expect(page.getByRole('link',{name:'국내 실제 완료 주문 인수',exact:true})).toHaveAttribute('href','/admin/handover#handover-domestic');
+ await expect(page.getByRole('link',{name:'해외 실제 수락 PI 인수',exact:true})).toHaveAttribute('href','/admin/handover#handover-export');
+ const other=await context.newPage();await isolated(other);await other.goto('/admin/settings#pi-issuer');await expect(other.locator('#pi-issuer').getByText('저장 버전 0 · 미등록')).toBeVisible();
+ const fields={'PI 판매자 법적 명칭':'QA ONLY Seller','PI 판매자 주소':'QA ONLY address','PI 판매자 이메일':'seller@example.invalid','PI 판매자 연락처':'QA ONLY phone','PI 결제 조건':'QA ONLY no real payment','PI 은행·예금주·계좌·SWIFT 등 송금정보':'QA ONLY no real account'};
+ for(const [label,value]of Object.entries(fields)){await form.getByLabel(label+' *',{exact:true}).fill(value);await other.locator('#pi-issuer').getByLabel(label+' *',{exact:true}).fill(value);}
+ await form.getByRole('button',{name:'PI 기본정보 저장',exact:true}).click();await expect(form.getByRole('status')).toContainText('저장했습니다');
+ await other.locator('#pi-issuer').getByLabel('PI 판매자 법적 명칭 *',{exact:true}).fill('QA ONLY conflicting edit');
+ await other.locator('#pi-issuer').getByRole('button',{name:'PI 기본정보 저장',exact:true}).click();
+ await expect(other.locator('#pi-issuer [role="alert"]')).toBeFocused();await expect(other.locator('#pi-issuer').getByLabel('PI 판매자 법적 명칭 *',{exact:true})).toHaveValue('QA ONLY conflicting edit');
+ await expect(other.locator('#pi-issuer').getByRole('button',{name:'PI 기본정보 저장',exact:true})).toBeDisabled();
+ await other.locator('#pi-issuer').getByRole('button',{name:'저장된 PI 정보 다시 불러오기'}).click();await expect(other.locator('#pi-issuer').getByLabel('PI 판매자 법적 명칭 *',{exact:true})).toHaveValue('QA ONLY Seller');await other.close();
+ for(const width of [360,390,768,1440]){await page.setViewportSize({width,height:900});await noOverflow(page);await accessible(page);}
+ await page.setViewportSize({width:360,height:900});await form.screenshot({path:info.outputPath('pi-registration-360.png')});
+ const state=await(await request.get('http://127.0.0.1:4011/__state')).json();expect(state.piSettings.revision).toBe(1);expect(state.records).toHaveLength(0);expect(state.documentEmails).toHaveLength(0);expect(state.emails).toHaveLength(0);expect(state.handoverEvents).toHaveLength(0);
+ expect((await request.put('/api/admin/pi/settings',{headers:{Origin:'https://foreign.invalid'},data:{revision:1,seller:state.piSettings.data}})).status()).toBe(403);
+ await page.route('**/api/admin/pi/settings',r=>r.fulfill({status:503,json:{error:'판매자 설정 조회 실패'}}));await form.getByRole('button',{name:'저장된 PI 정보 다시 불러오기'}).click();await expect(form.locator('form')).toHaveCount(0);await expect(form.locator('[role="alert"]')).toBeFocused();
+ await page.unroute('**/api/admin/pi/settings');await page.goto('/admin/orders#bank-settings');await expect(page.locator('#bank-settings')).toHaveAttribute('open','');await expect(page.getByLabel('은행명',{exact:true})).toBeVisible();
+ await context.clearCookies();await signIn(context,'product_staff');await page.goto('/admin/settings');await expect(page.locator('#pi-issuer')).toHaveCount(0);expect((await request.get('/api/admin/pi/settings')).status()).toBe(403);
+});

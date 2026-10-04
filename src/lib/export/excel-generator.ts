@@ -24,6 +24,10 @@ export interface LabelExportRow {
   importerCompany: string;
   importerRegNo: string;
   complianceStatus: string;
+  documentNotice: string;
+  importerPhone: string;
+  importerEmail: string;
+  purchaseOrder: string;
 }
 
 /**
@@ -58,9 +62,13 @@ export function formatLabelForExcel(
     proteinG: label.nutrition?.proteinG ?? '',
     totalFatG: label.nutrition?.totalFatG ?? '',
     totalCarbG: label.nutrition?.totalCarbohydrateG ?? '',
-    importerCompany: buyerData?.companyName || label.importerInfo?.name || '',
+    importerCompany: buyerData ? buyerData.companyName : label.importerInfo?.name || '',
     importerRegNo: buyerData?.registrationNumber || '',
     complianceStatus: label.status || 'draft',
+    documentNotice: 'DRAFT - Product, buyer and local labeling details require verification.',
+    importerPhone: buyerData?.phone || '',
+    importerEmail: buyerData?.email || '',
+    purchaseOrder: buyerData?.poNumber || '',
   };
 }
 

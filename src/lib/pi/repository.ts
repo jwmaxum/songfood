@@ -10,6 +10,7 @@ import type {QuoteDraft} from '../crm/types';
 import type {PiDocument,PublicPi} from './types';
 
 
+import {getPiSettings} from './settings';
 const bucket='b2b-proforma';
 export async function piAdmin(request:Request){const staff=await crmStaff(request);if(staff.role!=='admin')throw new ApiError(403,'PI 발행·판매자 설정은 관리자 권한이 필요합니다.');return staff;}
 export function publicPi(d:PiDocument):PublicPi {
@@ -26,11 +27,11 @@ export async function customerDocument(request:Request,id:string){
 export async function piDetail(inquiryId:string,isAdmin:boolean){
  await inquiryById(inquiryId);
  const [rows,settings]=await Promise.all([supabaseAdmin.from('b2b_pi_documents').select('*').eq('inquiry_id',inquiryId).order('version',{ascending:false}).limit(50),
- supabaseAdmin.from('b2b_pi_settings').select('data,revision').eq('id',true).maybeSingle()]);
- databaseError(rows.error);databaseError(settings.error);
+ getPiSettings()]);
+ databaseError(rows.error);
  const ids=(rows.data||[]).map(d=>d.id);
  const events=ids.length?await supabaseAdmin.from('b2b_pi_events').select('id,document_id,event,message,created_at').in('document_id',ids).order('created_at',{ascending:false}).limit(200):{data:[],error:null};
- databaseError(events.error);return {documents:rows.data,settings:settings.data,events:events.data,is_admin:isAdmin};
+ databaseError(events.error);return {documents:rows.data,settings,events:events.data,is_admin:isAdmin};
 }
 export async function sha256(bytes:Uint8Array){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new Uint8Array(bytes))),b=>b.toString(16).padStart(2,'0')).join('');}
 async function completeDocument(actor:string,doc:PiDocument){

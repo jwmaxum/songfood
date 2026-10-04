@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { FoodLabel, TargetCountry } from '@/types/label';
 import MasterSpecSheet from '@/components/labels/spec-sheet/MasterSpecSheet';
-import BuyerToFillForm, { BuyerFormData } from '@/components/labels/spec-sheet/BuyerToFillForm';
+import BuyerToFillForm, { emptyBuyer, BuyerFormData } from '@/components/labels/spec-sheet/BuyerToFillForm';
 import { triggerPrintSpecSheet, downloadExcelFile } from '@/lib/export';
 
 interface SpecSheetClientProps {
@@ -22,17 +22,7 @@ const COUNTRIES: Array<{ code: TargetCountry; flag: string; name: string }> = [
 
 export default function SpecSheetClient({ productId, labelsMap }: SpecSheetClientProps) {
   const [selectedCountry, setSelectedCountry] = useState<TargetCountry>('US');
-  const [buyerData, setBuyerData] = useState<BuyerFormData>({
-    companyName: 'Pacific Rim Foods USA LLC',
-    registrationNumber: 'FDA-FFR: 19827364501',
-    address: '742 Evergreen Terrace, Suite 400',
-    cityStateZip: 'Los Angeles, CA 90012',
-    country: 'United States',
-    contactPerson: 'David Miller (VP Procurement)',
-    phone: '+1-213-555-0199',
-    email: 'dmiller@pacificrimfoods.com',
-    poNumber: 'PO-2026-US-8812',
-  });
+  const [buyerData, setBuyerData] = useState<BuyerFormData>({...emptyBuyer});
 
   const currentLabel = labelsMap[selectedCountry] || labelsMap.US;
 
@@ -112,12 +102,12 @@ export default function SpecSheetClient({ productId, labelsMap }: SpecSheetClien
           targetCountry={selectedCountry}
           data={buyerData}
           onChange={handleBuyerChange}
-          onApplyPreset={(preset) => setBuyerData(preset)}
         />
       </div>
 
       {/* 공식 A4 스펙시트 렌더링 영역 (인쇄 시 출력 대상) */}
       <div className="max-w-[1200px] mx-auto pt-2">
+        <p className="mb-4 border border-amber-600 bg-white p-3 text-sm text-stone-900">DRAFT · 실제 상품·바이어·현지 표시사항 확인 필요 / Product, buyer and local labeling details require verification.</p>
         <MasterSpecSheet
           label={currentLabel}
           buyerData={buyerData}
