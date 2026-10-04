@@ -123,8 +123,8 @@ node --env-file=.env.backup.local scripts/restore-database.cjs <archive.sfba> --
 | Playwright 생산 모드 | 18개 통과. 한영·360/390/768/1440px, 접근성, RFQ·PI·주문 오류·중지 재개 |
 | 실제 Supabase SQL | 신규 controls 및 기존 8 suites, 총 9개 BEGIN/ROLLBACK 검증 통과 |
 | 기존 운영 Worker 호환 | 새 스키마 적용 뒤 기존 8개 HTTP/권한 검증과 공개 상품 private 가격 필드 제외 통과 |
-| 서버 비밀키 없는 Worker build | 통과. 마지막 보안 설정 변경 후 재검증 기록은 최종 배포 기록에 추가 |
-| 비밀값·diff 검사 | 최종 배포 전에 실행 |
+| 서버 비밀키 없는 Worker build | 통과. 마지막 보안 설정까지 반영한 재빌드 성공 |
+| 비밀값·CJS 구문·diff 검사 | 이번 변경 42개 파일 통과 |
 | 실제 별도 Worker + Supabase UAT | 미실행 |
 | 전체 DB/Storage 복원·Worker 이전 버전 롤백 | 미실행 |
 
@@ -184,3 +184,15 @@ Pro 전환 후: **“Supabase Pro 전환을 완료했습니다. 승인했던 son
 - [Cloudflare Workers Logs](https://developers.cloudflare.com/workers/observability/logs/workers-logs/)
 - [Cloudflare Builds API — user-scoped token 요구](https://developers.cloudflare.com/workers/ci-cd/builds/api-reference/)
 - 설치된 Next 16.3.6의 environment-variables, instrumentation, route, deploying 가이드를 확인하고 구현했다.
+
+## 9. 최종 소스 배포 기록
+
+- 소스 버전: [12e9e33d2eb494cf765823ec3d5e7f625b19dd31](https://github.com/jwmaxum/songfood/commit/12e9e33d2eb494cf765823ec3d5e7f625b19dd31)
+- [GitHub CI 37164161077](https://github.com/jwmaxum/songfood/actions/runs/37164161077): build/type/lint/unit 및 Linux 독립 브라우저 검사 **모두 성공**.
+- [Cloudflare build 24107a8e-f35f-418d-aa7b-74ae970ff1a4](https://dash.cloudflare.com/7c88b2d2b3fe9baf32dc744ac0a631b3/workers/services/view/song-food/production/builds/24107a8e-f35f-418d-aa7b-74ae970ff1a4): GitHub `Workers Builds: song-food` check **success**.
+- 실제 [운영 Worker](https://song-food.jwmaxum.workers.dev), 2026-10-04 **09:14:32 KST** 읽기 전용 검증: health 200, ko/en 상품 화면 200·HTML 언어 일치, 주문/PI 비회원 401, 관리자 launch 비회원 403.
+- [모니터 시험 실행 37164336498](https://github.com/jwmaxum/songfood/actions/runs/37164336498): **success**. 정기 workflow가 사용하는 실제 운영 경로까지 검증했다.
+- 마지막 보안 수정이 반영된 서버 비밀키 없는 Worker build 성공, TypeScript 오류 0, lint 오류 0/경고 76, 운영 dependency audit 취약점 0.
+- 42개 변경 파일의 비밀값·CJS 구문·diff whitespace 검증 통과. 검증 범위는 이번 변경이며 전체 Git 과거 이력 검사로 표시하지 않는다.
+- Workers runtime version ID 조회는 제공된 Cloudflare 토큰에서 HTTP 401/code 10000으로 실패했다. 위 Git 소스 버전·실제 build ID·실제 HTTP 검증을 기록하고, 확인하지 못한 runtime ID를 임의로 기재하지 않는다.
+- 이 기록을 저장하는 후속 문서 커밋은 같은 코드에 문서만 추가한다. 새 문서 커밋의 CI/배포 상태는 GitHub/Cloudflare에서 해당 SHA로 별도 확인한다.
