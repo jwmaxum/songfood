@@ -20,6 +20,7 @@ const NAVIGATION = [
  {group:'문서',href:'/admin/documents',label:'Proforma Invoice'},
  {group:'운영 설정',href:'/admin/mail',label:'고객 이메일 운영'},
  {group:'운영 설정',href:'/admin/launch',label:'오픈 점검·서비스 중지'},
+ {group:'운영 설정',href:'/admin/handover',label:'업무 인수·출시 검수'},
  {group:'운영 설정',href:'/admin/settings',label:'설정 바로가기'},
  {group:'운영 설정',href:'/admin/guide',label:'운영 매뉴얼'},
  {group:'콘텐츠·신뢰자료',href:'/admin/hero',label:'히어로 콘텐츠'},

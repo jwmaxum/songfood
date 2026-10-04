@@ -201,3 +201,23 @@ test('staff email login reuses approved callback and clears token before adminis
  await page.goto('/account/confirmed?lang=ko#access_token=qa_staff_verification_token_valid_not_real&token_type=bearer');await expect(page).toHaveURL(/\/admin$/);await expect(page.getByRole('heading',{name:'상품·가격 점검',exact:true})).toBeVisible();expect(page.url()).not.toContain('access_token');
  const cookies=await context.cookies();expect(cookies.find(c=>c.name==='sf_admin_access')?.httpOnly).toBe(true);expect((await context.request.get('/api/admin/users')).status()).toBe(403);
 });
+
+test('handover staff self review, current basis and limited release hold',async({page,context,request},info)=>{
+ await signIn(context,'admin');await page.setViewportSize({width:360,height:900});await page.goto('/admin/handover');
+ await expect(page.getByRole('heading',{name:'업무 인수·제한 출시 검수',exact:true})).toBeVisible();
+ await expect(page.getByText('보류 · 아래 인수 조건 확인 필요')).toHaveCount(2);
+ await page.getByRole('button',{name:'내 직원 로그인·업무 권한 결과 기록',exact:true}).click();await page.getByLabel('검수 결과',{exact:true}).selectOption('passed');await page.getByLabel('검수 근거·미완료 사유',{exact:true}).fill('QA 현재 직원 로그인과 업무 권한을 실제 확인');await page.getByRole('button',{name:'내 검수 기록 저장',exact:true}).click();await expect(page.getByRole('status').filter({hasText:'검수 기록을 저장'})).toBeVisible();
+ await page.getByRole('button',{name:'출시 대상 상품·가격·MOQ 인수 결과 기록',exact:true}).click();await page.getByLabel('검수 근거·미완료 사유',{exact:true}).fill('QA 출시 자료 미완료로 보류 유지');await page.getByRole('button',{name:'내 검수 기록 저장',exact:true}).click();await expect(page.getByRole('status').filter({hasText:'검수 기록을 저장'})).toBeVisible();
+ const endpoint='/api/admin/handover',headers={Origin:'http://127.0.0.1:3100'};const current=await(await context.request.get(endpoint)).json(),saved=current.reviews.find((r:{check_id:string})=>r.check_id==='catalogue');const payload={check_id:'catalogue',revision:saved.revision,basis:current.basis.catalogue,result:'blocked',notes:'QA current configuration checkpoint',reference_id:null,received:false};
+ const state=await(await request.get('http://127.0.0.1:4011/__state')).json();expect((await context.request.put('/api/admin/business-settings',{headers,data:{revision:state.settings.revision,profile:state.settings.profile,reason:'QA configuration change'}})).status()).toBe(200);
+ expect((await context.request.put(endpoint,{headers,data:payload})).status()).toBe(409);
+ expect((await context.request.put(endpoint,{headers:{Origin:'https://evil.example'},data:payload})).status()).toBe(403);
+ const latest=await(await context.request.get(endpoint)).json();expect((await context.request.put(endpoint,{headers,data:{...payload,check_id:'domestic',revision:0,basis:latest.basis.domestic,result:'passed',reference_id:'00000000-0000-4000-8000-000000000999'}})).status()).toBe(400);
+ await page.getByRole('button',{name:'최신 인수 상태 불러오기',exact:true}).click();await expect(page.getByText('자료 변경·근거 상태 변경 · 재검수 필요',{exact:true})).toBeVisible();
+ for(const width of [360,390,768,1440]){await page.setViewportSize({width,height:900});await noOverflow(page);await accessible(page);}
+ await page.setViewportSize({width:360,height:900});await page.screenshot({path:info.outputPath('handover-admin-360.png'),fullPage:true});
+ const staffPage=await context.newPage();await isolated(staffPage);const staffErrors:string[]=[];staffPage.on('pageerror',e=>staffErrors.push(e.message));await staffPage.context().clearCookies();await signIn(context,'product_staff');await staffPage.goto('/admin/handover');await expect(staffPage.getByRole('button',{name:'내 직원 로그인·업무 권한 결과 기록',exact:true})).toBeVisible();await expect(staffPage.getByRole('button',{name:'운영 담당자·중지·재개 인수 결과 기록',exact:true})).toHaveCount(0);
+ const staff=await(await context.request.get(endpoint)).json();expect(staff.reviews).toEqual([]);expect(staff.assessment).toBeUndefined();
+ expect((await context.request.put(endpoint,{headers,data:{...payload,check_id:'operations',revision:0,basis:staff.basis.access}})).status()).toBe(403);
+ expect(staffErrors).toEqual([]);await staffPage.close();
+});
