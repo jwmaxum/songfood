@@ -1,7 +1,7 @@
 import type {StaffRole} from '../admin-auth';
 export const STATUS_LABELS:Record<string,string>={new:'접수',reviewing:'검토 중',responded:'회신 완료',closed:'종결',requested:'공급·배송비 검토',reviewed:'고객 최종 확인 대기',confirmed:'확정',completed:'출고 처리 완료',cancelled:'취소',active:'활성',suspended:'중지',approved:'이용 가능',pending:'검토 대기',rejected:'이용 불가'};
 export const ROLE_LABELS={admin:'관리자',product_staff:'상품 담당자',inquiry_staff:'문의 담당자',order_staff:'주문 담당자'};
-export const WORK_LABELS={rfq:'미처리 해외 RFQ',inquiry:'미처리 국내 문의',pi_review:'PI 발행 검토',pi_preparing:'PI 발행 준비 미완료',pi_expired:'미수락 PI 만료',pi_soon:'PI 3일 이내 만료',pi_changes:'PI 수정 요청',order_review:'공급·배송비 검토',customer_confirm:'고객 최종 확인 대기',unpaid:'미입금',shipping:'출고 대기',refund:'환불 대기',claim:'클레임 확인',test_failed:'내부 테스트 전달 실패',test_queued:'내부 테스트 전달 대기'};
+export const WORK_LABELS={reassignment:'담당자 재배정 필요',mail_unknown:'고객 메일 결과 불명',mail_failed:'고객 메일 실패',mail_queued:'고객 메일 발송 검토 대기',rfq:'미처리 해외 RFQ',inquiry:'미처리 국내 문의',pi_review:'PI 발행 검토',pi_preparing:'PI 발행 준비 미완료',pi_expired:'미수락 PI 만료',pi_soon:'PI 3일 이내 만료',pi_changes:'PI 수정 요청',order_review:'공급·배송비 검토',customer_confirm:'고객 최종 확인 대기',unpaid:'미입금',shipping:'출고 대기',refund:'환불 대기',claim:'클레임 확인',test_failed:'내부 테스트 전달 실패',test_queued:'내부 테스트 전달 대기'};
 export const DOCUMENT_LABELS={preparing:'발행 준비 미완료',issued:'발행·수락 대기',accepted:'수락됨',expired:'미수락 만료',changes_requested:'수정 요청',superseded:'이전 버전',cancelled:'취소'};
 export const QUALITY_LABELS={missing:'가격 승인 필요',data:'상품·검수 정보 누락',draft:'새 초안 검토',expired:'가격 만료',soon:'가격 7일 이내 만료'};
 export const AUDIT_LABELS={access:'회원·회사',pricing:'가격·환율',inquiry:'문의·견적',pi:'PI 문서',order:'국내 주문'};

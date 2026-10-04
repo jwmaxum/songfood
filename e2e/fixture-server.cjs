@@ -91,9 +91,14 @@ const server=http.createServer(async(req,res)=>{
    const id=crypto.randomUUID();records.push({...body.p_data,id,status:'new',revision:1,items:body.p_data.items||[],assigned_to:null,created_at:new Date().toISOString()});
    requests.set(key,{scope_hash:body.p_scope,request_key:body.p_key,request_hash:body.p_hash,inquiry_id:id});return send({id,replayed:false});
   }
+  if(rpc==='b2b_initial_operations'){
+   const role=staffRecords.find(s=>s.id===body.p_actor)?.role;
+   if(!role)return send({code:'42501'},403);
+   return send({role,as_of:new Date().toISOString(),metrics:{active:3,mine:0,unassigned:1,reassignment:1,overdue:1,soon:0},counts:role==='product_staff'?{}:{mail_unknown:2,mail_failed:1,rfq:1},service:{owner:controls.owner,response_minutes:controls.response_minutes,inquiries_paused:controls.inquiries_paused,orders_paused:controls.orders_paused,pi_paused:controls.pi_paused}});
+  }
   if(rpc==='b2b_ops_snapshot'){
    if(body.p_mode==='quality')return send({products,lists:[],revisions:[],rate:null,as_of:new Date().toISOString()});
-   return send({items:body.p_mode==='work'?[{id:'00000000-0000-4000-8000-000000000820',kind:'inquiry',title:'QA fixture RFQ',subtitle:'검증용 요청 / fixture only',status:'new',tags:['rfq'],revision:1,assigned_to:null,due_at:null}]:[],total:body.p_mode==='work'?1:0,counts:{rfq:1},as_of:new Date().toISOString(),page:1,page_size:30,staff:[]});
+   return send({role:staffRecords.find(s=>s.id===body.p_actor)?.role,items:body.p_mode==='work'?[{id:'00000000-0000-4000-8000-000000000820',kind:'inquiry',title:body.p_category==='mail_unknown'?'QA actual mail follow-up':'QA fixture RFQ',subtitle:'검증용 요청 / fixture only',status:'new',tags:['rfq'],revision:1,assigned_to:null,due_at:null}]:[],total:body.p_mode==='work'?1:0,counts:{rfq:1,mail_unknown:2,mail_failed:1},as_of:new Date().toISOString(),page:1,page_size:30,staff:[]});
   }
  }
  if(path.startsWith('/rest/v1/')){

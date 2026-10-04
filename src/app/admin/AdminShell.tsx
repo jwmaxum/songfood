@@ -8,6 +8,7 @@ import type { StaffRole } from '@/lib/admin-auth';
 
 const NAVIGATION = [
  {group:'업무',href:'/admin',label:'업무 대시보드'},
+ {group:'업무',href:'/admin/operations',label:'초기 운영 점검'},
  {group:'거래처',href:'/admin/contacts',label:'개인·회사 거래처'},
  {group:'거래처',href:'/admin/companies',label:'회사·담당자 상태'},
  {group:'상품·가격',href:'/admin/releases',label:'출시 상품 검수'},

@@ -221,3 +221,14 @@ test('handover staff self review, current basis and limited release hold',async(
  expect((await context.request.put(endpoint,{headers,data:{...payload,check_id:'operations',revision:0,basis:staff.basis.access}})).status()).toBe(403);
  expect(staffErrors).toEqual([]);await staffPage.close();
 });
+
+test('initial operations exposes current priorities and keeps release holds, mobile and role scope',async({page,context,request},info)=>{
+ await signIn(context,'admin');await page.goto('/admin/operations');await expect(page.getByRole('heading',{name:'초기 운영 점검',exact:true})).toBeVisible();await expect(page.getByText('보류 · 운영 자료·실제 인수 확인 필요',{exact:true})).toHaveCount(2,{timeout:30000});
+ const unknown=page.getByRole('region',{name:'거래·문서 후속 조치'}).getByRole('link').filter({hasText:'고객 메일 결과 불명'});await expect(unknown).toContainText('2');await unknown.click();await expect(page).toHaveURL(/category=mail_unknown/);await expect(page.getByText('QA actual mail follow-up',{exact:true})).toBeVisible();
+ await page.goto('/admin/operations');await page.getByRole('region',{name:'우선 처리 업무'}).getByRole('link').filter({hasText:'재배정 필요'}).click();await expect(page).toHaveURL(/assigned=reassign/);await expect(page.getByLabel('업무 담당 필터',{exact:true})).toHaveValue('reassign');
+ await page.goto('/admin/operations');for(const width of [360,390,768,1440]){await page.setViewportSize({width,height:900});await noOverflow(page);await accessible(page);}await page.setViewportSize({width:360,height:900});await page.screenshot({path:info.outputPath('initial-operations-360.png'),fullPage:true});
+ await context.clearCookies();await signIn(context,'product_staff');await page.goto('/admin/operations');await expect(page.getByRole('region',{name:'상품·가격 운영 점검'})).toBeVisible();await expect(page.getByRole('region',{name:'거래·문서 후속 조치'})).toHaveCount(0);await expect(page.getByRole('region',{name:'제한 출시 인수 현황'})).toHaveCount(0);
+ const endpoint='/api/admin/operations/initial';await context.clearCookies();expect((await context.request.get(endpoint)).status()).toBe(403);
+ await signIn(context,'admin');await page.goto('/admin/operations');await expect(page.getByRole('region',{name:'우선 처리 업무'})).toBeVisible();await page.route('**/api/admin/operations/initial',r=>r.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'QA unavailable'})}));await page.getByRole('button',{name:'최신 운영 상태 불러오기',exact:true}).click();await expect(page.getByRole('alert').filter({hasText:'조회 불가'})).toContainText('QA unavailable');await expect(page.getByRole('region',{name:'우선 처리 업무'})).toHaveCount(0);
+ const state=await(await request.get('http://127.0.0.1:4011/__state')).json();expect(state.documentEmails).toHaveLength(0);expect(state.emails).toHaveLength(0);
+});

@@ -4,8 +4,8 @@ export function opsQuery(url:string,mode:Mode){
  const q=new URL(url).searchParams,page=Number(q.get('page')||1),category=q.get('category')||'',assigned=q.get('assigned')||'',due=q.get('due')||'',kind=q.get('kind')||'';
  if(!Number.isInteger(page)||page<1||page>100000)throw new ApiError(400,'페이지를 확인해 주세요.');
  if(category&&!Object.hasOwn(LABELS[mode],category))throw new ApiError(400,'업무 분류를 확인해 주세요.');
- if(assigned&&!['mine','unassigned'].includes(assigned))uuidField(assigned);
- if(!['','overdue','soon','unset'].includes(due)||!['','inquiry','order'].includes(kind))throw new ApiError(400,'검색 조건을 확인해 주세요.');
+ if(assigned&&!['mine','unassigned','reassign'].includes(assigned))uuidField(assigned);
+ if(!['','overdue','soon','unset','active'].includes(due)||!['','inquiry','order'].includes(kind))throw new ApiError(400,'검색 조건을 확인해 주세요.');
  return {p_q:textField(q.get('q')||'','검색어',120,0),p_category:category,p_assigned:assigned,p_due:due,p_kind:kind,p_page:page};
 }
 export function workPlan(body:Record<string,unknown>){
