@@ -1,0 +1,20 @@
+name: Song Food service availability
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *'
+permissions:
+  contents: read
+jobs:
+  availability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Read-only HTTP and authorization smoke
+        run: node scripts/health-smoke.cjs
+# GitHub workflow failure notifications depend on each operator's notification settings.
+# This job sends no customer emails and creates no customer transactions.

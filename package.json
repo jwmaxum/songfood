@@ -7,7 +7,7 @@
     "build": "next build",
     "build:worker": "opennextjs-cloudflare build",
     "preview:worker": "opennextjs-cloudflare preview",
-    "deploy:worker": "node scripts/check-cloudflare-build.cjs && opennextjs-cloudflare deploy -- --keep-vars",
+    "deploy:worker": "node scripts/check-cloudflare-build.cjs && node scripts/worker-target.cjs && opennextjs-cloudflare deploy -- --keep-vars",
     "deploy:pages-bridge": "node scripts/deploy-pages-bridge.cjs main",
     "sync:products:snapshot": "node scripts/export-products-snapshot.cjs",
     "start": "next start",
@@ -26,7 +26,10 @@
     "build:cloudflar": "npm run build:cloudflare",
     "lint:orders": "eslint src/lib/orders src/components/orders src/app/api/orders src/app/api/admin/orders src/app/admin/orders src/app/checkout src/app/account/orders src/context/CartContext.tsx src/__tests__/b2b-orders*.test.* src/app/admin/payments scripts/test-orders-concurrency.cjs",
     "lint:operations": "eslint src/lib/operations src/components/operations src/app/admin/page.tsx src/app/admin/quality src/app/admin/documents src/app/admin/contacts src/app/admin/audit src/app/admin/guide src/app/admin/settings src/app/admin/history src/app/api/admin/operations src/app/api/kpi src/__tests__/b2b-operations*.test.* src/__tests__/api-kpi.test.ts scripts/test-operations-concurrency.cjs",
-    "test:browser": "playwright test"
+    "test:browser": "playwright test",
+    "check:health": "node scripts/health-smoke.cjs",
+    "build:staging": "node scripts/staging-worker.cjs build .env.staging.local",
+    "deploy:staging": "node scripts/staging-worker.cjs deploy .env.staging.local"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

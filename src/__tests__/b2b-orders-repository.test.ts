@@ -1,3 +1,4 @@
+jest.mock('@/lib/launch/repository',()=>({assertTradeAvailable:jest.fn()}));
 jest.mock('@/lib/supabase-admin',()=>({supabaseAdmin:{rpc:jest.fn()}}));
 jest.mock('@/lib/pricing/repository',()=>({quote:jest.fn()}));
 jest.mock('@/lib/products-db',()=>({getProducts:jest.fn()}));

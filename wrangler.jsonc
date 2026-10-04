@@ -20,5 +20,41 @@
   "vars": {
     "NEXT_PUBLIC_APP_URL": "https://song-food.jwmaxum.workers.dev",
     "TRUST_CLOUDFLARE_IP": "1"
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 0.1,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": false
+    }
+  },
+  "env": {
+    "staging": {
+      "name": "song-food-staging",
+      "vars": {
+        "NEXT_PUBLIC_APP_URL": "https://song-food-staging.jwmaxum.workers.dev",
+        "TRUST_CLOUDFLARE_IP": "1"
+      },
+      "assets": {
+        "directory": ".open-next/assets",
+        "binding": "ASSETS"
+      },
+      "secrets": {
+        "required": [
+          "SUPABASE_SERVICE_ROLE_KEY",
+          "NEXT_PUBLIC_SUPABASE_URL",
+          "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+        ]
+      },
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 1,
+        "logs": {
+          "enabled": true,
+          "invocation_logs": false
+        }
+      }
+    }
   }
 }

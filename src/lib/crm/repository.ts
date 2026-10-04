@@ -1,4 +1,5 @@
 import 'server-only';
+import {reportOperationalFailure} from '../operational-error';
 import {supabaseAdmin} from '../supabase-admin';
 import {getStaffIdentity} from '../admin-auth';
 import {ApiError,digest,json,requireSameOrigin,uuidField} from '../request-security';
@@ -11,6 +12,7 @@ import type {PriceRevision} from '../pricing/types';
 import type {CrmInquiry,QuoteDraft} from './types';
 import {parseReview,buildQuoteSnapshot} from './quote';
 export function crmFailure(error:unknown) {
+  reportOperationalFailure('crm',error instanceof InquiryValidationError?400:error instanceof ApiError?error.status:503);
   if(error instanceof InquiryValidationError)return json({success:false,error:error.message,fields:error.fields},400);
   if(error instanceof ApiError)return json({success:false,error:error.message},error.status);
   return json({success:false,error:'문의·견적 서비스에 연결하지 못했습니다. 다시 시도해 주세요.'},503);

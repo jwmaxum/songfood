@@ -105,3 +105,29 @@ test('client navigation into domestic orders refreshes the root language',async(
  await page.getByRole('link',{name:'My orders, payments and deliveries',exact:true}).first().click();
  await expect(page).toHaveURL(/account\/orders\?lang=ko/);await expect(page.locator('html')).toHaveAttribute('lang','ko');await expect(page.getByRole('heading',{name:'내 주문',exact:true})).toBeVisible();await expect(page.getByText('표시할 주문이 없습니다.',{exact:false})).toBeVisible();
 });
+
+test('launch controls pause new RFQ, preserve replay, reject stale and unauthorized changes',async({page,context,request},info)=>{
+ await signIn(context,'admin');await page.setViewportSize({width:360,height:900});await page.goto('/admin/launch');
+ await expect(page.getByRole('heading',{name:'오픈 전 확인 항목',exact:true})).toBeVisible();
+ await expect(page.getByText('현재 문서 알림은 테스트 수신함입니다.',{exact:false})).toBeVisible();
+ await noOverflow(page);await accessible(page);
+ const body={kind:'export_rfq',contact_name:'QA Buyer',email:'qa@example.invalid',country:'Japan',incoterms:'FOB',items:[{product_id:'qa-product-1',product_name:'untrusted',quantity_cartons:3}]};
+ const headers={Origin:'http://127.0.0.1:3100','Content-Type':'application/json','Idempotency-Key':'00000000-0000-4000-8000-000000000911'};
+ const first=await context.request.post('/api/commercial-inquiries',{headers,data:body});expect(first.status()).toBe(201);
+ await page.getByLabel('신규 RFQ·국내 구매 문의 중지',{exact:true}).check();
+ await page.getByLabel('운영 책임자·대응 담당자').fill('QA rollback operator');await page.getByLabel('장애 확인 후 대응 목표').fill('30');
+ await page.getByLabel('중지·재개 또는 담당자 변경 사유 *').fill('QA 장애 중지 검증');
+ await page.getByRole('button',{name:'운영 상태 저장',exact:true}).click();await expect(page.getByRole('status').filter({hasText:'운영 상태를 저장했습니다'})).toBeVisible();
+ await expect(page.getByLabel('신규 RFQ·국내 구매 문의 중지',{exact:true})).toBeChecked();
+ const blocked=await context.request.post('/api/commercial-inquiries',{headers:{...headers,'Idempotency-Key':'00000000-0000-4000-8000-000000000912'},data:body});expect(blocked.status()).toBe(503);expect((await blocked.json()).success).toBe(false);
+ const replay=await context.request.post('/api/commercial-inquiries',{headers,data:body});expect(replay.status()).toBe(200);expect((await replay.json()).replayed).toBe(true);
+ const state={inquiries_paused:false,orders_paused:false,pi_paused:false,owner:'QA',response_minutes:30};
+ const stale=await context.request.put('/api/admin/launch',{headers:{Origin:headers.Origin},data:{revision:1,state,reason:'QA stale'}});expect(stale.status()).toBe(409);
+ const foreign=await context.request.put('/api/admin/launch',{headers:{Origin:'https://evil.example'},data:{revision:2,state,reason:'QA denied origin'}});expect(foreign.status()).toBe(403);
+ await page.screenshot({path:info.outputPath('launch-controls-360.png'),fullPage:true});
+ await page.getByLabel('신규 RFQ·국내 구매 문의 중지',{exact:true}).uncheck();await page.getByLabel('중지·재개 또는 담당자 변경 사유 *').fill('QA 복구 후 재개');await page.getByRole('button',{name:'운영 상태 저장',exact:true}).click();await expect(page.getByLabel('신규 RFQ·국내 구매 문의 중지',{exact:true})).not.toBeChecked();
+ const accepted=await context.request.post('/api/commercial-inquiries',{headers:{...headers,'Idempotency-Key':'00000000-0000-4000-8000-000000000912'},data:body});expect(accepted.status()).toBe(201);
+ expect((await(await request.get('http://127.0.0.1:4011/__state')).json()).records).toHaveLength(2);
+ expect((await request.get('/api/health')).status()).toBe(200);
+ await context.clearCookies();await signIn(context,'product_staff');expect((await context.request.get('/api/admin/launch')).status()).toBe(403);
+});

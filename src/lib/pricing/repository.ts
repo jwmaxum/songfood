@@ -1,4 +1,5 @@
 import 'server-only';
+import {reportOperationalFailure} from '../operational-error';
 import { supabaseAdmin } from '../supabase-admin';
 import { ApiError, json } from '../request-security';
 import { PricingError, unitsPerPackage } from './validation';
@@ -6,6 +7,7 @@ import { calculateLine, summarize } from './engine';
 import type { CatalogueEntry, ExchangeRate, PriceList, PriceRequest, PriceRevision, TradeUnit } from './types';
 import type { CustomerSession } from '../b2b-types';
 export function pricingFailure(error:unknown) {
+  reportOperationalFailure('pricing',error instanceof PricingError || error instanceof ApiError?error.status:503);
   if(error instanceof PricingError || error instanceof ApiError) return json({success:false,error:error.message,code:error instanceof PricingError?error.code:undefined},error.status);
   return json({success:false,error:'가격 서비스에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.'},503);
 }

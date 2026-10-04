@@ -1,3 +1,4 @@
+import {assertTradeAvailable} from '@/lib/launch/repository';
 import {requireStaff} from '@/lib/admin-auth';
 import {InquiryValidationError,parseCommercialInquiry,inquiryFingerprint} from '@/lib/commercial-inquiry';
 import {getProducts} from '@/lib/products-db';
@@ -23,6 +24,7 @@ export async function POST(request:Request) {
     const hash=await digest(inquiryFingerprint(inquiry));
     const previous=await supabaseAdmin.from('b2b_inquiry_requests').select('inquiry_id,request_hash').eq('scope_hash',scope).eq('request_key',key).maybeSingle();databaseError(previous.error);
     if(previous.data){if(previous.data.request_hash!==hash)throw new ApiError(409,'같은 요청 키에 다른 문의 내용이 있습니다.');return json({success:true,id:previous.data.inquiry_id,replayed:true});}
+    await assertTradeAvailable('inquiries');
     await rateLimit(request,'inquiry',10,3600);
     if(inquiry.kind==='export_rfq'){
       const products=await getProducts(),names=new Map(products.map(p=>[p.id,p.name_en||p.name]));

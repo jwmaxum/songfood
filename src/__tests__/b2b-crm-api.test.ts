@@ -1,3 +1,4 @@
+jest.mock('@/lib/launch/repository',()=>({assertTradeAvailable:jest.fn()}));
 import {POST} from '@/app/api/commercial-inquiries/route';
 import {supabaseAdmin} from '@/lib/supabase-admin';
 import {cookieToken} from '@/lib/auth-session';

@@ -1,4 +1,5 @@
 import 'server-only';
+import {assertTradeAvailable} from '../launch/repository';
 import {supabaseAdmin} from '../supabase-admin';
 import {requireCustomer} from '../customer-auth';
 import {getStaffIdentity} from '../admin-auth';
@@ -31,6 +32,7 @@ export async function submitOrder(session:CustomerSession,input:OrderInput){
  // Read the replay before recalculating: an accepted retry survives later price expiry.
  const replay=await supabaseAdmin.rpc('b2b_order_replay',{p_actor:session.user.id,p_key:input.request_key,p_hash:hash});orderError(replay.error);
  if(replay.data)return {id:replay.data as string,replayed:true};
+ await assertTradeAvailable('orders');
  const [preview,products]=await Promise.all([quote(session,input.items,'domestic'),getProducts()]);
  if(priceSignature(preview.lines)!==priceSignature(input.expected_prices))throw new ApiError(409,'상품 가격이 변경되었습니다. 구매함에서 최신 가격을 확인한 뒤 다시 주문해 주세요.');
  const lines:OrderLine[]=preview.lines.map(l=>{const product=products.find(p=>p.id===l.product_id);

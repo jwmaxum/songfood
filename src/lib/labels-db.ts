@@ -164,8 +164,8 @@ export async function getAllFoodLabels(country?: ExportCountry): Promise<FoodLab
       if (!error && data) {
         return data.map(mapRowToFoodLabel);
       }
-    } catch (err) {
-      console.warn('[labels-db] Supabase query failed, falling back to local JSON:', err);
+    } catch {
+      console.warn('[labels-db] Supabase query failed, falling back to local JSON');
     }
   }
 
@@ -245,8 +245,8 @@ export async function saveFoodLabel(label: FoodLabel): Promise<FoodLabel> {
         // 하위 테이블(nutritions, ingredients) 연동 생략 또는 병렬 업데이트
         return labelToSave;
       }
-    } catch (err) {
-      console.warn('[labels-db] Supabase upsert failed, saving to local JSON:', err);
+    } catch {
+      console.warn('[labels-db] Supabase upsert failed');
     }
   }
 
@@ -262,8 +262,8 @@ export async function deleteFoodLabel(id: string): Promise<boolean> {
     try {
       const { error } = await supabaseAdmin.from('food_labels').delete().eq('id', id);
       if (!error) return true;
-    } catch (err) {
-      console.warn('[labels-db] Supabase delete failed, falling back to local JSON:', err);
+    } catch {
+      console.warn('[labels-db] Supabase delete failed');
     }
   }
 

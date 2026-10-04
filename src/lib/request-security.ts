@@ -1,4 +1,5 @@
 import 'server-only';
+import {reportOperationalFailure} from './operational-error';
 import { NextResponse } from 'next/server';
 import { isAuthConfigured, supabaseAdmin } from './supabase-admin';
 
@@ -9,6 +10,7 @@ export function json(data: unknown, status = 200) {
   return NextResponse.json(data, { status, headers: { 'Cache-Control': 'no-store' } });
 }
 export function failure(error: unknown) {
+  reportOperationalFailure('service',error instanceof ApiError?error.status:503);
   if (error instanceof ApiError) return json({ success: false, error: error.message }, error.status);
   // Deliberately exclude request bodies, provider errors, tokens and personal data.
   return json({ success: false, error: '서비스에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.' }, 503);

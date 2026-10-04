@@ -1,0 +1,7 @@
+// Encrypt every backup payload; never store clear DB/Auth exports as CI artifacts.
+const fs=require('node:fs'),crypto=require('node:crypto'),zlib=require('node:zlib');
+function key(value){const k=Buffer.from(value||'','base64');if(k.length!==32)throw Error('BACKUP_ENCRYPTION_KEY must be a base64 encoded 32-byte key.');return k;}
+function seal(bytes,value){const nonce=crypto.randomBytes(12),cipher=crypto.createCipheriv('aes-256-gcm',key(value),nonce);cipher.setAAD(Buffer.from('songfood-backup-v1'));return Buffer.concat([Buffer.from('SFBA1'),nonce,cipher.update(zlib.gzipSync(bytes)),cipher.final(),cipher.getAuthTag()]);}
+function open(bytes,value){if(bytes.subarray(0,5).toString()!=='SFBA1'||bytes.length<34)throw Error('Invalid backup archive');const decipher=crypto.createDecipheriv('aes-256-gcm',key(value),bytes.subarray(5,17));decipher.setAAD(Buffer.from('songfood-backup-v1'));decipher.setAuthTag(bytes.subarray(-16));return zlib.gunzipSync(Buffer.concat([decipher.update(bytes.subarray(17,-16)),decipher.final()]));}
+function writeEncrypted(file,bytes,value){const encrypted=seal(bytes,value);fs.writeFileSync(file,encrypted,{mode:0o600});const restored=open(fs.readFileSync(file),value);if(!crypto.timingSafeEqual(crypto.createHash('sha256').update(restored).digest(),crypto.createHash('sha256').update(bytes).digest()))throw Error('Backup verification failed');return {bytes:encrypted.length,sha256:crypto.createHash('sha256').update(encrypted).digest('hex')};}
+module.exports={seal,open,writeEncrypted};

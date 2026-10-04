@@ -1,4 +1,5 @@
 import 'server-only';
+import {assertTradeAvailable} from '../launch/repository';
 import {supabaseAdmin} from '../supabase-admin';
 import {ApiError,digest,uuidField,rateLimit} from '../request-security';
 import {crmStaff,databaseError,inquiryById,mutationMeta} from '../crm/repository';
@@ -52,6 +53,7 @@ export async function issuePi(request:Request,actor:string,inquiryId:string,body
  const hash=await digest(JSON.stringify({quoteId,base,input}));
  const old=await supabaseAdmin.from('b2b_pi_documents').select('*').eq('inquiry_id',inquiryId).eq('request_key',meta.key).maybeSingle();databaseError(old.error);
  if(old.data){if(old.data.created_by!==actor||old.data.request_hash!==hash)throw new ApiError(409,'요청 키와 발행 내용이 일치하지 않습니다.');if(old.data.status==='cancelled')throw new ApiError(409,'취소된 발행 준비입니다. 새 요청을 작성해 주세요.');await rateLimit(request,'pi-generate',20,3600,actor);return completeDocument(actor,old.data);}
+ await assertTradeAvailable('pi');
  await rateLimit(request,'pi-generate',20,3600,actor);
  const inquiry=await inquiryById(inquiryId);
  // Do not issue company-private documents after the customer's membership is revoked.

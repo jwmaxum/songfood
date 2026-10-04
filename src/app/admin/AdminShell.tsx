@@ -17,6 +17,7 @@ const NAVIGATION = [
  {group:'해외 영업',href:'/admin/crm',label:'RFQ·구매 문의'},
  {group:'국내 주문',href:'/admin/orders',label:'주문·입금·출고'},
  {group:'문서',href:'/admin/documents',label:'Proforma Invoice'},
+ {group:'운영 설정',href:'/admin/launch',label:'오픈 점검·서비스 중지'},
  {group:'운영 설정',href:'/admin/settings',label:'설정 바로가기'},
  {group:'운영 설정',href:'/admin/guide',label:'운영 매뉴얼'},
  {group:'콘텐츠·신뢰자료',href:'/admin/hero',label:'히어로 콘텐츠'},
