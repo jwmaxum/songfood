@@ -1,5 +1,6 @@
 'use client';
 import {useCallback,useEffect,useRef,useState} from 'react';
+import Link from 'next/link';
 import type {CrmInquiry,QuoteDraft} from '@/lib/crm/types';
 import {piState,type Issuer,type PiPanelData,type PiSnapshot} from '@/lib/pi/types';
 import PiPreview from '@/components/pi/PiPreview';
@@ -7,10 +8,10 @@ const empty:Issuer={name:'',address:'',email:'',phone:'',payment_terms:'',bank_d
 const field='mt-1 w-full rounded border border-stone-600 bg-stone-950 p-2 text-sm text-white';
 export default function PiPanel({inquiry,latest,changed}:{inquiry:CrmInquiry;latest?:QuoteDraft;changed:()=>void}){
  const [data,setData]=useState<PiPanelData|null>(null),[seller,setSeller]=useState<Issuer>(empty),[address,setAddress]=useState(''),[until,setUntil]=useState(''),[reason,setReason]=useState(''),[fob,setFob]=useState(false),[preview,setPreview]=useState<PiSnapshot|null>(null),[previewSource,setPreviewSource]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
- const retry=useRef<{payload:string;key:string}|null>(null),initialized=useRef(false);
+ const retry=useRef<{payload:string;key:string}|null>(null);
  const url='/api/admin/crm/'+inquiry.id+'/pi';
- const load=useCallback(async()=>{const r=await fetch(url,{cache:'no-store'}),b=await r.json();if(!r.ok)throw new Error(b.error);setData(b);if(!initialized.current){initialized.current=true;if(b.settings)setSeller(b.settings.data);}},[url]);
- useEffect(()=>{let active=true;fetch(url,{cache:'no-store'}).then(async r=>{const b=await r.json();if(!r.ok)throw new Error(b.error);if(active){setData(b);if(!initialized.current){initialized.current=true;if(b.settings)setSeller(b.settings.data);}}}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[url]);
+ const load=useCallback(async()=>{const r=await fetch(url,{cache:'no-store'}),b=await r.json();if(!r.ok)throw new Error(b.error);setData(b);setSeller(b.settings?.data||empty);setPreview(null);},[url]);
+ useEffect(()=>{let active=true;fetch(url,{cache:'no-store'}).then(async r=>{const b=await r.json();if(!r.ok)throw new Error(b.error);if(active){setData(b);setSeller(b.settings?.data||empty);setPreview(null);}}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[url]);
  const head=data?.documents.find(d=>d.status==='issued'),pending=data?.documents.find(d=>d.status==='preparing');
  const source=JSON.stringify([inquiry.id,latest?.id,inquiry.revision,head?.id||null]);
  const reviewed=preview&&previewSource===source;
@@ -35,7 +36,7 @@ export default function PiPanel({inquiry,latest,changed}:{inquiry:CrmInquiry;lat
  {error&&<p role="alert" className="text-sm text-red-300">{error}</p>}{message&&<p role="status" className="text-sm text-green-300">{message}</p>}
  <button disabled={busy} onClick={()=>void load().catch(e=>setError(e.message))} className="text-sm underline">PI 새로고침</button>
  {!data?<p className="text-sm">PI 정보를 불러오는 중…</p>:<>
- {data.is_admin&&<><details className="rounded border border-stone-700 p-4"><summary className="cursor-pointer font-bold">판매자·결제·송금 기본정보</summary><p className="mt-3 text-xs text-stone-400">실제 확정된 정보만 입력하세요. 변경해도 발행된 PI는 바뀌지 않습니다.</p><div className="mt-4 space-y-3">{Object.entries({name:'판매자 법인명',address:'판매자 주소',email:'판매자 이메일',phone:'판매자 연락처',payment_terms:'결제조건',bank_details:'은행·예금주·계좌·SWIFT 등 송금정보'}).map(([key,label])=><label key={key} className="block text-sm">{label}<textarea rows={key==='bank_details'?4:2} maxLength={key==='payment_terms'||key==='bank_details'?1200:key==='address'?600:key==='name'?200:key==='email'?254:80} value={seller[key as keyof Issuer]} onChange={e=>{setSeller({...seller,[key]:e.target.value});invalidate();}} className={field}/></label>)}</div><button disabled={busy} onClick={()=>void send('settings',{seller,settings_revision:data.settings?.revision||0})} className="mt-4 rounded border px-4 py-2 text-sm">기본정보 저장</button></details>
+ {data.is_admin&&<><details className="rounded border border-stone-700 p-4"><summary className="cursor-pointer font-bold">판매자·결제·송금 기본정보</summary><p className="mt-3 text-xs text-stone-400">운영 설정에서 기본정보를 수정한 뒤 PI 새로고침으로 불러오세요. 다시 불러오면 발행 전 미리보기를 재확인해야 합니다. 발행된 PI는 바뀌지 않습니다.</p><Link href="/admin/settings#pi-issuer" className="mt-3 inline-block min-h-11 py-3 underline">PI 판매자 기본정보 수정</Link><dl className="mt-4 space-y-3">{Object.entries({name:'판매자 법적 명칭',address:'판매자 주소',email:'판매자 이메일',phone:'판매자 연락처',payment_terms:'결제조건',bank_details:'송금정보'}).map(([key,label])=><div key={key}><dt className="text-xs text-stone-400">{label}</dt><dd className="mt-1 whitespace-pre-wrap break-words text-sm">{seller[key as keyof Issuer]||'미등록'}</dd></div>)}</dl></details>
  {pending?<div className="space-y-3 rounded border border-amber-700 p-4"><p className="text-sm">{pending.number} · v{pending.version} 발행 준비가 남아 있습니다. 같은 문서의 PDF 저장을 재시도할 수 있습니다.</p><button disabled={busy} onClick={()=>void send('resume',{document_id:pending.id})} className="mr-3 rounded bg-amber-400 px-4 py-2 text-stone-950">발행 재시도</button><button disabled={busy} onClick={()=>void send('cancel',{document_id:pending.id})} className="rounded border px-4 py-2">미발행 준비 취소</button></div>:<form onSubmit={e=>{e.preventDefault();void send('preview',issueBody());}} className="space-y-4">
  {!latest&&<p className="text-sm text-amber-300">먼저 검토를 마친 견적 초안을 저장하세요.</p>}
  {!!latest?.snapshot.issues.length&&<p className="text-sm text-amber-300">최신 초안에 검토 미완료 항목이 있습니다. 가격·환율·공급 조건을 보완해야 발행할 수 있습니다.</p>}
