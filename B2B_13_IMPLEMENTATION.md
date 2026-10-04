@@ -1,6 +1,6 @@
 # B2B-13 — 기존 개발 점검·초기 운영 절차
 
-작업일: 2026-10-04 (KST). 점검 시작 기준: 378f392. 코드 개발·검증과 실제 상업 공개를 구분한다.
+작업일: 2026-10-04 (KST). 점검 시작 기준: 378f392. **13단계 기능 개발·무료 검증·자동 배포 완료 / 실제 상업 공개 인수 보류**. 최종 기능 소스 d34c864 이후 문서 정리 커밋은 코드 변경이 없다.
 
 ## 1. 이번 단계의 결과
 
@@ -30,7 +30,7 @@
 | 11 직원 관리 | 최고관리자 보호, 인증된 회원 직원 등록/역할/정지/삭제, 운영 책임자 연결 | 활성 등록 직원 1명. 운영 담당자 미지정. 기존 업무 배정 자격 검사 보강 |
 | 12 인수 기록 | 본인/역할별 근거, 실제 완료 주문·수락 PI·메일 ID, 자료 변경 재검수 | 인수 저장 0. 사용자의 인증 메일 확인을 직원 UI 기록으로 임의 대리 저장하지 않음 |
 
-실제 운영 DB 확인: **2026-10-04 14:42 KST**. 가격/출시 0, 계좌·PI 판매자·환율 미등록, 담당자 미지정, 신규 승인 상품 거래 제한 비활성. PI 준비 미완료·알림 실패는 0이며 조회 성공 결과다. 이를 실제 거래 인수 통과로 해석하지 않는다.
+실제 운영 DB 확인: **2026-10-04 15:16 KST**. 가격/출시 0, 계좌·PI 판매자·환율 미등록, 담당자 미지정, 신규 승인 상품 거래 제한 비활성. PI 준비 미완료·알림 실패는 0이며 조회 성공 결과다. 이를 실제 거래 인수 통과로 해석하지 않는다.
 
 ## 3. 발견·수정한 문제
 
@@ -100,13 +100,13 @@ DB migration: **supabase/migrations/20261004220000_b2b_initial_operations.sql**.
 | Worker | 서버 비밀키 없이 Next.js 16.3.6 / OpenNext 1.20.6 전체 빌드 통과 |
 | 런타임 의존성 | npm audit --omit=dev 취약점 **0**. 의존성 변경 없음 |
 | 보안·diff | 실제 env 비밀값 패턴 검사 **19파일 노출 0**, CJS 문법·diff --check 통과 |
-| 자동 배포·운영 HTTP | 기능 소스 **dfab41d**의 GitHub CI·Cloudflare 자동 배포 성공. 운영 HTTP **12/12 통과**. 모바일 목록 접기/펼치기 최종 보완을 재배포한다. |
+| 자동 배포·운영 HTTP | 최종 기능 소스 **d34c864**의 GitHub CI·Cloudflare 자동 배포 성공. 운영 HTTP **12/12 통과**, 로컬 건강 응답 200. 모바일 상세 접기/펼치기의 키보드·접근성 검수도 통과. |
 
 기능 검증: Build PASS, Types PASS(0), Lint PASS(기존 경고 76), Tests PASS(571/571), Security PASS, Diff PASS. 전체 coverage 80% 목표는 미달이며 상업 출시/독립 복구 인수는 NOT READY다.
 
 자동 시험 통과는 실제 은행/출고/고객 메일 수신이나 독립 복구 완료를 대신하지 않는다.
 
-자동 배포 근거: [GitHub CI 37181664883](https://github.com/jwmaxum/songfood/actions/runs/37181664883), [Cloudflare 빌드 e3bc4689](https://dash.cloudflare.com/7c88b2d2b3fe9baf32dc744ac0a631b3/workers/services/view/song-food/production/builds/e3bc4689-8b71-445b-a54b-44ef160eb013). 원격 로그에서 전체 단위 571개·브라우저 25개 통과를 직접 확인했다.
+최종 기능 자동 배포 근거: [GitHub CI 37182064985](https://github.com/jwmaxum/songfood/actions/runs/37182064985), [Cloudflare 빌드 1d4f3dbc](https://dash.cloudflare.com/7c88b2d2b3fe9baf32dc744ac0a631b3/workers/services/view/song-food/production/builds/1d4f3dbc-387e-4161-b8a0-5b4f7bbf8554). 원격 로그에서 전체 단위 571개·브라우저 25개 통과를 직접 확인했다.
 
 운영 HTTP 검수는 건강/한영 카탈로그 200, 주문/계정 PI 401, 오픈 점검/메일/출시/직원/인수/초기 운영 API 403, 관리자 이메일 로그인 화면 200을 확인했다. 실제 로그인한 운영 직원의 신규 화면 인수와 실제 거래는 자동 검수로 대리 완료하지 않는다.
 
