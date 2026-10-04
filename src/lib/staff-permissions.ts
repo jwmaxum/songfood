@@ -5,6 +5,6 @@ export function pageRoles(path: string): StaffRole[] {
   if (['','account','guide','settings','history'].includes(section)) return ALL;
   if (['crm','documents'].includes(section)) return ['admin','inquiry_staff'];
   if (['orders'].includes(section)) return ['admin','order_staff'];
-  if (['quality','pricing','products','labels','hero','navigation','journal','media','media-lab','content-blocks'].includes(section)) return ['admin','product_staff'];
+  if (['quality','releases','pricing','products','labels','hero','navigation','journal','media','media-lab','content-blocks'].includes(section)) return ['admin','product_staff'];
   return ['admin'];
 }

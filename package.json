@@ -29,7 +29,8 @@
     "test:browser": "playwright test",
     "check:health": "node scripts/health-smoke.cjs",
     "build:staging": "node scripts/staging-worker.cjs build .env.staging.local",
-    "deploy:staging": "node scripts/staging-worker.cjs deploy .env.staging.local"
+    "deploy:staging": "node scripts/staging-worker.cjs deploy .env.staging.local",
+    "deploy:mail": "node scripts/deploy-mail-relay.cjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

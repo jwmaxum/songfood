@@ -6,8 +6,8 @@ const tokens={admin:'a'.repeat(64),customer:'c'.repeat(64),product_staff:'b'.rep
 const initialProfile={name:'송영민푸드',owner:'',registration:'',ecommerce_registration:'',address:'',address_en:'',phone:'010-3889-3344',email:'3song876@daum.net',export_phone:'+82-10-2143-2120',privacy_contact:'',shipping_ko:'',shipping_en:'',returns_ko:'',returns_en:'',privacy_ko:'',privacy_en:''};
 const future=()=>new Date(Date.now()+86400000*3).toISOString();
 const prices=products.map((p,i)=>({id:'00000000-0000-4000-8000-'+String(1000+i).padStart(12,'0'),product_id:p.id,price_list_id:'00000000-0000-4000-8000-000000000811',version:1,status:'approved',price_unit:'EA',unit_price_krw:'1100',tax_code:'vat10',vat_included:true,ea_per_box:5,boxes_per_carton:2,ea_per_carton:10,minimum_order_unit:'CTN',minimum_order_quantity:2,export_moq_ctn:3,tiers:[],valid_from:'2020-01-01T00:00:00Z',valid_until:future(),fob_status:'included',loading_port:'Busan',review_source:'QA fixture',change_reason:'QA fixture only',cost_review:'QA only',created_by:ids.admin,approved_by:ids.admin,created_at:new Date().toISOString()}));
-let settings,records,emails,unknown,requests,controls,controlEvents;
-function reset(){controls={revision:1,inquiries_paused:false,orders_paused:false,pi_paused:false,owner:"",response_minutes:null,updated_at:new Date().toISOString()};controlEvents=[];settings={profile:{...initialProfile},revision:1,updated_at:new Date().toISOString()};records=[];emails=[];unknown=[];requests=new Map();}
+let settings,records,emails,unknown,requests,controls,controlEvents,releasePolicy,releaseReviews,releaseEvents,mailTransport,mailDelivery,documentEmails;
+function reset(){releasePolicy={enabled:false,revision:1};releaseReviews={};releaseEvents=[];mailTransport={verified_at:null,last_checked_at:null,last_code:'SMTP_VERIFY_FAILED'};mailDelivery={notification_id:'00000000-0000-4000-8000-000000000930',state:'queued',attempt:0,last_code:null,updated_at:new Date().toISOString()};documentEmails=[];controls={revision:1,inquiries_paused:false,orders_paused:false,pi_paused:false,owner:"",response_minutes:null,updated_at:new Date().toISOString()};controlEvents=[];settings={profile:{...initialProfile},revision:1,updated_at:new Date().toISOString()};records=[];emails=[];unknown=[];requests=new Map();}
 reset();
 function filtered(rows,u){return rows.filter(row=>[...u.searchParams].every(([k,v])=>!v.startsWith('eq.')||String(row[k])===v.slice(3)));}
 const server=http.createServer(async(req,res)=>{
@@ -15,15 +15,34 @@ const server=http.createServer(async(req,res)=>{
  try{const chunks=[];let size=0;for await(const c of req){size+=c.length;if(size>100000)throw Error('too large');chunks.push(c);}if(chunks.length)body=JSON.parse(Buffer.concat(chunks).toString());}catch{res.writeHead(400).end('{}');return;}
  const send=(data,status=200)=>{res.writeHead(status,{'Content-Type':'application/json'});res.end(JSON.stringify(data));};
  if(path==='/__reset'){reset();return send({ok:true});}
- if(path==='/__state')return send({emails,unknown,settings,records});
+ if(path==='/__state')return send({emails,unknown,settings,records,documentEmails});
  if(path==='/health')return send({ok:true});
  if(path==='/auth/v1/otp'){emails.push({redirect:u.searchParams.get('redirect_to'),email:body.email});return send({});}
  if(path.startsWith('/auth/v1/admin/users/')){
   const id=path.split('/').pop(),role=Object.keys(ids).find(k=>ids[k]===id);
   return send({id,email:role+'@example.invalid',email_confirmed_at:'2020-01-01T00:00:00Z',aud:'authenticated',role:'authenticated',user_metadata:{name:'QA '+role}});
  }
+
+ if(path==='/functions/v1/b2b-notification-relay'){
+  if(body.actor!==ids.admin)return send({error:'forbidden'},403);
+  if(body.action==='verify'){mailTransport={verified_at:new Date().toISOString(),last_checked_at:new Date().toISOString(),last_code:'SMTP_VERIFIED'};return send({success:true,transport:mailTransport});}
+  if(mailDelivery.state!=='accepted'){mailDelivery={...mailDelivery,state:'accepted',attempt:mailDelivery.attempt+1,last_code:'SMTP_ACCEPTED'};documentEmails.push({id:body.id,key:body.request_key});}
+  return send({success:true,delivery:mailDelivery});
+ }
+
  if(path.startsWith('/rest/v1/rpc/')){
   const rpc=path.split('/').pop();
+
+  if(rpc==='b2b_release_availability')return send({enabled:releasePolicy.enabled,products:Object.fromEntries(products.map(p=>[p.id,{domestic:!!releaseReviews[p.id]?.domestic,export:!!releaseReviews[p.id]?.export}]))});
+  if(rpc==='b2b_release_snapshot')return send({policy:releasePolicy,products:products.map(p=>({product_id:p.id,name:p.name,sku:p.sku,fingerprint:'a'.repeat(64),domestic_issues:[],export_issues:[],review:releaseReviews[p.id]||null})),events:releaseEvents});
+  if(rpc==='b2b_save_release'){if(body.p_actor!==ids.admin)return send({code:'42501'},403);const old=releaseReviews[body.p_id];if((old?.revision||0)!==body.p_revision)return send({code:'40001'},409);releaseReviews[body.p_id]={revision:(old?.revision||0)+1,domestic:body.p_domestic,export:body.p_export,fingerprint:body.p_hash,reason:body.p_reason,reviewed_at:new Date().toISOString()};releaseEvents.unshift({product_id:body.p_id,event:'review',reason:body.p_reason,created_at:new Date().toISOString()});return send(releaseReviews[body.p_id]);}
+  if(rpc==='b2b_set_release_policy'){if(body.p_actor!==ids.admin)return send({code:'42501'},403);if(body.p_revision!==releasePolicy.revision)return send({code:'40001'},409);if(body.p_enabled&&!Object.values(releaseReviews).some(r=>r.domestic||r.export))return send({code:'22023'},400);releasePolicy={enabled:body.p_enabled,revision:releasePolicy.revision+1};return send(releasePolicy);}
+  if(rpc==='b2b_mail_prepare'){
+   if(![ids.admin].includes(body.p_actor))return send({code:'42501'},403);
+   if(body.p_action==='reset'){mailDelivery={...mailDelivery,state:'queued'};return send({delivery:mailDelivery});}
+   return send({origin:'https://song-food.jwmaxum.workers.dev',payload:{recipient:'buyer@example.invalid'},hash:'a'.repeat(64),delivery:mailDelivery});
+  }
+
   if(rpc==='b2b_launch_snapshot')return send({products:16,priced_products:16,exchange_ready:true,bank_ready:false,issuer_ready:false,private_pi_storage:true,notification_transport:'test_inbox',failed_notifications:0,preparing_pi:0,checked_at:new Date().toISOString()});
   if(rpc==='b2b_save_service_controls'){if(body.p_actor!==ids.admin)return send({code:'42501'},403);if(body.p_revision!==controls.revision)return send({code:'40001'},409);const before=controls;controls={...body.p_state,revision:controls.revision+1,updated_at:new Date().toISOString()};controlEvents.unshift({revision:controls.revision,reason:body.p_reason,created_at:controls.updated_at,before_state:before,after_state:controls});return send(controls);}
   if(rpc==='b2b_order_list')return send({orders:[],total:0});
@@ -35,7 +54,7 @@ const server=http.createServer(async(req,res)=>{
   }
   if(rpc==='b2b_submit_inquiry'){
    const key=body.p_scope+body.p_key,old=requests.get(key);if(old)return send({id:old.inquiry_id,replayed:true});
-   const id=crypto.randomUUID();records.push({...body.p_data,id,status:'new',created_at:new Date().toISOString()});
+   const id=crypto.randomUUID();records.push({...body.p_data,id,status:'new',revision:1,items:body.p_data.items||[],assigned_to:null,created_at:new Date().toISOString()});
    requests.set(key,{scope_hash:body.p_scope,request_key:body.p_key,request_hash:body.p_hash,inquiry_id:id});return send({id,replayed:false});
   }
   if(rpc==='b2b_ops_snapshot'){
@@ -47,6 +66,13 @@ const server=http.createServer(async(req,res)=>{
   const table=path.slice('/rest/v1/'.length);let rows;const one=req.headers.accept?.includes('vnd.pgrst.object');
   if(table==='b2b_service_controls')rows=[{id:true,...controls}];
   else if(table==='b2b_service_control_events')rows=controlEvents;
+
+  else if(table==='b2b_mail_transport')rows=[{id:true,...mailTransport}];
+  else if(table==='b2b_email_events')rows=[];
+  else if(table==='b2b_email_deliveries')rows=mailDelivery.state==='queued'?[]:[mailDelivery];
+  else if(table==='b2b_notification_outbox')rows=records.length?[{id:'00000000-0000-4000-8000-000000000930',inquiry_id:records[0].id,activity_id:'00000000-0000-4000-8000-000000000932',channel:'test_inbox',status:'queued',attempts:0,last_error:null,created_at:new Date().toISOString()}]:[];
+  else if(table==='b2b_quote_drafts'||table==='b2b_notification_attempts')rows=[];
+
   else if(table==='products')rows=products;
   else if(table==='b2b_business_settings')rows=[{id:true,...settings}];
   else if(table==='b2b_sessions'){

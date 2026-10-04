@@ -40,6 +40,7 @@ yarn-error.log*
 !.env.example
 !.env.staging.example
 !.env.backup.example
+!.env.mail.example
 
 # vercel
 .vercel

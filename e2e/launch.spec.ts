@@ -109,7 +109,7 @@ test('client navigation into domestic orders refreshes the root language',async(
 test('launch controls pause new RFQ, preserve replay, reject stale and unauthorized changes',async({page,context,request},info)=>{
  await signIn(context,'admin');await page.setViewportSize({width:360,height:900});await page.goto('/admin/launch');
  await expect(page.getByRole('heading',{name:'오픈 전 확인 항목',exact:true})).toBeVisible();
- await expect(page.getByText('현재 문서 알림은 테스트 수신함입니다.',{exact:false})).toBeVisible();
+ await expect(page.getByText('고객 이메일 SMTP 연결 점검 필요',{exact:false})).toBeVisible();
  await noOverflow(page);await accessible(page);
  const body={kind:'export_rfq',contact_name:'QA Buyer',email:'qa@example.invalid',country:'Japan',incoterms:'FOB',items:[{product_id:'qa-product-1',product_name:'untrusted',quantity_cartons:3}]};
  const headers={Origin:'http://127.0.0.1:3100','Content-Type':'application/json','Idempotency-Key':'00000000-0000-4000-8000-000000000911'};
@@ -130,4 +130,35 @@ test('launch controls pause new RFQ, preserve replay, reject stale and unauthori
  expect((await(await request.get('http://127.0.0.1:4011/__state')).json()).records).toHaveLength(2);
  expect((await request.get('/api/health')).status()).toBe(200);
  await context.clearCookies();await signIn(context,'product_staff');expect((await context.request.get('/api/admin/launch')).status()).toBe(403);
+});
+
+test('release review, stale approval and limited catalogue at mobile widths',async({page,context},info)=>{
+ await signIn(context,'admin');await page.goto('/admin/releases');await expect(page.getByText('검증용 냉동 식품 1 · QA-001',{exact:true})).toBeVisible();
+ for(const width of [360,390,768,1440]){await page.setViewportSize({width,height:900});await noOverflow(page);await accessible(page);}
+ const first=page.getByRole('listitem').filter({hasText:'검증용 냉동 식품 1 · QA-001'}).first();await first.getByRole('button',{name:'출시 검수·철회'}).click();
+ await page.getByLabel('국내 출시 승인',{exact:false}).check();await page.getByLabel('실제 검수 근거 또는 철회 사유').fill('QA 공급사 표시사항 포장 MOQ 및 가격 검수');await page.getByRole('button',{name:'검수 기록 저장',exact:true}).click();
+ await expect(first.getByText('국내 출시 검수 완료',{exact:false})).toBeVisible();await page.getByLabel('출시 제한 변경 사유').fill('QA 제한 출시 대상 1개 승인 후 활성화');await page.getByRole('button',{name:'승인 상품 거래 제한 활성화',exact:true}).click();await expect(page.getByRole('status')).toContainText('활성');
+ const headers={Origin:'http://127.0.0.1:3100'};expect((await context.request.put('/api/admin/releases',{headers,data:{product_id:'qa-product-1',revision:0,hash:'a'.repeat(64),domestic:true,export:false,reason:'QA stale review denied'}})).status()).toBe(409);
+ expect((await context.request.put('/api/admin/releases',{headers:{Origin:'https://evil.example'},data:{action:'policy',revision:2,enabled:false,reason:'QA bad origin denied'}})).status()).toBe(403);
+ await page.screenshot({path:info.outputPath('release-review.png'),fullPage:true});
+ await context.clearCookies();await signIn(context,'customer');const catalogue=await context.request.get('/api/pricing/catalogue');expect(catalogue.status()).toBe(200);const prices=(await catalogue.json()).products;expect(Object.keys(prices[0].units).length).toBeGreaterThan(0);expect(prices[1].units).toEqual({});expect(prices[1].message).toContain('출시 검수');
+ await context.clearCookies();await signIn(context,'product_staff');expect((await context.request.get('/api/admin/releases')).status()).toBe(200);expect((await context.request.put('/api/admin/releases',{headers,data:{action:'policy',revision:2,enabled:false,reason:'QA unauthorized action'}})).status()).toBe(403);
+});
+
+test('Gmail verification sends nothing, CRM preview confirmation and duplicate-safe document mail',async({page,context,request},info)=>{
+ await signIn(context,'admin');await page.goto('/admin/mail');await expect(page.getByText('SMTP_VERIFY_FAILED',{exact:false})).toBeVisible();
+ await page.getByRole('button',{name:'SMTP 연결·인증 점검 · 메일 발송 없음',exact:true}).click();await expect(page.getByRole('status')).toContainText('SMTP_VERIFIED');
+ for(const width of [360,390,768,1440]){await page.setViewportSize({width,height:900});await noOverflow(page);await accessible(page);}
+ expect((await(await request.get('http://127.0.0.1:4011/__state')).json()).documentEmails).toHaveLength(0);
+ const headers={Origin:'http://127.0.0.1:3100','Idempotency-Key':'00000000-0000-4000-8000-000000000935'};
+ const created=await context.request.post('/api/commercial-inquiries',{headers,data:{kind:'domestic_wholesale',contact_name:'QA customer',email:'buyer@example.invalid',phone:'01000000000'}});expect(created.status()).toBe(201);const inquiry=(await created.json()).id;
+ await page.goto('/admin/crm?inquiry='+inquiry);await page.getByText('고객 이메일·내부 테스트 알림',{exact:false}).click();await page.getByRole('button',{name:'수신자·메일 미리보기 / 결과 조회',exact:true}).click();
+ await expect(page.getByText('수신자: buyer@example.invalid',{exact:true})).toBeVisible();const send=page.getByRole('button',{name:'실제 이메일 발송',exact:true});await expect(send).toBeDisabled();
+ await page.getByLabel('발송 또는 결과 확인 사유').fill('QA 고객 문서 업데이트 내용 확인');await page.getByLabel('수신자·내용을 확인했습니다.',{exact:false}).check();await send.click();await expect(page.getByText('SMTP 서버 접수 · 수신 확인 아님',{exact:false})).toBeVisible();
+ await noOverflow(page);await accessible(page);await page.screenshot({path:info.outputPath('crm-email-confirmation.png'),fullPage:true});
+ const state=await(await request.get('http://127.0.0.1:4011/__state')).json();expect(state.documentEmails).toHaveLength(1);
+ const email=state.documentEmails[0],id='00000000-0000-4000-8000-000000000930',endpoint='/api/admin/crm/notifications/'+id+'/email';
+ expect((await context.request.post(endpoint,{headers,data:{confirmed:true,request_key:email.key,hash:'a'.repeat(64),reason:'QA same key replay'}})).status()).toBe(200);
+ expect((await(await request.get('http://127.0.0.1:4011/__state')).json()).documentEmails).toHaveLength(1);
+ await context.clearCookies();await signIn(context,'product_staff');expect((await context.request.get('/api/admin/mail')).status()).toBe(403);expect((await context.request.get(endpoint)).status()).toBe(403);
 });

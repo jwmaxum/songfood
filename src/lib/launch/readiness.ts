@@ -9,7 +9,8 @@ export function launchChecks(f:LaunchFacts,c:ServiceControls,profile:BusinessPro
  {id:'bank',title:'국내 입금 계좌',ready:f.bank_ready,detail:f.bank_ready?'설정 등록 · 계좌 소유·배송비 기준 실제 확인 필요':'실제 입금 계좌 미등록',href:'/admin/orders'},
  {id:'issuer',title:'PI 판매자·결제 조건',ready:f.issuer_ready,detail:f.issuer_ready?'설정 등록 · 실제 판매자·조건 확인 필요':'PI 판매자·결제 조건 미등록',href:'/admin/crm'},
  {id:'storage',title:'PI 비공개 저장소',ready:f.private_pi_storage,detail:f.private_pi_storage?'비공개 b2b-proforma 버킷 확인':'PI 저장소 없음 또는 공개 상태',href:'/admin/documents'},
- {id:'notification',title:'바이어 문서 알림 운영 방식',ready:false,detail:'현재 문서 알림은 테스트 수신함입니다. 이메일 인증 SMTP와 별개입니다. 실제 문서 통지 방식·담당자 확인 필요',href:'/admin/crm'},
+ {id:'release',title:'제한 출시 상품 검수',ready:f.release_enabled===true&&(f.released_products||0)>0,detail:(f.released_products||0)+'개 출시 검수 · 승인 상품 거래 제한 '+(f.release_enabled?'활성':'비활성'),href:'/admin/releases'},
+ {id:'notification',title:'바이어 문서 이메일 연결',ready:f.mail_verified===true,detail:f.mail_verified?'Gmail SMTP 인증 점검 통과 · 실제 수신·스팸함과 담당자 운영 인수 확인 필요':'고객 이메일 SMTP 연결 점검 필요 · 회원 인증 메일과 별도',href:'/admin/mail'},
  {id:'owner',title:'장애 대응 담당자·목표 시간',ready:!!c.owner.trim()&&c.response_minutes!==null,detail:c.owner?c.owner+' · '+(c.response_minutes??'미정')+'분 내 대응 목표':'운영 책임자와 대응 목표 미등록',href:'/admin/launch'},
  {id:'incidents',title:'알림 실패·발행 준비 문서',ready:f.failed_notifications===0&&f.preparing_pi===0,detail:'알림 실패 '+f.failed_notifications+'건 · 발행 준비 '+f.preparing_pi+'건',href:'/admin/documents'},
  ];

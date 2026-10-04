@@ -1,4 +1,5 @@
 import 'server-only';
+import {restrictCatalogue} from '../launch/release-state';
 import {reportOperationalFailure} from '../operational-error';
 import { supabaseAdmin } from '../supabase-admin';
 import { ApiError, json } from '../request-security';
@@ -44,8 +45,10 @@ export async function quote(session:CustomerSession,items:PriceRequest[],market:
   return summarize(items.map(item=>calculateLine(selectPrice(item.product_id,session,data.lists,data.revisions,now),item,market,data.rate,now)),market);
 }
 export async function catalogue(session:CustomerSession):Promise<CatalogueEntry[]> {
-  const data=await loadPricingData(),ids=[...new Set(data.revisions.map(p=>p.product_id))],now=new Date();
-  return ids.map(product_id=>{
+  const [data,availability]=await Promise.all([loadPricingData(),supabaseAdmin.rpc('b2b_release_availability')]);
+  if(availability.error||!availability.data)throw new ApiError(503,'출시 검수 상태를 확인하지 못했습니다.');
+  const ids=[...new Set(data.revisions.map(p=>p.product_id))],now=new Date();
+  const entries=ids.map(product_id=>{
     const entry:CatalogueEntry={product_id,units:{},message:''};
     try {
       const p=selectPrice(product_id,session,data.lists,data.revisions,now);
@@ -62,6 +65,7 @@ export async function catalogue(session:CustomerSession):Promise<CatalogueEntry[
     } catch(error) {entry.message=error instanceof PricingError?error.message:'가격 확인이 필요합니다.';}
     return entry;
   });
+  return restrictCatalogue(entries,availability.data);
 }
 export async function publicMinimums():Promise<Record<string,{unit:TradeUnit;quantity:number}>> {
   const {data:lists,error}=await supabaseAdmin.from('b2b_price_lists').select('id').eq('scope','common').eq('active',true);
