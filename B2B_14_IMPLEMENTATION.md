@@ -96,9 +96,20 @@ PI 기본정보는 회사 공개 정보/국내 계좌와 별도다. 저장해도
 | 커버리지 | 새 PI 설정 저장 모듈 line 100%, 전체 line 70.29% · 80% 목표는 미달 |
 | 보안·diff | 변경 25파일 실제 env 비밀값/토큰 패턴 0, CJS 문법·diff --check 통과 |
 | 운영 의존성 | npm audit --omit=dev 취약점 0 |
-| GitHub→Cloudflare | 자동 배포 확인 진행 중 |
+| GitHub→Cloudflare | 기능 커밋 5f658ba의 CI·자동 배포 모두 성공 |
 
 독립 Supabase DB/Auth/Storage UAT, 전체 백업 복구, 호환 Worker 원복은 무료 환경의 기존 미완료 항목이다. 유료 Pro 전환은 이번 요청 범위에 포함하지 않는다. OpenNext의 기존 Windows/Node middleware 경고는 유지되며, 실제 Cloudflare 빌드 결과도 별도로 확인한다.
+
+### 배포 확인 근거
+
+- 기능 커밋: 5f658ba9a72c43ef66024789fd0163d4c8380d75, GitHub main 원격 SHA 일치.
+- [GitHub CI 37185491515](https://github.com/jwmaxum/songfood/actions/runs/37185491515): 성공. 실제 Linux 로그에서 70묶음 593개 단위·전체 브라우저 26개 통과 확인.
+- [Cloudflare 자동 빌드 fd8c5ec8-43f4-4b34-bd63-d17aff921362](https://dash.cloudflare.com/7c88b2d2b3fe9baf32dc744ac0a631b3/workers/services/view/song-food/production/builds/fd8c5ec8-43f4-4b34-bd63-d17aff921362): 성공.
+- 운영 HTTP 점검 2026-10-04 16:23 KST: 13/13 통과. health·한영 상품 200, 고객 주문/PI 401, 관리자 launch/mail/releases/users/handover/operations/PI 설정 403, 관리자 이메일 로그인 화면 200.
+- 로컬 개발 서버 재실행, 127.0.0.1:3000/api/health 200.
+- 이 확인 기록 이후 문서만 추가 커밋한다. 기능·DB 스키마 변경은 없다.
+
+기능 개발과 자동 배포는 완료했다. 실제 자료 등록·양채널 실거래 인수·상업 공개 결정은 위 미완료 표를 따른다. 이전 단계의 Worker 원복 호환성은 코드상 기존 설정 스키마를 유지하지만 실제 원복 시험을 대신하지 않는다.
 
 ## 다음 단계
 
