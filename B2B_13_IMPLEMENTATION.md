@@ -8,6 +8,7 @@
 
 - /admin/operations **초기 운영 점검**: 등록 직원의 현재 권한에 따른 우선 업무·거래/문서 후속 조치·상품/가격 점검.
 - 관리자는 국내/해외의 현재 인수 조건과 보류 이유를 함께 확인한다. 인수 조건 충족 표시는 자동 공개나 독립 UAT·전체 복구 완료를 뜻하지 않는다.
+- 모바일에서는 보류 상태와 상세 사유를 접기/펼치기로 구분해 우선 업무를 빠르게 확인한다.
 - /admin 업무 큐에 **실제 고객 메일 실패·결과 불명·발송 검토 대기**, **담당자 재배정 필요**, **진행·후속 조치** 필터를 추가했다.
 - 업무 시작 → 실제 은행 대조/출고·PI/메일 → 교대 → 장애 신규 접수 중지 → 최신 자료 재검수/재개 절차를 운영 매뉴얼에 반영했다.
 - 거래 처리와 메일 복구는 기존 상세 화면의 권한·버전·사유·감사 이력을 사용한다. 초기 운영 조회 자체는 설정·거래·메일 상태를 변경하지 않는다.
@@ -99,11 +100,15 @@ DB migration: **supabase/migrations/20261004220000_b2b_initial_operations.sql**.
 | Worker | 서버 비밀키 없이 Next.js 16.3.6 / OpenNext 1.20.6 전체 빌드 통과 |
 | 런타임 의존성 | npm audit --omit=dev 취약점 **0**. 의존성 변경 없음 |
 | 보안·diff | 실제 env 비밀값 패턴 검사 **19파일 노출 0**, CJS 문법·diff --check 통과 |
-| 자동 배포·운영 HTTP | 로컬 전체 검증 통과. GitHub main push → 동일 커밋 GitHub CI·Cloudflare·운영 HTTP 확인 진행 |
+| 자동 배포·운영 HTTP | 기능 소스 **dfab41d**의 GitHub CI·Cloudflare 자동 배포 성공. 운영 HTTP **12/12 통과**. 모바일 목록 접기/펼치기 최종 보완을 재배포한다. |
 
 기능 검증: Build PASS, Types PASS(0), Lint PASS(기존 경고 76), Tests PASS(571/571), Security PASS, Diff PASS. 전체 coverage 80% 목표는 미달이며 상업 출시/독립 복구 인수는 NOT READY다.
 
 자동 시험 통과는 실제 은행/출고/고객 메일 수신이나 독립 복구 완료를 대신하지 않는다.
+
+자동 배포 근거: [GitHub CI 37181664883](https://github.com/jwmaxum/songfood/actions/runs/37181664883), [Cloudflare 빌드 e3bc4689](https://dash.cloudflare.com/7c88b2d2b3fe9baf32dc744ac0a631b3/workers/services/view/song-food/production/builds/e3bc4689-8b71-445b-a54b-44ef160eb013). 원격 로그에서 전체 단위 571개·브라우저 25개 통과를 직접 확인했다.
+
+운영 HTTP 검수는 건강/한영 카탈로그 200, 주문/계정 PI 401, 오픈 점검/메일/출시/직원/인수/초기 운영 API 403, 관리자 이메일 로그인 화면 200을 확인했다. 실제 로그인한 운영 직원의 신규 화면 인수와 실제 거래는 자동 검수로 대리 완료하지 않는다.
 
 ## 8. 운영 반영·원복
 
