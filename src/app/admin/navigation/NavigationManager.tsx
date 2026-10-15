@@ -1,8 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { MenuItem } from '@/lib/types';
+import { PRODUCT_TAXONOMY, categoriesForCollection } from '@/lib/product-taxonomy';
+import { collectionLabel, categoryLabel } from '@/lib/catalogue-taxonomy';
+import { catalogueHref } from '@/lib/catalogue-navigation';
 import {
   DndContext,
   closestCenter,
@@ -208,7 +211,6 @@ function SortableSubItem({
 export default function NavigationManager() {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<'all' | 'header' | 'footer'>('all');
@@ -217,6 +219,28 @@ export default function NavigationManager() {
   const [newTitle, setNewTitle] = useState('');
   const [newUrl, setNewUrl] = useState('');
   const [newParentId, setNewParentId] = useState<string | null>(null);
+  const [destinationType, setDestinationType] = useState<'category' | 'custom'>('category');
+  const [destinationCollection, setDestinationCollection] = useState('');
+  const [destinationCategory, setDestinationCategory] = useState('');
+  const [destinationMode, setDestinationMode] = useState<'domestic' | 'export'>('domestic');
+  const modalRef = useRef<HTMLDivElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  const destinationHref = (lang: 'ko' | 'en') => catalogueHref(new URLSearchParams(), {
+    collection: destinationCollection, category: destinationCategory,
+    mode: destinationMode === 'export' ? 'export' : '', lang,
+  });
+  const resolvedUrl = destinationType === 'category' ? destinationHref('ko') : newUrl;
+  function openCreate(parentId: string | null) {
+    openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setNewParentId(parentId); setNewTitle(''); setNewUrl('');
+    setDestinationType('category'); setDestinationCollection(''); setDestinationCategory(''); setDestinationMode('domestic');
+    setIsModalOpen(true);
+  }
+  function closeCreate() { setIsModalOpen(false); openerRef.current?.focus(); }
+  useEffect(() => {
+    if (isModalOpen) modalRef.current?.querySelector<HTMLInputElement>('input')?.focus();
+  }, [isModalOpen]);
+
   const [newPosition, setNewPosition] = useState<'header' | 'footer' | 'both'>('header');
 
   const sensors = useSensors(
@@ -335,11 +359,12 @@ export default function NavigationManager() {
 
   const handleAddMenuSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim() || !newUrl.trim()) return alert('Title and URL are required');
+    if (!newTitle.trim() || !resolvedUrl.trim()) return alert('Title and URL are required');
+    if (destinationType === 'custom' && (!resolvedUrl.startsWith('/') || resolvedUrl.startsWith('//') || /[\\\u0000-\u001f\u007f]/.test(resolvedUrl))) { showToast('메뉴에는 안전한 내부 페이지 경로를 입력해 주세요.'); return; }
 
     let newItem: MenuItem;
     try {
-      const response = await fetch('/api/menus', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newTitle, url: newUrl, parent_id: newParentId, sort_order: items.length + 1, is_active: true, position: newPosition }) });
+      const response = await fetch('/api/menus', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newTitle, url: resolvedUrl, parent_id: newParentId, sort_order: items.length + 1, is_active: true, position: newPosition }) });
       if (!response.ok) throw new Error('Create failed');
       newItem = (await response.json()).data as MenuItem;
     } catch {
@@ -359,7 +384,7 @@ export default function NavigationManager() {
       setItems((prev) => [...prev, newItem]);
     }
 
-    setIsModalOpen(false);
+    closeCreate();
     setNewTitle('');
     setNewUrl('');
     setNewParentId(null);
@@ -405,10 +430,7 @@ export default function NavigationManager() {
           </button>
 
           <button
-            onClick={() => {
-              setNewParentId(null);
-              setIsModalOpen(true);
-            }}
+            onClick={() => openCreate(null)}
             className="flex items-center space-x-2 px-5 py-2.5 bg-[#c5a880] hover:bg-[#b59870] text-black font-semibold rounded text-xs transition-colors shadow-lg"
           >
             <Plus size={16} />
@@ -436,7 +458,7 @@ export default function NavigationManager() {
 
       {/* Main Drag and Drop Tree Container */}
       {loading ? (
-        <div className="py-20 text-center text-stone-500 text-sm animate-pulse">
+        <div role="status" className="py-20 text-center text-stone-400 text-sm">
           Loading Navigation Engine Data...
         </div>
       ) : filteredItems.length === 0 ? (
@@ -454,10 +476,7 @@ export default function NavigationManager() {
                   item={parent}
                   onToggleActive={handleToggleActive}
                   onDelete={handleDelete}
-                  onAddSubmenu={(pId) => {
-                    setNewParentId(pId);
-                    setIsModalOpen(true);
-                  }}
+                  onAddSubmenu={(pId) => openCreate(pId)}
                 >
                   {/* Depth 2 Submenu List */}
                   {parent.children && parent.children.length > 0 && (
@@ -481,49 +500,67 @@ export default function NavigationManager() {
 
       {/* Create Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="bg-[#111118] border border-stone-800 rounded-xl max-w-md w-full p-6 space-y-5 shadow-2xl">
-            <h2 className="font-serif-luxury text-xl font-bold text-white flex items-center space-x-2">
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); closeCreate(); } if (e.key === 'Tab') { const controls = modalRef.current?.querySelectorAll<HTMLElement>('button, input, select, a[href]'); if (!controls?.length) return; const first = controls[0], last = controls[controls.length - 1]; if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); } else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); } } }}>
+          <div ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="navigation-create-title" className="max-h-[90dvh] overflow-y-auto bg-[#111118] border border-stone-800 rounded-xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
+            <h2 id="navigation-create-title" className="font-serif-luxury text-xl font-bold text-white flex items-center space-x-2">
               <Plus className="text-[#c5a880]" size={20} />
               <span>{newParentId ? 'Add Submenu Item (Depth 2)' : 'Add Parent Menu Item (Depth 1)'}</span>
             </h2>
 
             <form onSubmit={handleAddMenuSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">
+                <label htmlFor="navigation-title" className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">
                   Title / Label
                 </label>
                 <input
                   type="text"
                   required
-                  value={newTitle}
+                  id="navigation-title" value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="e.g. Organic EVOO Oils"
+                  placeholder="예: 만두·냉동식품"
                   className="w-full px-3.5 py-2.5 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
                 />
               </div>
 
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">
-                  URL / Route Path
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newUrl}
-                  onChange={(e) => setNewUrl(e.target.value)}
-                  placeholder="e.g. /collections?cat=fresh"
-                  className="w-full px-3.5 py-2.5 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
-                />
+              <div className="space-y-4 rounded-lg border border-stone-700 p-4">
+                <label className="block text-sm" htmlFor="navigation-destination">메뉴 목적지</label>
+                <select id="navigation-destination" value={destinationType} onChange={e => setDestinationType(e.target.value as 'category' | 'custom')} className="min-h-11 w-full rounded border border-stone-700 bg-[#0a0a0c] p-2 text-sm">
+                  <option value="category">상품 분류 선택</option><option value="custom">다른 내부 페이지 URL</option>
+                </select>
+                {destinationType === 'category' ? <>
+                  <label className="block text-sm" htmlFor="navigation-collection">상품 대분류</label>
+                  <select id="navigation-collection" value={destinationCollection} onChange={e => { setDestinationCollection(e.target.value); setDestinationCategory(''); }} className="min-h-11 w-full rounded border border-stone-700 bg-[#0a0a0c] p-2 text-sm">
+                    <option value="">전체 상품 / All products</option>
+                    {PRODUCT_TAXONOMY.map(group => <option key={group.collection} value={group.collection}>{collectionLabel(group.collection, 'ko')}</option>)}
+                  </select>
+                  <label className="block text-sm" htmlFor="navigation-category">제품종류</label>
+                  <select id="navigation-category" value={destinationCategory} disabled={!destinationCollection} onChange={e => setDestinationCategory(e.target.value)} className="min-h-11 w-full rounded border border-stone-700 bg-[#0a0a0c] p-2 text-sm disabled:opacity-50">
+                    <option value="">대분류 전체</option>
+                    {categoriesForCollection(destinationCollection).map(category => <option key={category} value={category}>{categoryLabel(category, 'ko')}</option>)}
+                  </select>
+                  <label className="block text-sm" htmlFor="navigation-mode">구매 유형</label>
+                  <select id="navigation-mode" value={destinationMode} onChange={e => setDestinationMode(e.target.value as 'domestic' | 'export')} className="min-h-11 w-full rounded border border-stone-700 bg-[#0a0a0c] p-2 text-sm"><option value="domestic">국내 구매</option><option value="export">Export RFQ</option></select>
+                  <div className="space-y-2 break-all text-xs" aria-label="목적지 미리보기">
+                    <p>선택 분류: {destinationCategory ? categoryLabel(destinationCategory, 'ko') : destinationCollection ? collectionLabel(destinationCollection, 'ko') : '전체 상품'}</p>
+                    <p>English: {destinationCategory ? categoryLabel(destinationCategory, 'en') : destinationCollection ? collectionLabel(destinationCollection, 'en') : 'All products'}</p>
+                    <p><Link href={destinationHref('ko')} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center underline">한국어 결과 미리보기 (새 탭)</Link></p>
+                    <p><Link href={destinationHref('en')} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center underline">English results preview (new tab)</Link></p>
+                    <p className="text-stone-400">{resolvedUrl}</p>
+                  </div>
+                </> : <div>
+                  <label htmlFor="navigation-url" className="mb-1 block text-xs">URL / Route Path</label>
+                  <input id="navigation-url" type="text" required value={newUrl} onChange={e => setNewUrl(e.target.value)} placeholder="예: /about" className="min-h-11 w-full rounded border border-stone-700 bg-[#0a0a0c] p-2 text-sm" />
+                  <p className="mt-2 text-xs text-stone-400">상품 메뉴는 분류 선택을 이용하세요. 기존 분류 코드 대신 /shop의 collection·category 조건을 저장합니다.</p>
+                </div>}
               </div>
 
               {!newParentId && (
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">
+                  <label htmlFor="navigation-position" className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">
                     Placement Position
                   </label>
                   <select
-                    value={newPosition}
+                    id="navigation-position" value={newPosition}
                     onChange={(e) => setNewPosition(e.target.value as 'header' | 'footer' | 'both')}
                     className="w-full px-3.5 py-2.5 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
                   >
@@ -537,7 +574,7 @@ export default function NavigationManager() {
               <div className="flex space-x-3 pt-4 border-t border-stone-800">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={closeCreate}
                   className="w-1/2 py-2.5 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded text-xs transition-colors"
                 >
                   Cancel

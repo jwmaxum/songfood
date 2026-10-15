@@ -40,7 +40,7 @@
     "@supabase/supabase-js": "^2.111.0",
     "clsx": "^2.1.1",
     "lucide-react": "^1.27.0",
-    "next": "^16.3.0",
+    "next": "16.3.8",
     "pdf-lib": "1.17.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -66,6 +66,6 @@
     "tailwindcss": "^4",
     "ts-jest": "^29.4.12",
     "typescript": "^5",
-    "wrangler": "^4.142.0"
+    "wrangler": "4.149.0"
   }
 }

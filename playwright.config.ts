@@ -4,5 +4,5 @@ export default defineConfig({
  reporter:[['list'],['html',{open:'never'}]],outputDir:'test-results',
  use:{baseURL:'http://127.0.0.1:3100',serviceWorkers:'block',trace:'retain-on-failure',screenshot:'only-on-failure'},
  projects:[{name:'chromium',use:{...devices['Desktop Chrome']}}],
- webServer:{command:'node scripts/qa-server.cjs',url:'http://127.0.0.1:3100',reuseExistingServer:false,timeout:240000},
+ webServer:{command:'node scripts/qa-server.cjs',url:'http://127.0.0.1:3100',reuseExistingServer:false,timeout:process.platform==='win32'?600000:240000},
 });
