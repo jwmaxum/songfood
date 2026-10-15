@@ -1,5 +1,5 @@
 /** @jest-environment jsdom */
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ProductDetailClient from '@/app/products/[id]/ProductDetailClient';
 import { LanguageProvider } from '@/lib/i18n/LanguageContext';
@@ -67,4 +67,23 @@ test('English domestic direct detail uses English names with domestic buying and
   expect(screen.getByText('No next product')).toHaveAttribute('aria-disabled', 'true');
   expect(screen.queryByRole('link', { name: /Previous product/ })).not.toBeInTheDocument();
   expect(screen.getByText('MOQ review required')).toBeInTheDocument();
+});
+
+
+test('client navigation to another product resets the selected photo even when its gallery shares the previous URL', () => {
+ const first = { ...product, image_url: '/first.jpg', images: ['/first.jpg', '/shared-extra.jpg'] };
+ const second = { ...related, image_url: '/second.jpg', images: ['/second.jpg', '/shared-extra.jpg'] };
+ const view = (item: ProductItem) => <LanguageProvider initialLanguage="en"><ProductDetailClient product={item} relatedProducts={[]} navigation={detailNavigation([item], item, new URLSearchParams('lang=en'))} /></LanguageProvider>;
+ const { rerender } = render(view(first));
+ fireEvent.click(screen.getByRole('button', { name: 'Product image 2' })); expect(screen.getByRole('img', { name: 'King Dumplings' })).toHaveAttribute('src', '/shared-extra.jpg');
+ rerender(view(second)); expect(screen.getByRole('img', { name: 'Kimchi Dumplings' })).toHaveAttribute('src', '/second.jpg');
+ expect(screen.getByRole('button', { name: 'Product image 1' })).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('removing the selected photo from the same product falls back to its first remaining image or placeholder', () => {
+ const item = { ...product, image_url: '/first.jpg', images: ['/first.jpg', '/removed-extra.jpg'] };
+ const view = (current: ProductItem) => <LanguageProvider initialLanguage="en"><ProductDetailClient product={current} relatedProducts={[]} navigation={detailNavigation([current], current, new URLSearchParams('lang=en'))} /></LanguageProvider>;
+ const { rerender } = render(view(item)); fireEvent.click(screen.getByRole('button', { name: 'Product image 2' }));
+ rerender(view({ ...item, images: ['/first.jpg'] })); expect(screen.getByRole('img', { name: 'King Dumplings' })).toHaveAttribute('src', '/first.jpg');
+ rerender(view({ ...item, image_url: '', images: [] })); expect(screen.getByRole('img', { name: 'King Dumplings' })).toHaveAttribute('src', '/images/products/coming-soon.png');
 });

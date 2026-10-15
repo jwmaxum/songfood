@@ -4,6 +4,8 @@ import {useLanguage} from '@/lib/i18n/LanguageContext';
 import {CATALOGUE_KEYS,catalogueHref,catalogueSelectionValid,readCatalogueParams,safeCatalogueReturn} from '@/lib/catalogue-navigation';
 import Link from './LocalizedLink';
 
+import {safeImageAddress} from '@/lib/media-image-url';
+
 export type CmsSection='company'|'catalogue'|'all';
 const companyRoute=/^\/(?:about|contact|catalogues|wholesale|rfq|terms|privacy)(?:\/|$)/;
 function publicDestination(raw:string):{section:'company'|'catalogue';href:string}|null {
@@ -66,5 +68,5 @@ export default function CmsLinks({menus,onNavigate,section='all',excludeHrefs=['
  const {language}=useLanguage();
  // CMS has one operator-entered title. Static taxonomy supplies bilingual category names.
  if(language!=='ko')return null;
- return <>{publicCmsLinks(menus,section,excludeHrefs).map(menu=><Link key={menu.id} href={menu.url} onClick={onNavigate} className="block min-h-11 px-3 py-3 text-sm">{menu.title}</Link>)}</>;
+ return <>{publicCmsLinks(menus,section,excludeHrefs).map(menu=><Link key={menu.id} href={menu.url} onClick={onNavigate} className="flex min-h-11 items-center gap-2 px-3 py-3 text-sm">{menu.image_url&&safeImageAddress(menu.image_url)&&<img src={menu.image_url} alt="" loading="lazy" className="h-9 w-9 shrink-0 rounded object-cover"/>}{menu.title}</Link>)}</>;
 }

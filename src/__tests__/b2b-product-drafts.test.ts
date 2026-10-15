@@ -92,3 +92,32 @@ test('server validation failures explain one-name minimum without exposing datab
  const response=await PUT(request({id,revision:1,reason:'카탈로그 반영 확인'},'PUT'));expect(response.status).toBe(400);
  const json=JSON.stringify(await response.json());expect(json).toContain('한국어 또는 영어 상품명');expect(json).toContain('SKU와 분류는 비워 둘 수 있습니다');expect(json).not.toContain('PRIVATE SQL DETAIL');
 });
+
+test('a sparse gallery save forwards primary and ordered uploaded URLs without publishing the product',async()=>{
+ const primary='https://project.supabase.co/storage/v1/object/public/media/uploads/primary.jpg';
+ const secondary='https://project.supabase.co/storage/v1/object/public/media/uploads/secondary.png';
+ const response=await POST(request({...body,data:{image_url:primary,images:[primary,secondary]}}));expect(response.status).toBe(200);
+ expect(supabaseAdmin.rpc).toHaveBeenCalledWith('b2b_save_product_draft',expect.objectContaining({p_data:{image_url:primary,images:[primary,secondary]}}));
+ expect(jest.mocked(supabaseAdmin.rpc).mock.calls.some(([name])=>name==='b2b_publish_product_draft')).toBe(false);
+});
+
+test('omitted gallery, explicit null and an empty gallery preserve distinct partial-save meanings',async()=>{
+ expect(parseDraftData({name:'Only a written name'})).not.toHaveProperty('images');
+ for(const images of [null,[]]){
+  const response=await POST(request({...body,data:{images}}));expect(response.status).toBe(200);
+  expect(supabaseAdmin.rpc).toHaveBeenCalledWith('b2b_save_product_draft',expect.objectContaining({p_data:{images}}));
+ }
+ const maximum=Array.from({length:6},(_,i)=>'/images/product-'+i+'.jpg');expect(parseDraftData({images:maximum})).toEqual({images:maximum});
+});
+
+test.each([
+ 'https://images.example.invalid/photo.jpg',Array.from({length:7},(_,i)=>'/images/product-'+i+'.jpg'),
+ ['/images/same.jpg','/images/same.jpg'],['javascript:alert(1)'],['data:image/png;base64,AA=='],['http://images.example.invalid/photo.jpg'],
+ ['//images.example.invalid/photo.jpg'],['/images/bad\\photo.jpg'],['/images/space photo.jpg'],['https://user:password@images.example.invalid/photo.jpg'],[''],[1],
+])('invalid gallery shape, duplicate, excess or unsafe URL fails before database save %j',async images=>{
+ const response=await POST(request({...body,data:{images}}));expect(response.status).toBe(400);expect(supabaseAdmin.rpc).not.toHaveBeenCalled();
+});
+
+test('NFC normalization must not introduce duplicate gallery URLs after validation',async()=>{
+ const response=await POST(request({...body,data:{images:['/images/caf\u00e9.jpg','/images/cafe\u0301.jpg']}}));expect(response.status).toBe(400);expect(supabaseAdmin.rpc).not.toHaveBeenCalled();
+});

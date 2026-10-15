@@ -25,7 +25,8 @@ export default function ProductDetailClient({
   const { t: ui, language, text } = useLanguage();
   const { products } = usePricing(), entry = products[product.id], { toggleWishlist, isInWishlist } = useWishlist();
   const images = (product.images?.filter(Boolean).length ? product.images : [product.image_url])!.filter(Boolean).slice(0, 6);
-  const [selected, setSelected] = useState(images[0] || '/images/products/coming-soon.png');
+  const [imageSelection, setImageSelection] = useState(() => ({ productId: product.id, src: images[0] || '/images/products/coming-soon.png' }));
+  const selected = imageSelection.productId === product.id && images.includes(imageSelection.src) ? imageSelection.src : images[0] || '/images/products/coming-soon.png';
   const returnTo = catalogueHref(new URLSearchParams(navigation.returnTo.split('?')[1] || ''), { lang: language });
   const baseParams = new URLSearchParams({ lang: language });
   if (navigation.mode === 'export') baseParams.set('mode', 'export');
@@ -65,7 +66,7 @@ export default function ProductDetailClient({
     <div className="grid items-start gap-8 lg:grid-cols-[.85fr_1.15fr]">
       <div>
         <img src={selected} alt={name} className="aspect-[4/3] w-full rounded-2xl border border-stone-200 bg-white object-cover" />
-        {images.length > 1 && <div className="mt-3 flex flex-wrap gap-2">{images.map((src, i) => <button key={src + i} aria-label={text('상품 이미지 ', 'Product image ') + (i + 1)} aria-pressed={src === selected} onClick={() => setSelected(src)} className="min-h-11 min-w-11 rounded border border-stone-300 p-1"><img src={src} alt="" className="h-14 w-14 rounded object-cover" /></button>)}</div>}
+        {images.length > 1 && <div className="mt-3 flex flex-wrap gap-2">{images.map((src, i) => <button key={src + i} aria-label={text('상품 이미지 ', 'Product image ') + (i + 1)} aria-pressed={src === selected} onClick={() => setImageSelection({ productId: product.id, src })} className="min-h-11 min-w-11 rounded border border-stone-300 p-1"><img src={src} alt="" className="h-14 w-14 rounded object-cover" /></button>)}</div>}
         <p className="mt-4 text-xs text-stone-500">{ui('이미지와 실제 포장은 다를 수 있습니다. 출하 규격은 문의 후 확인합니다.')}</p>
       </div>
       <div className="min-w-0 space-y-5">

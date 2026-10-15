@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { JournalArticle } from '@/lib/types';
+import ImageUploadField from '@/components/admin/ImageUploadField';
 import {
   FileCode,
   Plus,
@@ -10,7 +11,6 @@ import {
   Edit2,
   ArrowLeft,
   CheckCircle2,
-  Upload,
   Eye,
   EyeOff,
   Newspaper,
@@ -119,35 +119,9 @@ export default function JournalManager() {
     setIsModalOpen(true);
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (data.success) {
-        setCoverImage(data.data.url);
-        showToast('Image uploaded successfully!');
-      } else {
-        alert(data.error || 'Upload failed');
-      }
-    } catch {
-      showToast('이미지 업로드에 실패했습니다.');
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const handleSaveArticle = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (uploading) return;
     if (!title.trim()) return alert('Title is required');
 
     const slug = editingArticle?.slug || title.toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-') || `post-${crypto.randomUUID()}`;
@@ -361,25 +335,7 @@ export default function JournalManager() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">
-                  Cover Image URL
-                </label>
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={coverImage}
-                    onChange={(e) => setCoverImage(e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
-                    className="flex-grow px-3.5 py-2.5 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
-                  />
-                  <label className="px-4 py-2.5 bg-stone-900 border border-stone-800 hover:border-stone-700 text-stone-300 text-xs font-medium rounded cursor-pointer flex items-center space-x-1.5 shrink-0">
-                    <Upload size={14} />
-                    <span>{uploading ? 'Uploading...' : 'Upload'}</span>
-                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                  </label>
-                </div>
-              </div>
+              <ImageUploadField label="저널 표지 이미지" value={coverImage} onChange={setCoverImage} onBusyChange={setUploading} disabled={uploading} />
 
               <div>
                 <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">
@@ -423,13 +379,14 @@ export default function JournalManager() {
               <div className="flex space-x-3 pt-4 border-t border-stone-800">
                 <button
                   type="button"
+                  disabled={uploading}
                   onClick={() => setIsModalOpen(false)}
                   className="w-1/2 py-2.5 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded text-xs transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  type="submit"
+                  type="submit" disabled={uploading}
                   className="w-1/2 py-2.5 bg-[#c5a880] hover:bg-[#b59870] text-black font-semibold rounded text-xs transition-colors shadow-lg"
                 >
                   Save Article

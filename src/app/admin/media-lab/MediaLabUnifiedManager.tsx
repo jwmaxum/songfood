@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import JournalManager from '../journal/JournalManager';
 import MediaManager from '../media/MediaManager';
+import SiteImageSettings from '@/components/admin/SiteImageSettings';
 import {
   FileText,
   FolderDown,
@@ -123,6 +124,7 @@ export default function MediaLabUnifiedManager() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0C] text-stone-100 font-sans p-6 sm:p-10">
+      <div className="mb-8"><SiteImageSettings/></div>
       {/* Toast Notice */}
       {toastMessage && (
         <div className="fixed top-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-2 border border-emerald-400 font-bold text-xs animate-bounce">

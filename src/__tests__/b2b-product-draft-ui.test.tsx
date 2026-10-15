@@ -5,6 +5,8 @@ import ProductManager from '@/app/admin/products/ProductManagerV2';
 import { storageGroup } from '@/lib/storefront';
 import type { ProductItem } from '@/lib/types';
 import type { ProductDraft } from '@/lib/product-drafts/types';
+jest.mock('@/lib/image-upload-client', () => ({ ...jest.requireActual('@/lib/image-upload-client'), prepareImageUpload: jest.fn() }));
+const preparePhoto = jest.requireMock('@/lib/image-upload-client').prepareImageUpload as jest.Mock;
 jest.mock('next/link', () => ({ __esModule: true, default: ({ href, children, ...props }: { href: string; children: React.ReactNode }) => <a href={href} {...props}>{children}</a> }));
 const initialProduct = { id: 'product-existing', name: '기존 상품', name_en: '', sku: 'EXIST-001', collection: 'K-만두/냉동식품', category: '만두 & 교자', format: '1 kg', storage: '냉동', image_url: '/logo.png', description: '', price: 1200, stock: 0 } as ProductItem;
 let catalogue: ProductItem[], saved: ProductDraft[], conflict: boolean, publishFailure: number, fetcher: jest.Mock;
@@ -14,6 +16,8 @@ beforeEach(() => {
  fetcher = jest.fn(async (input: string, options?: RequestInit) => {
   const url = new URL(input, 'https://songfood.invalid');
   if (url.pathname === '/api/products') return response({ success: true, data: catalogue });
+  if (url.pathname === '/api/media') return response({ success: true, data: [{ id: 'existing-media', name: '교체할 등록 사진', type: 'image', url: '/registered-photo.jpg' }] });
+  if (url.pathname === '/api/upload') return response({ success: true, data: { id: 'uploaded-media', name: 'normalized.jpg', type: 'image', url: '/uploaded-photo.jpg' } });
   if (url.pathname !== '/api/admin/product-drafts') throw new Error('Unexpected URL');
   if (!options?.method) {
    if (url.searchParams.has('id')) return response({ draft: saved.find(item => item.id === url.searchParams.get('id')) });
@@ -39,6 +43,9 @@ beforeEach(() => {
   throw new Error('Unexpected request');
  });
  global.fetch = fetcher;
+ preparePhoto.mockReset().mockResolvedValue({ file: new File(['jpeg'], 'normalized.jpg', { type: 'image/jpeg' }), width: 1000, height: 800 });
+ Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: jest.fn(() => 'blob:product-preview') });
+ Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: jest.fn() });
  jest.spyOn(window, 'confirm').mockReturnValue(true);
 });
 afterEach(() => { cleanup(); jest.restoreAllMocks(); });
@@ -194,3 +201,50 @@ test('a conflict in direct publish keeps the newly saved draft and operator inpu
  expect(saved[0]).toMatchObject({ status: 'draft', revision: 1, data: { name: '충돌 후 보존할 상품' } });
  expect(catalogue).toHaveLength(1);
 });
+
+
+test('registered-media replacement saves a sparse gallery draft and preserves the public image until explicit apply', async () => {
+ catalogue[0] = { ...catalogue[0], images: ['/logo.png', '/old-extra.png'] };
+ render(<ProductManager />); fireEvent.click(await screen.findByRole('button', { name: '기존 상품 수정' }));
+ const dialog = await screen.findByRole('dialog');
+ fireEvent.click(within(dialog).getByRole('button', { name: '대표 사진 기존 이미지 선택' }));
+ fireEvent.click(await within(dialog).findByRole('button', { name: '교체할 등록 사진 이미지 선택' }));
+ expect(catalogue[0].image_url).toBe('/logo.png');
+ expect(within(dialog).getByLabelText('대표 사진 현재 이미지 주소')).toHaveValue('/registered-photo.jpg');
+ expect(within(dialog).queryByLabelText('대표 이미지 URL (없으면 기본 대기 이미지)')).not.toBeInTheDocument();
+ fireEvent.click(within(dialog).getByRole('button', { name: '비공개 임시저장' })); await screen.findByText(/비공개 초안을 DB에 임시저장했습니다/);
+ const post = fetcher.mock.calls.find(([, options]) => options?.method === 'POST')!;
+ expect(JSON.parse(post[1].body).data).toEqual({ image_url: '/registered-photo.jpg', images: ['/registered-photo.jpg', '/old-extra.png'] });
+ expect(catalogue[0].image_url).toBe('/logo.png');
+ fireEvent.click(within(dialog).getByRole('button', { name: '카탈로그에 반영' })); await screen.findByText(/카탈로그에 반영했습니다/);
+ expect(catalogue[0]).toMatchObject({ image_url: '/registered-photo.jpg', images: ['/registered-photo.jpg', '/old-extra.png'], name: initialProduct.name, format: initialProduct.format });
+ expect(fetcher.mock.calls.some(([, options]) => options?.method === 'DELETE')).toBe(false);
+}, 15000);
+
+test('six-photo galleries retain all originals when opened and allow promoting a photo without exceeding six', async () => {
+ catalogue[0] = { ...catalogue[0], images: ['/logo.png', '/photo-2.jpg', '/photo-3.jpg', '/photo-4.jpg', '/photo-5.jpg', '/photo-6.jpg'] };
+ render(<ProductManager />); fireEvent.click(await screen.findByRole('button', { name: '기존 상품 수정' })); const dialog = await screen.findByRole('dialog');
+ expect(within(dialog).getAllByLabelText(/파일 선택$/)).toHaveLength(6);
+ fireEvent.click(within(dialog).getByRole('button', { name: '추가 사진 1 대표로 지정' }));
+ fireEvent.click(within(dialog).getByRole('button', { name: '비공개 임시저장' })); await screen.findByText(/비공개 초안을 DB에 임시저장했습니다/);
+ const post = fetcher.mock.calls.find(([, options]) => options?.method === 'POST')!;
+ expect(JSON.parse(post[1].body).data).toEqual({ image_url: '/photo-2.jpg', images: ['/photo-2.jpg', '/logo.png', '/photo-3.jpg', '/photo-4.jpg', '/photo-5.jpg', '/photo-6.jpg'] });
+ expect(catalogue[0].image_url).toBe('/logo.png'); expect(catalogue[0].images).toHaveLength(6);
+}, 15000);
+
+test('file preparation and upload block draft saving, publishing and closing then retain the original until apply', async () => {
+ let complete!: (value: { file: File; width: number; height: number }) => void;
+ preparePhoto.mockReturnValueOnce(new Promise(resolve => { complete = resolve; }));
+ render(<ProductManager />); fireEvent.click(await screen.findByRole('button', { name: '기존 상품 수정' })); const dialog = await screen.findByRole('dialog');
+ fireEvent.change(within(dialog).getByLabelText('대표 사진 파일 선택'), { target: { files: [new File(['png'], 'phone-photo.png', { type: 'image/png' })] } });
+ expect(within(dialog).getByRole('button', { name: '비공개 임시저장' })).toBeDisabled();
+ expect(within(dialog).getByRole('button', { name: '카탈로그에 반영' })).toBeDisabled();
+ expect(within(dialog).getAllByRole('button', { name: '닫기' }).every(button => button.hasAttribute('disabled'))).toBe(true);
+ expect(catalogue[0].image_url).toBe('/logo.png');
+ complete({ file: new File(['jpeg'], 'normalized.jpg', { type: 'image/jpeg' }), width: 1000, height: 800 });
+ await within(dialog).findByText(/업로드 완료/);
+ fireEvent.click(within(dialog).getByRole('button', { name: '비공개 임시저장' })); await screen.findByText(/비공개 초안을 DB에 임시저장했습니다/);
+ const post = fetcher.mock.calls.find(([url, options]) => url === '/api/admin/product-drafts' && options?.method === 'POST')!;
+ expect(JSON.parse(post[1].body).data).toEqual({ image_url: '/uploaded-photo.jpg', images: ['/uploaded-photo.jpg'] });
+ expect(catalogue[0].image_url).toBe('/logo.png');
+}, 15000);

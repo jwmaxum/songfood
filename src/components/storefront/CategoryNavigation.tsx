@@ -8,9 +8,10 @@ import CmsLinks,{publicCmsLinks} from '@/components/layout/CmsLinks';
 import {CATALOGUE_TAXONOMY,collectionLabel,categoryLabel} from '@/lib/catalogue-taxonomy';
 import {catalogueHref,readCatalogueParams} from '@/lib/catalogue-navigation';
 import {filterProducts,readFilters} from '@/lib/storefront';
+import {useSiteImages} from '@/context/SiteImagesContext';
 
 export default function CategoryNavigation({products,params,menus=[],compact=false,desktopSidebar=false}:{products?:ProductItem[];params?:string;menus?:MenuItem[];compact?:boolean;desktopSidebar?:boolean}) {
- const current=useSearchParams(),{language,text}=useLanguage(),id=useId();
+ const current=useSearchParams(),{language,text}=useLanguage(),id=useId(),{collections:collectionImages}=useSiteImages();
  const values=readCatalogueParams(params??current.toString());
  const [open,setOpen]=useState(false),button=useRef<HTMLButtonElement>(null);
  const countable=products?filterProducts(products,{...readFilters(values),collection:'',category:'',legacy:''}):undefined;
@@ -24,7 +25,7 @@ export default function CategoryNavigation({products,params,menus=[],compact=fal
   <ul className={desktopSidebar||compact?'space-y-2':'grid gap-3 sm:grid-cols-2 lg:grid-cols-3'}>
    {CATALOGUE_TAXONOMY.map(group=><li key={group.collection} className="min-w-0 rounded-lg border border-stone-200 bg-white p-2">
     <Link href={href(group.collection)} onClick={()=>setOpen(false)} aria-current={values.get('collection')===group.collection&&!values.get('category')?'page':undefined} className="flex min-h-11 items-center justify-between gap-2 rounded px-2 py-2 text-sm font-bold text-green-950 hover:bg-green-50 aria-[current=page]:bg-green-100">
-     <span>{collectionLabel(group.collection,language)}</span>{countable&&<span className="shrink-0 text-xs font-normal tabular-nums">{countable.filter(p=>p.collection===group.collection).length}</span>}
+     <span className="flex min-w-0 items-center gap-2">{collectionImages[group.collection]&&<img src={collectionImages[group.collection]} alt="" loading="lazy" className="h-10 w-10 shrink-0 rounded object-cover" onError={event=>{event.currentTarget.hidden=true;}}/>}<span>{collectionLabel(group.collection,language)}</span></span>{countable&&<span className="shrink-0 text-xs font-normal tabular-nums">{countable.filter(p=>p.collection===group.collection).length}</span>}
     </Link>
     <ul className="border-l-2 border-stone-200 pl-2">{group.categories.map(category=><li key={category}>
      <Link href={href(group.collection,category)} onClick={()=>setOpen(false)} aria-current={values.get('collection')===group.collection&&values.get('category')===category?'page':undefined} className="flex min-h-11 items-center justify-between gap-2 rounded px-2 py-2 text-sm text-stone-700 hover:bg-green-50 aria-[current=page]:bg-green-100 aria-[current=page]:font-bold">

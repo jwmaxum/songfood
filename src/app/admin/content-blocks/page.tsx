@@ -1,14 +1,14 @@
 import { staffPageAccess } from '@/lib/staff-page';
 import React from 'react';
-import MediaLabUnifiedManager from '../media-lab/MediaLabUnifiedManager';
+import ContentBlockManager from './ContentBlockManager';
 
 export const metadata = {
-  title: '미디어랩 통합 CMS | 송영민푸드 관리자',
-  description: '뉴스&이벤트 에디터, 자료실 카탈로그 관리 및 미디어 라이브러리 CDN 통합 관리 센터.',
+  title: '콘텐츠 블록 관리 | 송영민푸드 관리자',
+  description: '콘텐츠 블록의 문구와 이미지 파일을 등록하고 수정합니다.',
 };
 
 export default async function AdminContentBlocksPage() {
   if (!(await staffPageAccess('/admin/content-blocks')).allowed) return <p className="p-8">이 페이지를 볼 수 있는 직원 권한이 필요합니다.</p>;
 
-  return <MediaLabUnifiedManager />;
+  return <ContentBlockManager />;
 }

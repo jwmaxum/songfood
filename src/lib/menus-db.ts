@@ -44,3 +44,7 @@ export async function createMenuItem(item: Omit<MenuItem, 'id'>): Promise<MenuIt
 export async function deleteMenuItem(id: string): Promise<boolean> {
   return deleteCms('menus', id);
 }
+
+export async function updateMenuImage(id:string,image_url:string):Promise<MenuItem|null>{
+ return updateCms<MenuItem>('menus',id,{image_url:image_url||null});
+}

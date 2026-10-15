@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { HeroSlide } from '@/lib/types';
+import ImageUploadField from '@/components/admin/ImageUploadField';
 import {
   Film,
   Plus,
@@ -11,7 +12,6 @@ import {
   ArrowLeft,
   Eye,
   EyeOff,
-  Upload,
   CheckCircle2,
   Video,
   Image as ImageIcon,
@@ -150,6 +150,7 @@ export default function HeroManager() {
 
   const handleSaveSlide = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (uploading) return;
     if (!title.trim() || !mediaUrl.trim()) return alert('Title and Media URL are required');
 
     const newOrUpdated: Partial<HeroSlide> = {
@@ -328,8 +329,8 @@ export default function HeroManager() {
                     Media Type
                   </label>
                   <select
-                    value={mediaType}
-                    onChange={(e) => setMediaType(e.target.value as 'image' | 'video')}
+                    value={mediaType} disabled={uploading}
+                    onChange={(e) => { setMediaType(e.target.value as 'image' | 'video'); setMediaUrl(''); }}
                     className="w-full px-3.5 py-2.5 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
                   >
                     <option value="video">MP4 Video</option>
@@ -351,26 +352,11 @@ export default function HeroManager() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">
-                  Media Source URL (Video or Image)
-                </label>
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    required
-                    value={mediaUrl}
-                    onChange={(e) => setMediaUrl(e.target.value)}
-                    placeholder="https://cdn.coverr.co/...mp4 or image url"
-                    className="flex-grow px-3.5 py-2.5 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
-                  />
-                  <label className="px-4 py-2.5 bg-stone-900 border border-stone-800 hover:border-stone-700 text-stone-300 text-xs font-medium rounded cursor-pointer flex items-center space-x-1.5 shrink-0">
-                    <Upload size={14} />
-                    <span>{uploading ? 'Uploading...' : 'Upload'}</span>
-                    <input type="file" onChange={handleFileUpload} className="hidden" />
-                  </label>
-                </div>
-              </div>
+              {mediaType === 'image' ? <ImageUploadField label="히어로 이미지" value={mediaUrl} onChange={setMediaUrl} onBusyChange={setUploading} disabled={uploading} /> : <>
+                <div><label className="mb-1 block text-sm" htmlFor="hero-video-url">동영상 URL</label><input id="hero-video-url" required value={mediaUrl} onChange={e => setMediaUrl(e.target.value)} className="min-h-11 w-full rounded border border-stone-600 bg-stone-950 p-3" />
+                <label className="mt-2 block text-sm">동영상 파일 업로드<input type="file" accept="video/mp4,video/webm" disabled={uploading} onChange={handleFileUpload} className="mt-2 block w-full text-sm" /></label></div>
+                <ImageUploadField label="동영상 대기 이미지" value={posterUrl} onChange={setPosterUrl} onBusyChange={setUploading} disabled={uploading} />
+              </>}
 
               <div>
                 <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">
@@ -415,13 +401,14 @@ export default function HeroManager() {
               <div className="flex space-x-3 pt-4 border-t border-stone-800">
                 <button
                   type="button"
+                  disabled={uploading}
                   onClick={() => setIsModalOpen(false)}
                   className="w-1/2 py-2.5 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded text-xs transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  type="submit"
+                  type="submit" disabled={uploading}
                   className="w-1/2 py-2.5 bg-[#c5a880] hover:bg-[#b59870] text-black font-semibold rounded text-xs transition-colors shadow-lg"
                 >
                   Save Hero Slide

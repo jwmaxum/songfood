@@ -24,18 +24,34 @@ const initialProfile={name:'송영민푸드',owner:'',registration:'',ecommerce_
 const future=()=>new Date(Date.now()+86400000*3).toISOString();
 const makePrices=products=>products.map((p,i)=>({id:'00000000-0000-4000-8000-'+String(1000+i).padStart(12,'0'),product_id:p.id,price_list_id:'00000000-0000-4000-8000-000000000811',version:1,status:'approved',price_unit:'EA',unit_price_krw:'1100',tax_code:'vat10',vat_included:true,ea_per_box:5,boxes_per_carton:2,ea_per_carton:10,minimum_order_unit:'CTN',minimum_order_quantity:2,export_moq_ctn:3,tiers:[],valid_from:'2020-01-01T00:00:00Z',valid_until:future(),fob_status:'included',loading_port:'Busan',review_source:'QA fixture',change_reason:'QA fixture only',cost_review:'QA only',created_by:ids.admin,approved_by:ids.admin,created_at:new Date().toISOString()}));
 let prices=makePrices(products);
-let productDrafts,productDraftEvents;
+let productDrafts,productDraftEvents,mediaItems,storageObjects,storageEvents,cmsTables;
 let piSettings,settings,records,emails,unknown,requests,controls,controlEvents,releasePolicy,releaseReviews,releaseEvents,mailTransport,mailDelivery,documentEmails,staffRecords,staffEvents,invalidStaffSessions,sessions,customerAccounts,handoverReviews,handoverEvents;
-function reset(){productDrafts=[];productDraftEvents=[];products=baseProducts;prices=makePrices(products);piSettings=null;handoverReviews=[];handoverEvents=[];staffRecords=Object.entries(ids).filter(([r])=>r!=='customer').map(([role,id])=>({id,role:role==='sub_admin'?'admin':role,status:'active',name:'QA '+role,email:role==='admin'?'jwmaxum@gmail.com':role+'@example.invalid',revision:1,verified:true,auth_active:true,created_at:new Date().toISOString()}));staffEvents=[];sessions=[];customerAccounts=[{id:ids.customer,name:'QA Buyer',email:'buyer@example.invalid',status:'active'}];invalidStaffSessions=new Set();releasePolicy={enabled:false,revision:1};releaseReviews={};releaseEvents=[];mailTransport={verified_at:null,last_checked_at:null,last_code:'SMTP_VERIFY_FAILED'};mailDelivery={notification_id:'00000000-0000-4000-8000-000000000930',state:'queued',attempt:0,last_code:null,updated_at:new Date().toISOString()};documentEmails=[];controls={revision:1,inquiries_paused:false,orders_paused:false,pi_paused:false,owner_id:null,owner:"",response_minutes:null,updated_at:new Date().toISOString()};controlEvents=[];settings={profile:{...initialProfile},revision:1,updated_at:new Date().toISOString()};records=[];emails=[];unknown=[];requests=new Map();}
+function reset(){mediaItems=[];storageObjects=new Map();storageEvents=[];cmsTables={menus:[],hero_slides:[],journal_articles:[],content_blocks:[]};productDrafts=[];productDraftEvents=[];products=baseProducts;prices=makePrices(products);piSettings=null;handoverReviews=[];handoverEvents=[];staffRecords=Object.entries(ids).filter(([r])=>r!=='customer').map(([role,id])=>({id,role:role==='sub_admin'?'admin':role,status:'active',name:'QA '+role,email:role==='admin'?'jwmaxum@gmail.com':role+'@example.invalid',revision:1,verified:true,auth_active:true,created_at:new Date().toISOString()}));staffEvents=[];sessions=[];customerAccounts=[{id:ids.customer,name:'QA Buyer',email:'buyer@example.invalid',status:'active'}];invalidStaffSessions=new Set();releasePolicy={enabled:false,revision:1};releaseReviews={};releaseEvents=[];mailTransport={verified_at:null,last_checked_at:null,last_code:'SMTP_VERIFY_FAILED'};mailDelivery={notification_id:'00000000-0000-4000-8000-000000000930',state:'queued',attempt:0,last_code:null,updated_at:new Date().toISOString()};documentEmails=[];controls={revision:1,inquiries_paused:false,orders_paused:false,pi_paused:false,owner_id:null,owner:"",response_minutes:null,updated_at:new Date().toISOString()};controlEvents=[];settings={profile:{...initialProfile},revision:1,updated_at:new Date().toISOString()};records=[];emails=[];unknown=[];requests=new Map();}
 reset();
 function filtered(rows,u){return rows.filter(row=>[...u.searchParams].every(([k,v])=>!v.startsWith('eq.')||String(row[k])===v.slice(3)));}
 const server=http.createServer(async(req,res)=>{
  const u=new URL(req.url,'http://127.0.0.1:4011'),path=u.pathname;let body={};
- try{const chunks=[];let size=0;for await(const c of req){size+=c.length;if(size>100000)throw Error('too large');chunks.push(c);}if(chunks.length)body=JSON.parse(Buffer.concat(chunks).toString());}catch{res.writeHead(400).end('{}');return;}
+ let raw=Buffer.alloc(0);
+ try{const chunks=[];let size=0;for await(const c of req){size+=c.length;if(size>(path.startsWith('/storage/v1/object/')?6*1024*1024:100000))throw Error('too large');chunks.push(c);}if(chunks.length){raw=Buffer.concat(chunks);if(!path.startsWith('/storage/v1/object/')||req.method==='DELETE')body=JSON.parse(raw.toString());}}catch{res.writeHead(400).end('{}');return;}
  const send=(data,status=200)=>{res.writeHead(status,{'Content-Type':'application/json'});res.end(JSON.stringify(data));};
+ if(path.startsWith('/storage/v1/object/public/media/')&&['GET','HEAD'].includes(req.method)){
+  const key=decodeURIComponent(path.slice('/storage/v1/object/public/media/'.length)),asset=storageObjects.get(key);
+  if(!asset)return send({message:'missing fixture image'},404);
+  res.writeHead(200,{'Content-Type':asset.type,'Content-Length':asset.bytes.length,'Access-Control-Allow-Origin':'*'});res.end(req.method==='HEAD'?undefined:asset.bytes);return;
+ }
+ if(path.startsWith('/storage/v1/object/media/')&&req.method==='POST'){
+  const key=decodeURIComponent(path.slice('/storage/v1/object/media/'.length));if(storageObjects.has(key))return send({message:'already exists'},409);
+  let bytes=raw,type=String(req.headers['content-type']||'');
+  try{if(type.startsWith('multipart/form-data')){const parsed=await new Request(u,{method:'POST',headers:{'Content-Type':type},body:raw}).formData();const file=[...parsed.values()].find(value=>typeof value!=='string'&&typeof value.arrayBuffer==='function');if(!file)return send({message:'missing file'},400);bytes=Buffer.from(await file.arrayBuffer());type=file.type;}}
+  catch{return send({message:'invalid fixture multipart'},400);}
+  storageObjects.set(key,{bytes,type});storageEvents.push({method:'POST',path:key,size:bytes.length,type});return send({Id:crypto.randomUUID(),Key:'media/'+key},200);
+ }
+ if(path==='/storage/v1/object/media'&&req.method==='DELETE'){
+  const removed=[];for(const key of body.prefixes||[]){if(storageObjects.delete(key))removed.push({name:key});}storageEvents.push({method:'DELETE',paths:body.prefixes||[]});return send(removed);
+ }
  if(path==='/__reset'){reset();return send({ok:true});}
  if(path==='/__catalogue'&&req.method==='POST'){products=catalogueProducts;prices=makePrices(products);return send({ok:true,count:products.length});}
- if(path==='/__state')return send({productDrafts,productDraftEvents,products,emails,unknown,piSettings,settings,records,documentEmails,staffEvents,handoverReviews,handoverEvents,catalogueProductCount:products.length});
+ if(path==='/__state')return send({mediaItems,storageAssets:[...storageObjects].map(([path,asset])=>({path,size:asset.bytes.length,type:asset.type})),storageEvents,cmsTables,productDrafts,productDraftEvents,products,emails,unknown,piSettings,settings,records,documentEmails,staffEvents,handoverReviews,handoverEvents,catalogueProductCount:products.length});
  if(path==='/__draft-product-change'&&req.method==='POST'){if(!products.some(p=>p.id===body.id))return send({ok:false},404);products=products.map(p=>p.id===body.id?{...p,...body.patch,updated_at:new Date().toISOString()}:p);return send({ok:true});}
  if(path==='/health')return send({ok:true});
  if(path==='/auth/v1/otp'){emails.push({redirect:u.searchParams.get('redirect_to'),email:body.email,createUser:body.create_user});return send({});}
@@ -56,7 +72,7 @@ const server=http.createServer(async(req,res)=>{
   const rpc=path.split('/').pop();
   if(['b2b_product_draft_snapshot','b2b_save_product_draft','b2b_publish_product_draft'].includes(rpc)){
    const actor=staffRecords.find(s=>s.id===body.p_actor&&s.status==='active'&&!s.removed&&['admin','product_staff'].includes(s.role));if(!actor)return send({code:'42501'},403);
-   const hash=p=>crypto.createHash('sha256').update(JSON.stringify(p)).digest('hex'),clone=p=>p==null?p:JSON.parse(JSON.stringify(p));
+   const hash=p=>{const value={...p};if(value.images===null)delete value.images;return crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');},clone=p=>p==null?p:JSON.parse(JSON.stringify(p));
    if(rpc==='b2b_product_draft_snapshot'){
     if(body.p_id){const d=productDrafts.find(d=>d.id===body.p_id);return d?send({draft:d}):send({code:'P0002'},404);}
     if(body.p_product_id){const product=products.find(p=>p.id===body.p_product_id);return product?send({product,base_hash:hash(product),draft:productDrafts.find(d=>d.product_id===product.id&&d.status==='draft')||null}):send({code:'P0002'},404);}
@@ -79,6 +95,8 @@ const server=http.createServer(async(req,res)=>{
    const current=d.product_id?products.find(p=>p.id===d.product_id):null;if(d.product_id&&!current)return send({code:'P0002'},404);
    if(current&&hash(current)!==d.base_hash)return send({code:'40001'},409);
    const candidate={...(current||{}),...d.data};
+   if(Object.hasOwn(d.data,'images')){candidate.images=Array.isArray(d.data.images)?d.data.images:[];candidate.image_url=candidate.images[0]||null;}
+   else if(Object.hasOwn(d.data,'image_url')){if(!candidate.image_url){candidate.image_url=null;candidate.images=[];}else candidate.images=[candidate.image_url,...(Array.isArray(current?.images)?current.images:[]).filter(url=>url!==candidate.image_url)].slice(0,6);}
    for(const key of ['name','name_en','sku','collection','category']){
     if(candidate[key]==null||(typeof candidate[key]==='string'&&candidate[key].replace(/[\s\u00a0\u202f]+/gu,'')===''))candidate[key]=null;
     else if(typeof candidate[key]!=='string')return send({code:'22023'},400);
@@ -90,7 +108,7 @@ const server=http.createServer(async(req,res)=>{
    if(candidate.collection!==null&&candidate.category!==null&&!productTaxonomy.some(group=>group.collection===candidate.collection&&group.categories.includes(candidate.category)))return send({code:'22023'},400);
    const skuKey=s=>String(s||'').normalize('NFC').toLowerCase().replace(/\s+/gu,'');
    if(products.some(p=>p.id!==d.product_id&&skuKey(p.sku)===skuKey(candidate.sku)))return send({code:'23505'},409);
-   const now=new Date().toISOString(),id=d.product_id||'prod-'+crypto.randomUUID(),product={...(current||{price:null,stock:null,format:null,carton_qty:null,manufacturer:null,image_url:null,storage:null,net_weight:null,certifications:null,target_markets:null}),...candidate,id,created_at:current?.created_at||now,updated_at:now};
+   const now=new Date().toISOString(),id=d.product_id||'prod-'+crypto.randomUUID(),product={...(current||{images:null,price:null,stock:null,format:null,carton_qty:null,manufacturer:null,image_url:null,storage:null,net_weight:null,certifications:null,target_markets:null}),...candidate,id,created_at:current?.created_at||now,updated_at:now};
    products=current?products.map(p=>p.id===id?product:p):[...products,product];
    const before=clone(d);d.product_id=id;d.status='published';d.revision++;d.updated_by=body.p_actor;d.updated_at=now;productDraftEvents.push({draft_id:d.id,event:'publish',actor_id:body.p_actor,reason:body.p_reason,before_state:before,after_state:{draft:clone(d),product_before:current,product_after:product}});return send({draft:d,product});
   }
@@ -166,6 +184,17 @@ const server=http.createServer(async(req,res)=>{
  }
  if(path.startsWith('/rest/v1/')){
   const table=path.slice('/rest/v1/'.length);let rows;const one=req.headers.accept?.includes('vnd.pgrst.object');
+  if(table==='media_library'||Object.hasOwn(cmsTables,table)){
+   let entries=table==='media_library'?mediaItems:cmsTables[table];const matched=filtered(entries,u);
+   if(req.method==='POST'){
+    const values=Array.isArray(body)?body:[body];rows=values.map(value=>({...value,id:value.id||crypto.randomUUID(),created_at:value.created_at||new Date().toISOString()}));entries.push(...rows);
+   }else if(req.method==='PATCH'){rows=matched.map(row=>{Object.assign(row,body);return row;});}
+   else if(req.method==='DELETE'){const removed=new Set(matched.map(row=>row.id));rows=matched.map(row=>({id:row.id}));entries=entries.filter(row=>!removed.has(row.id));}
+   else rows=matched;
+   if(table==='media_library')mediaItems=entries;else cmsTables[table]=entries;
+   return send(one?rows[0]||null:rows,req.method==='POST'?201:200);
+  }
+
   if(table==='b2b_service_controls')rows=[{id:true,...controls}];
   else if(table==='b2b_service_control_events')rows=controlEvents;
 

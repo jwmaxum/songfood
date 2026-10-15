@@ -6,6 +6,8 @@ import {AppProviders} from '@/components/providers/AppProviders';
 import CartDrawer from '@/components/cart/CartDrawer';
 import {serverLanguage} from '@/lib/i18n/server';
 import {localizedHref} from '@/lib/i18n/locale';
+import {getSiteImages} from '@/lib/site-images-server';
+import {SiteImagesProvider} from '@/context/SiteImagesContext';
 export const dynamic='force-dynamic';
 export async function generateMetadata():Promise<Metadata>{
  const {language,text,path}=await serverLanguage();
@@ -18,8 +20,8 @@ export async function generateMetadata():Promise<Metadata>{
    openGraph:{title,description,url:localizedHref(path,language),locale:language==='en'?'en_US':'ko_KR',images:['/logo.png']}};
 }
 export default async function RootLayout({children}:{children:React.ReactNode}){
- const {language}=await serverLanguage();
+ const [{language},images]=await Promise.all([serverLanguage(),getSiteImages()]);
  return <html lang={language} dir="ltr"><body className="min-h-screen flex flex-col bg-[#FAFAF8] text-stone-800 antialiased selection:bg-[#14532D] selection:text-white">
- <AppProviders initialLanguage={language}><Header/><CartDrawer/><div id="main-content" tabIndex={-1} className="min-w-0 flex-grow">{children}</div><Footer/></AppProviders>
+ <AppProviders initialLanguage={language}><SiteImagesProvider images={images}><Header/><CartDrawer/><div id="main-content" tabIndex={-1} className="min-w-0 flex-grow">{children}</div><Footer/></SiteImagesProvider></AppProviders>
  </body></html>;
 }

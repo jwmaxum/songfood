@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { MediaItem } from '@/lib/types';
+import ImageUploadField from '@/components/admin/ImageUploadField';
 import {
   Image as ImageIcon,
   Plus,
@@ -108,6 +109,7 @@ export default function MediaManager() {
 
   const handleAddMedia = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (uploading || mediaType === 'image') return;
     if (!mediaName.trim() || !mediaUrl.trim()) return alert('Name & URL are required');
 
     try {
@@ -239,45 +241,17 @@ export default function MediaManager() {
             </h2>
 
             <form onSubmit={handleAddMedia} className="space-y-4">
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">Upload File</label>
-                <input
-                  type="file"
-                  onChange={handleFileUpload}
-                  className="w-full text-xs text-stone-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-stone-900 file:text-stone-300 hover:file:bg-stone-800 cursor-pointer"
-                />
-                {uploading && <p className="text-xs text-[#c5a880] mt-1 font-mono">Uploading asset to storage...</p>}
-              </div>
-
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">Asset Name</label>
-                <input
-                  type="text"
-                  required
-                  value={mediaName}
-                  onChange={(e) => setMediaName(e.target.value)}
-                  placeholder="e.g. Tuscan EVOO HD Image"
-                  className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">CDN Asset URL</label>
-                <input
-                  type="text"
-                  required
-                  value={mediaUrl}
-                  onChange={(e) => setMediaUrl(e.target.value)}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
-                />
-              </div>
+              {mediaType === 'image' ? <div className="space-y-3"><ImageUploadField label="라이브러리 이미지" value={mediaUrl} onChange={url => { setMediaUrl(url); void fetchMedia(); setIsModalOpen(false); showToast('이미지 라이브러리에 반영되었습니다.'); }} onBusyChange={setUploading} disabled={uploading} allowClear={false} /><p className="text-xs leading-6 text-stone-300">이미지 파일은 업로드가 완료되면 라이브러리에 바로 등록됩니다. 같은 파일을 다시 등록할 필요가 없습니다.</p></div> : <>
+                <label className="block text-sm">동영상 파일 업로드<input type="file" accept="video/mp4,video/webm" disabled={uploading} onChange={handleFileUpload} className="mt-2 block w-full text-sm" /></label>
+                <label className="block text-sm">동영상 이름<input required value={mediaName} onChange={e => setMediaName(e.target.value)} className="mt-2 min-h-11 w-full rounded border border-stone-600 bg-stone-950 p-3" /></label>
+                <label className="block text-sm">동영상 URL<input required value={mediaUrl} onChange={e => setMediaUrl(e.target.value)} className="mt-2 min-h-11 w-full rounded border border-stone-600 bg-stone-950 p-3" /></label>
+              </>}
 
               <div>
                 <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">Asset Type</label>
                 <select
                   value={mediaType}
-                  onChange={(e) => setMediaType(e.target.value as 'image' | 'video')}
+                  disabled={uploading} onChange={(e) => { setMediaType(e.target.value as 'image' | 'video'); setMediaUrl(''); }}
                   className="w-full px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
                 >
                   <option value="image">Image Asset</option>
@@ -288,17 +262,18 @@ export default function MediaManager() {
               <div className="flex space-x-3 pt-4 border-t border-stone-800">
                 <button
                   type="button"
+                  disabled={uploading}
                   onClick={() => setIsModalOpen(false)}
                   className="w-1/2 py-2.5 bg-stone-800 text-stone-300 rounded text-xs"
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
+                {mediaType === 'video' && <button
+                  disabled={uploading} type="submit"
                   className="w-1/2 py-2.5 bg-[#c5a880] text-black font-semibold rounded text-xs shadow-lg"
                 >
                   Register Asset
-                </button>
+                </button>}
               </div>
             </form>
           </div>

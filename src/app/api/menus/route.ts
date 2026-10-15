@@ -1,10 +1,12 @@
 import { readJson, ApiError, failure } from '@/lib/request-security';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireStaff } from '@/lib/admin-auth';
+import {safeImageAddress} from '@/lib/media-image-url';
 import {
   getAllMenusTree,
   getActiveMenusTree,
   toggleMenuStatus,
+  updateMenuImage,
   createMenuItem,
   deleteMenuItem,
 } from '@/lib/menus-db';
@@ -38,6 +40,12 @@ export async function PATCH(req: NextRequest) {
   try {
     const body = await readJson(req, 131072);
     const { id, is_active } = body;
+    if(Object.hasOwn(body,'image_url')){
+      if(Object.keys(body).some(key=>!['id','image_url'].includes(key))||typeof id!=='string'||!id||id.length>100)throw new ApiError(400,'메뉴 이미지 항목을 확인해 주세요.');
+      const image=safeImageAddress(body.image_url);if(image===null)throw new ApiError(400,'이미지 주소를 확인해 주세요.');
+      const saved=await updateMenuImage(id,image);if(!saved)throw new ApiError(404,'메뉴를 찾을 수 없습니다.');
+      return NextResponse.json({success:true,data:saved},{headers:{'Cache-Control':'no-store'}});
+    }
 
     if (typeof id !== 'string' || !id || typeof is_active !== 'boolean') {
       return NextResponse.json({ success: false, error: 'Invalid parameters' }, { status: 400 });
@@ -71,6 +79,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Title and URL are required' }, { status: 400 });
     }
 
+    const image=image_url==null?'':safeImageAddress(image_url);if(image===null)throw new ApiError(400,'이미지 주소를 확인해 주세요.');
     const newItem = await createMenuItem({
       title,
       url,
@@ -78,7 +87,7 @@ export async function POST(req: NextRequest) {
       sort_order: sort_order ?? 99,
       is_active: is_active ?? true,
       position: position || 'both',
-      image_url: image_url || '',
+      image_url: image || '',
     });
 
     return NextResponse.json({ success: true, data: newItem });

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { MenuItem } from '@/lib/types';
+import ImageUploadField from '@/components/admin/ImageUploadField';
 import { PRODUCT_TAXONOMY, categoriesForCollection } from '@/lib/product-taxonomy';
 import { collectionLabel, categoryLabel } from '@/lib/catalogue-taxonomy';
 import { catalogueHref } from '@/lib/catalogue-navigation';
@@ -33,12 +34,14 @@ function SortableItem({
   onToggleActive,
   onDelete,
   onAddSubmenu,
+  onEditImage,
   children,
 }: {
   item: MenuItem;
   onToggleActive: (id: string, active: boolean) => void;
   onDelete: (id: string) => void;
   onAddSubmenu: (parentId: string) => void;
+  onEditImage:(item:MenuItem)=>void;
   children?: React.ReactNode;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -86,6 +89,7 @@ function SortableItem({
         </div>
 
         <div className="flex items-center space-x-4">
+          <button type="button" onClick={()=>onEditImage(item)} aria-label={item.title+' 이미지 수정'} className="min-h-11 rounded border border-stone-600 px-3 text-xs">이미지 수정</button>
           <button
             onClick={() => onAddSubmenu(item.id)}
             className="flex items-center space-x-1 text-xs text-stone-400 hover:text-white bg-stone-800 hover:bg-stone-700 px-2.5 py-1 rounded transition-colors"
@@ -141,8 +145,10 @@ function SortableSubItem({
   subItem,
   onToggleActive,
   onDelete,
+  onEditImage,
 }: {
   subItem: MenuItem;
+  onEditImage:(item:MenuItem)=>void;
   onToggleActive: (id: string, active: boolean) => void;
   onDelete: (id: string) => void;
 }) {
@@ -185,6 +191,7 @@ function SortableSubItem({
       </div>
 
       <div className="flex items-center space-x-3">
+        <button type="button" onClick={()=>onEditImage(subItem)} aria-label={subItem.title+' 이미지 수정'} className="min-h-11 rounded border border-stone-600 px-3 text-xs">이미지 수정</button>
         <button
           onClick={() => onToggleActive(subItem.id, !subItem.is_active)}
           className={`w-9 h-5 flex items-center rounded-full p-0.5 transition-colors duration-300 ${
@@ -217,6 +224,18 @@ export default function NavigationManager() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
+  const [newImageUrl,setNewImageUrl]=useState(''),[imageBusy,setImageBusy]=useState(false),[imageSaving,setImageSaving]=useState(false);
+  const [imageEditor,setImageEditor]=useState<MenuItem|null>(null),[editImageUrl,setEditImageUrl]=useState('');
+  const imageDialog=useRef<HTMLElement>(null),imageOpener=useRef<HTMLElement|null>(null);
+  function openImage(item:MenuItem){imageOpener.current=document.activeElement instanceof HTMLElement?document.activeElement:null;setImageEditor(item);setEditImageUrl(item.image_url||'');}
+  function closeImage(){if(imageBusy||imageSaving)return;setImageEditor(null);requestAnimationFrame(()=>imageOpener.current?.focus());}
+  useEffect(()=>{if(!imageEditor)return;const frame=requestAnimationFrame(()=>imageDialog.current?.querySelector<HTMLElement>('input,button')?.focus());return()=>cancelAnimationFrame(frame);},[imageEditor]);
+  async function saveImage(){
+   if(!imageEditor||imageBusy||imageSaving)return;setImageSaving(true);
+   try{const r=await fetch('/api/menus',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:imageEditor.id,image_url:editImageUrl})});const b=await r.json();if(!r.ok||!b.success||!b.data)throw Error();
+    setItems(old=>old.map(item=>({...item,...(item.id===imageEditor.id?{image_url:b.data.image_url}:{}),children:item.children?.map(child=>child.id===imageEditor.id?{...child,image_url:b.data.image_url}:child)})));setImageEditor(null);requestAnimationFrame(()=>imageOpener.current?.focus());showToast('메뉴 이미지를 저장했습니다.');
+   }catch{showToast('메뉴 이미지 저장에 실패했습니다. 선택한 이미지는 유지됩니다.');}finally{setImageSaving(false);}
+  }
   const [newUrl, setNewUrl] = useState('');
   const [newParentId, setNewParentId] = useState<string | null>(null);
   const [destinationType, setDestinationType] = useState<'category' | 'custom'>('category');
@@ -232,11 +251,11 @@ export default function NavigationManager() {
   const resolvedUrl = destinationType === 'category' ? destinationHref('ko') : newUrl;
   function openCreate(parentId: string | null) {
     openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    setNewParentId(parentId); setNewTitle(''); setNewUrl('');
+    setNewParentId(parentId); setNewTitle(''); setNewUrl(''); setNewImageUrl('');
     setDestinationType('category'); setDestinationCollection(''); setDestinationCategory(''); setDestinationMode('domestic');
     setIsModalOpen(true);
   }
-  function closeCreate() { setIsModalOpen(false); openerRef.current?.focus(); }
+  function closeCreate() { if(imageBusy)return; setIsModalOpen(false); openerRef.current?.focus(); }
   useEffect(() => {
     if (isModalOpen) modalRef.current?.querySelector<HTMLInputElement>('input')?.focus();
   }, [isModalOpen]);
@@ -359,12 +378,13 @@ export default function NavigationManager() {
 
   const handleAddMenuSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if(imageBusy)return;
     if (!newTitle.trim() || !resolvedUrl.trim()) return alert('Title and URL are required');
     if (destinationType === 'custom' && (!resolvedUrl.startsWith('/') || resolvedUrl.startsWith('//') || /[\\\u0000-\u001f\u007f]/.test(resolvedUrl))) { showToast('메뉴에는 안전한 내부 페이지 경로를 입력해 주세요.'); return; }
 
     let newItem: MenuItem;
     try {
-      const response = await fetch('/api/menus', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newTitle, url: resolvedUrl, parent_id: newParentId, sort_order: items.length + 1, is_active: true, position: newPosition }) });
+      const response = await fetch('/api/menus', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newTitle, url: resolvedUrl, parent_id: newParentId, sort_order: items.length + 1, is_active: true, position: newPosition, image_url:newImageUrl }) });
       if (!response.ok) throw new Error('Create failed');
       newItem = (await response.json()).data as MenuItem;
     } catch {
@@ -477,6 +497,7 @@ export default function NavigationManager() {
                   onToggleActive={handleToggleActive}
                   onDelete={handleDelete}
                   onAddSubmenu={(pId) => openCreate(pId)}
+                  onEditImage={openImage}
                 >
                   {/* Depth 2 Submenu List */}
                   {parent.children && parent.children.length > 0 && (
@@ -487,6 +508,7 @@ export default function NavigationManager() {
                           subItem={sub}
                           onToggleActive={handleToggleActive}
                           onDelete={handleDelete}
+                          onEditImage={openImage}
                         />
                       ))}
                     </div>
@@ -498,6 +520,7 @@ export default function NavigationManager() {
         </DndContext>
       )}
 
+      {imageEditor && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onKeyDown={e=>{if(e.key==='Escape'){e.preventDefault();closeImage();}if(e.key==='Tab'){const controls=imageDialog.current?.querySelectorAll<HTMLElement>('button:not([disabled]),input:not([disabled]),select:not([disabled])');if(!controls?.length)return;const first=controls[0],last=controls[controls.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}}}><section ref={imageDialog} role="dialog" aria-modal="true" aria-labelledby="navigation-image-title" className="max-h-[90dvh] w-full max-w-lg space-y-4 overflow-y-auto rounded-xl border border-stone-600 bg-stone-900 p-5"><h2 id="navigation-image-title" className="text-lg font-bold">{imageEditor.title} 이미지 수정</h2><ImageUploadField label="메뉴 이미지" value={editImageUrl} onChange={setEditImageUrl} disabled={imageBusy||imageSaving} onBusyChange={setImageBusy}/><div className="flex gap-3"><button type="button" disabled={imageBusy||imageSaving} onClick={closeImage} className="min-h-11 rounded border px-4">닫기</button><button type="button" disabled={imageBusy||imageSaving} onClick={()=>void saveImage()} className="min-h-11 rounded bg-amber-300 px-4 font-bold text-stone-950">메뉴 이미지 저장</button></div></section></div>}
       {/* Create Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); closeCreate(); } if (e.key === 'Tab') { const controls = modalRef.current?.querySelectorAll<HTMLElement>('button, input, select, a[href]'); if (!controls?.length) return; const first = controls[0], last = controls[controls.length - 1]; if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); } else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); } } }}>
@@ -554,6 +577,8 @@ export default function NavigationManager() {
                 </div>}
               </div>
 
+              <ImageUploadField label="메뉴 이미지" value={newImageUrl} onChange={setNewImageUrl} disabled={imageBusy} onBusyChange={setImageBusy} />
+
               {!newParentId && (
                 <div>
                   <label htmlFor="navigation-position" className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">
@@ -574,13 +599,13 @@ export default function NavigationManager() {
               <div className="flex space-x-3 pt-4 border-t border-stone-800">
                 <button
                   type="button"
-                  onClick={closeCreate}
+                  disabled={imageBusy} onClick={closeCreate}
                   className="w-1/2 py-2.5 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded text-xs transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  type="submit"
+                  type="submit" disabled={imageBusy}
                   className="w-1/2 py-2.5 bg-[#c5a880] hover:bg-[#b59870] text-black font-semibold rounded text-xs transition-colors shadow-lg"
                 >
                   Create Menu

@@ -13,9 +13,10 @@ import CategoryNavigation from '@/components/storefront/CategoryNavigation';
 import CatalogueSearch from '@/components/storefront/CatalogueSearch';
 import CmsLinks from './CmsLinks';
 import LanguageSelector from './LanguageSelector';
+import {useSiteImages} from '@/context/SiteImagesContext';
 
 export default function HeaderClient({menus}:{menus:MenuItem[]}) {
- const path=usePathname(),params=useSearchParams(),{cartItems}=useCart(),{items}=useRFQ(),{user}=useAuth(),{text}=useLanguage();
+ const path=usePathname(),params=useSearchParams(),{cartItems}=useCart(),{items}=useRFQ(),{user}=useAuth(),{text}=useLanguage(),{logo}=useSiteImages();
  const [open,setOpen]=useState(false),button=useRef<HTMLButtonElement>(null),company=useRef<HTMLDetailsElement>(null);
  const isCatalogue=path==='/shop'||path==='/collections',isDetail=path.startsWith('/products/');
  const source=isDetail?new URL(safeCatalogueReturn(params.get('returnTo'))||'/shop','https://songfood.invalid').searchParams.toString():params.toString();
@@ -36,7 +37,7 @@ export default function HeaderClient({menus}:{menus:MenuItem[]}) {
   <div className="bg-green-950 px-4 py-1.5 text-center text-xs text-emerald-100">{text('개인·사업자 대용량 구매 · 해외 FOB 견적','Bulk food for individuals & businesses · FOB export RFQ')}</div>
   <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2 sm:px-6">
    <Link href={exportMode?'/?mode=export':'/'} onClick={close} className="flex shrink-0 items-center gap-3">
-    <Image src="/logo.png" width={44} height={44} alt={text('송영민푸드 홈','Songfood home')}/>
+    <Image unoptimized src={logo?'/logo.png?v='+encodeURIComponent(logo):'/logo.png'} width={44} height={44} alt={text('송영민푸드 홈','Songfood home')}/>
     <span className="hidden text-sm font-bold leading-5 sm:block">SONGFOOD<span className="block text-xs font-normal text-stone-600">{text('도매 · K-Food Export','Bulk food · K-Food Export')}</span></span>
    </Link>
    <nav aria-label={text('주요 메뉴','Main navigation')} className="hidden items-center lg:flex">{links.map(({href,title,current})=><Link key={title} href={href} aria-current={current?'page':undefined} className="rounded-lg px-3 py-3 text-sm font-semibold hover:bg-green-50 aria-[current=page]:bg-green-100">{title}</Link>)}</nav>

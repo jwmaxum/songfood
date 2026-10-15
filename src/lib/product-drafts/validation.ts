@@ -25,7 +25,20 @@ export function parseDraftData(value:unknown):ProductDraftData {
   }else if(has(PRODUCT_DRAFT_BOOLEAN_FIELDS,key)){
    if(typeof v!=='boolean')throw new ApiError(400,'선택 항목을 확인해 주세요.');result[key]=v;
   }else if(has(PRODUCT_DRAFT_ARRAY_FIELDS,key)){
-   if(!Array.isArray(v)||v.length>30)throw new ApiError(400,'목록 항목을 확인해 주세요.');result[key]=v.map(x=>clean(x,250));
+   if(key==='images'){
+    if(!Array.isArray(v)||v.length>6||new Set(v).size!==v.length)throw new ApiError(400,'상품 사진은 중복 없이 최대 6개까지 등록할 수 있습니다.');
+    const images=v.map(x=>{
+     const url=clean(x,2048);
+     if(!url||/[\s\\]/.test(url)||url.startsWith('//'))throw new ApiError(400,'상품 이미지 주소를 확인해 주세요.');
+     if(url.startsWith('/'))return url;
+     let parsed:URL;try{parsed=new URL(url);}catch{throw new ApiError(400,'상품 이미지 주소를 확인해 주세요.');}
+     if(parsed.protocol!=='https:'||parsed.username||parsed.password)throw new ApiError(400,'상품 이미지 주소를 확인해 주세요.');return url;
+    });
+    if(new Set(images).size!==images.length)throw new ApiError(400,'상품 사진은 중복 없이 등록해 주세요.');
+    result[key]=images;
+   }else{
+    if(!Array.isArray(v)||v.length>30)throw new ApiError(400,'목록 항목을 확인해 주세요.');result[key]=v.map(x=>clean(x,250));
+   }
   }
  }
  return result as ProductDraftData;

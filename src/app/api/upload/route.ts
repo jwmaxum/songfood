@@ -1,89 +1,33 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { addMediaItem } from '@/lib/media-db';
-import { requireStaff } from '@/lib/admin-auth';
-import { supabaseAdmin } from '@/lib/supabase-admin';
-
+import {addMediaItem} from '@/lib/media-db';
+import {opsStaff} from '@/lib/operations/repository';
+import {supabaseAdmin} from '@/lib/supabase-admin';
+import {ApiError,failure,json,rateLimit} from '@/lib/request-security';
+import {readUploadFile} from '@/lib/uploads/request';
+import {inspectUpload} from '@/lib/uploads/validation';
 export const dynamic = 'force-dynamic';
-
-// ─── 보안 설정 ───────────────────────────────────────────────────
-const ALLOWED_MIME_TYPES: Record<string, string> = {
-  'image/jpeg': '.jpg',
-  'image/jpg': '.jpg',
-  'image/png': '.png',
-  'image/webp': '.webp',
-  'image/gif': '.gif',
-  'video/mp4': '.mp4',
-  'video/webm': '.webm',
-};
-
-const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;   // 5MB
-const MAX_VIDEO_SIZE_BYTES = 50 * 1024 * 1024;  // Supabase project upload limit
-// ─────────────────────────────────────────────────────────────────
-
-export async function POST(req: NextRequest) {
-  const denied = await requireStaff(req, ['admin', 'product_staff']);
-  if (denied) return denied;
+export async function POST(request: Request) {
   try {
-    const formData = await req.formData();
-    const file = formData.get('file') as File | null;
-
-    if (!file) {
-      return NextResponse.json({ success: false, error: 'No file uploaded' }, { status: 400 });
+    const actor = await opsStaff(request,['admin','product_staff']);
+    await rateLimit(request,'media-upload',60,900,actor.id);
+    const file = await readUploadFile(request);
+    const header = new Uint8Array(await file.slice(0,262144).arrayBuffer());
+    const meta = inspectUpload(header,file.type,file.size);
+    // Never overwrite an existing object; old products and cached catalogues retain their image.
+    const objectPath = 'uploads/' + crypto.randomUUID() + '.' + meta.extension;
+    const bucket = supabaseAdmin.storage.from('media');
+    const uploaded = await bucket.upload(objectPath,file,{contentType:meta.contentType,upsert:false,cacheControl:'31536000'});
+    if (uploaded.error) throw new ApiError(503,'파일 저장에 실패했습니다. 다시 시도해 주세요.');
+    try {
+      const publicUrl = bucket.getPublicUrl(objectPath).data.publicUrl;
+      const base = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!);
+      const url = new URL(publicUrl);
+      if (url.username || url.password || url.hash || url.search || url.origin !== base.origin || !url.pathname.startsWith('/storage/v1/object/public/media/')) throw new Error('Unexpected media URL');
+      const item = await addMediaItem({name:file.name.replace(/[\u0000-\u001f\u007f]/g,'').slice(0,200) || '업로드 파일',url:publicUrl,type:meta.type,size:(file.size/(1024*1024)).toFixed(2)+' MB'});
+      return json({success:true,data:item});
+    } catch {
+      // If library insertion fails, remove only this request's new object, never previous images.
+      try { await bucket.remove([objectPath]); } catch { /* A lost cleanup response must not expose credentials or provider errors. */ }
+      throw new ApiError(503,'미디어 DB 등록에 실패했습니다. 파일을 다시 업로드해 주세요.');
     }
-
-    // ── 1. MIME 타입 화이트리스트 검증 ──────────────────────────────
-    const mimeType = file.type.toLowerCase();
-    if (!ALLOWED_MIME_TYPES[mimeType]) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `허용되지 않는 파일 형식입니다. 허용: ${Object.keys(ALLOWED_MIME_TYPES).join(', ')}`,
-        },
-        { status: 415 }
-      );
-    }
-
-    // ── 2. 파일 크기 제한 ──────────────────────────────────────────
-    const isVideo = mimeType.startsWith('video/');
-    const maxSize = isVideo ? MAX_VIDEO_SIZE_BYTES : MAX_IMAGE_SIZE_BYTES;
-    if (file.size > maxSize) {
-      const limitMb = (maxSize / (1024 * 1024)).toFixed(0);
-      return NextResponse.json(
-        {
-          success: false,
-          error: `파일 크기 초과: ${isVideo ? '동영상' : '이미지'}는 최대 ${limitMb}MB까지 허용됩니다.`,
-        },
-        { status: 413 }
-      );
-    }
-
-    // ── 3. 파일명 sanitize ─────────────────────────────────────────
-    const ext = ALLOWED_MIME_TYPES[mimeType]; // 검증된 확장자 사용 (사용자 입력 확장자 무시)
-    const safeName = `${crypto.randomUUID()}-${file.name
-      .replace(/[^a-zA-Z0-9._-]/g, '_')
-      .replace(/\.[^.]+$/, '')}${ext}`;  // 기존 확장자 제거 후 검증된 확장자 추가
-
-    // ── 4. 저장 ────────────────────────────────────────────────────
-    const { error: uploadError } = await supabaseAdmin.storage.from('media').upload(safeName, await file.arrayBuffer(), {
-      contentType: mimeType,
-      upsert: false,
-    });
-    if (uploadError) throw uploadError;
-    const { data: urlData } = supabaseAdmin.storage.from('media').getPublicUrl(safeName);
-    const publicUrl = urlData.publicUrl;
-    const mediaType = isVideo ? 'video' : 'image';
-    const fileSizeMb = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
-
-    const mediaItem = await addMediaItem({
-      name: file.name,
-      url: publicUrl,
-      type: mediaType,
-      size: fileSizeMb,
-    });
-
-    return NextResponse.json({ success: true, data: mediaItem });
-  } catch (error) {
-    console.error('File upload failed');
-    return NextResponse.json({ success: false, error: 'File upload failed' }, { status: 500 });
-  }
+  } catch (error) { return failure(error); }
 }

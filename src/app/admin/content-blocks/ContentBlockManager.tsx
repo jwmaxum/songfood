@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ContentBlock } from '@/lib/types';
+import ImageUploadField from '@/components/admin/ImageUploadField';
 import {
   FileText,
   Plus,
   Edit2,
   ArrowLeft,
-  Upload,
   CheckCircle2,
   Layout,
   Sparkles,
@@ -86,32 +86,9 @@ export default function ContentBlockManager() {
     setIsModalOpen(true);
   };
 
-  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
-      const data = await res.json();
-      if (data.success) {
-        setMediaUrl(data.data.url);
-        showToast('Media uploaded!');
-      } else {
-        alert(data.error || 'Upload failed');
-      }
-    } catch {
-      showToast('업로드에 실패했습니다.');
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const handleSaveBlock = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (uploading) return;
     if (!sectionKey.trim() || !title.trim()) return alert('Section Key & Title are required');
 
     const newOrUpdated: Partial<ContentBlock> = {
@@ -314,34 +291,19 @@ export default function ContentBlockManager() {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-stone-400 mb-1 font-mono">Media Image URL</label>
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={mediaUrl}
-                    onChange={(e) => setMediaUrl(e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
-                    className="flex-grow px-3.5 py-2 bg-[#0a0a0c] border border-stone-800 focus:border-[#c5a880] rounded text-sm text-white focus:outline-none"
-                  />
-                  <label className="px-4 py-2 bg-stone-900 border border-stone-800 text-stone-300 text-xs rounded cursor-pointer flex items-center space-x-1 shrink-0">
-                    <Upload size={14} />
-                    <span>{uploading ? 'Uploading...' : 'Upload'}</span>
-                    <input type="file" accept="image/*" onChange={handleMediaUpload} className="hidden" />
-                  </label>
-                </div>
-              </div>
+              <ImageUploadField label="콘텐츠 이미지" value={mediaUrl} onChange={setMediaUrl} onBusyChange={setUploading} disabled={uploading} />
 
               <div className="flex space-x-3 pt-4 border-t border-stone-800">
                 <button
                   type="button"
+                  disabled={uploading}
                   onClick={() => setIsModalOpen(false)}
                   className="w-1/2 py-2.5 bg-stone-800 text-stone-300 rounded text-xs"
                 >
                   Cancel
                 </button>
                 <button
-                  type="submit"
+                  type="submit" disabled={uploading}
                   className="w-1/2 py-2.5 bg-[#c5a880] text-black font-semibold rounded text-xs shadow-lg"
                 >
                   Save Content Block

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import ImageUploadField from '@/components/admin/ImageUploadField';
 import type { ProductItem } from '@/lib/types';
 import { MAX_CATALOGUE_PRODUCTS } from '@/lib/catalogue/types';
 import { PRODUCT_DRAFT_FIELDS, type ProductSourceNotes as SourceNotes, type ProductDraft as DraftRecord } from '@/lib/product-drafts/types';
@@ -13,7 +14,6 @@ type Editor = {
   dirty: boolean; conflict: boolean;
 };
 const notesBlank = (): SourceNotes => ({ specification: '', label: '', sales_terms: '' });
-const PLACEHOLDER = '/images/products/coming-soon.png';
 const productTitle = (product: ProductItem) => product.name || product.name_en || '이름 확인 필요';
 const inputClass = 'min-h-11 w-full min-w-0 rounded border border-stone-600 bg-stone-950 px-3 py-2 text-white outline-none focus:border-amber-300';
 const labelClass = 'block min-w-0 space-y-1 text-sm text-stone-200';
@@ -32,6 +32,7 @@ export default function ProductManagerV2() {
   const [pdfFeedback, setPdfFeedback] = useState<{ text: string; error: boolean } | null>(null);
   const pdfRequest = useRef<AbortController | null>(null);
   const [editor, setEditor] = useState<Editor | null>(null);
+  const [imageBusy, setImageBusy] = useState(false);
   const [search, setSearch] = useState(''), [message, setMessage] = useState(''), [editorMessage, setEditorMessage] = useState('');
   const [busy, setBusy] = useState(false), [loading, setLoading] = useState(true);
   const [reason, setReason] = useState('관리자 상품 자료 작성');
@@ -79,6 +80,15 @@ export default function ProductManagerV2() {
   const allSelected = products.length > 0 && selectedProducts.length === products.length;
   const value = (key: string): unknown => editor && Object.hasOwn(editor.data, key) ? editor.data[key] : editor?.base?.[key as keyof ProductItem];
   const asText = (key: string) => String(value(key) ?? '');
+  const rawPhotos = value('images');
+  const photos = [...new Set([asText('image_url'), ...(Array.isArray(rawPhotos) ? rawPhotos.filter((url): url is string => typeof url === 'string' && !!url) : [])].filter(Boolean))].slice(0, 6);
+  function setPhotos(next: string[]) {
+    const images = [...new Set(next.filter(Boolean))].slice(0, 6);
+    setEditor(old => old ? { ...old, data: { ...old.data, image_url: images[0] || null, images }, dirty: true } : old);
+  }
+  function setPhoto(index: number, url: string) {
+    const next = [...photos]; if (url) next[index] = url; else next.splice(index, 1); setPhotos(next);
+  }
   const missingIdentity = editor && !asText('name').trim() && !asText('name_en').trim() ? ['한국어 또는 영어 상품명'] : [];
 
   function toggleSelected(id: string) {
@@ -131,7 +141,7 @@ export default function ProductManagerV2() {
   }
   function focusOpener() { requestAnimationFrame(() => { if (opener.current?.isConnected) opener.current.focus(); else createButton.current?.focus(); }); }
   function close() {
-    if (busy) return;
+    if (busy || imageBusy) return;
     if (editor?.dirty && !window.confirm('아직 임시저장하지 않은 입력이 있습니다. 저장하지 않고 닫을까요?')) return;
     setEditor(null); setComparison(null); setEditorMessage(''); focusOpener();
   }
@@ -160,7 +170,7 @@ export default function ProductManagerV2() {
     finally { setBusy(false); }
   }
   async function save(publish = false, rebase = false) {
-    if (!editor || busy || (editor.conflict && !rebase) || (rebase && (!comparison || !editor.saved || !editor.productId))) return;
+    if (!editor || busy || imageBusy || (editor.conflict && !rebase) || (rebase && (!comparison || !editor.saved || !editor.productId))) return;
     if (reason.trim().length < 3) { setEditorMessage('작성·변경 사유를 3글자 이상 적어 주세요.'); return; }
     if (publish && missingIdentity.length) { setEditorMessage('한국어 또는 영어 상품명을 입력해 주세요.'); return; }
     setBusy(true); setEditorMessage('');
@@ -208,7 +218,7 @@ export default function ProductManagerV2() {
     } finally { setBusy(false); }
   }
   async function compareOriginal() {
-    if (!editor?.productId || busy) return;
+    if (!editor?.productId || busy || imageBusy) return;
     setBusy(true);
     try {
       const response = await fetch('/api/admin/product-drafts?product_id=' + encodeURIComponent(editor.productId), { cache: 'no-store' });
@@ -220,7 +230,7 @@ export default function ProductManagerV2() {
     finally { setBusy(false); }
   }
   async function reloadEditor() {
-    if (!editor || busy || !window.confirm('현재 입력을 최신 저장 자료로 교체합니다. 필요한 미저장 내용을 확인한 뒤 계속할까요?')) return;
+    if (!editor || busy || imageBusy || !window.confirm('현재 입력을 최신 저장 자료로 교체합니다. 필요한 미저장 내용을 확인한 뒤 계속할까요?')) return;
     if (editor.saved) {
       setBusy(true);
       try {
@@ -298,17 +308,17 @@ export default function ProductManagerV2() {
       }
     }}>
       <div ref={modal} role="dialog" aria-modal="true" aria-labelledby="product-editor-title" className="mx-auto my-3 min-w-0 max-w-4xl rounded-xl border border-stone-600 bg-stone-900 p-4 shadow-2xl sm:p-6">
-        <div className="mb-4 flex items-start justify-between gap-3"><div><h2 id="product-editor-title" tabIndex={-1} className="text-xl font-bold">{editor.productId ? '기존 상품 수정 초안' : '새 상품 비공개 초안'}</h2><p className="mt-2 text-xs text-amber-200">검수 전 · 비공개 · {editor.saved ? '저장 버전 ' + editor.saved.revision : '아직 저장하지 않음'}{editor.dirty ? ' · 미저장 변경 있음' : ''}</p></div><button disabled={busy} className="min-h-11 shrink-0 rounded border border-stone-500 px-3 text-sm" onClick={close}>닫기</button></div>
+        <div className="mb-4 flex items-start justify-between gap-3"><div><h2 id="product-editor-title" tabIndex={-1} className="text-xl font-bold">{editor.productId ? '기존 상품 수정 초안' : '새 상품 비공개 초안'}</h2><p className="mt-2 text-xs text-amber-200">검수 전 · 비공개 · {editor.saved ? '저장 버전 ' + editor.saved.revision : '아직 저장하지 않음'}{editor.dirty ? ' · 미저장 변경 있음' : ''}</p></div><button disabled={busy || imageBusy} className="min-h-11 shrink-0 rounded border border-stone-500 px-3 text-sm" onClick={close}>닫기</button></div>
         <p className="mb-4 text-sm leading-6 text-stone-200">어느 항목이든 입력한 부분부터 임시저장할 수 있습니다. 빈칸을 임의 수치나 예시 값으로 채우지 마세요. 기존 상품은 바꾼 필드만 저장하고, 카탈로그 반영 전에는 현재 공개 자료를 변경하지 않습니다.</p>
         {editorMessage && <p id="product-editor-feedback" tabIndex={-1} role="status" className="mb-4 rounded border border-amber-700 bg-amber-950/30 p-3 text-sm text-amber-100">{editorMessage}</p>}
-        {editor.conflict && <div role="alert" className="mb-4 space-y-3 rounded border border-red-500 p-3 text-sm"><p>다른 변경과 충돌했습니다. 내 입력은 보존되어 있습니다. 최신 자료를 확인한 뒤 다시 작성해야 합니다.</p><div className="flex flex-wrap gap-2"><button disabled={busy} className="min-h-11 rounded border px-4" onClick={() => void reloadEditor()}>최신 저장 자료 다시 불러오기</button>{editor.productId && editor.saved && <button disabled={busy} className="min-h-11 rounded border px-4" onClick={() => void compareOriginal()}>현재 상품 원본과 대조</button>}</div></div>}
+        {editor.conflict && <div role="alert" className="mb-4 space-y-3 rounded border border-red-500 p-3 text-sm"><p>다른 변경과 충돌했습니다. 내 입력은 보존되어 있습니다. 최신 자료를 확인한 뒤 다시 작성해야 합니다.</p><div className="flex flex-wrap gap-2"><button disabled={busy || imageBusy} className="min-h-11 rounded border px-4" onClick={() => void reloadEditor()}>최신 저장 자료 다시 불러오기</button>{editor.productId && editor.saved && <button disabled={busy || imageBusy} className="min-h-11 rounded border px-4" onClick={() => void compareOriginal()}>현재 상품 원본과 대조</button>}</div></div>}
         {comparison && <section aria-label="상품 원본 변경 대조" className="mb-5 space-y-3 rounded border border-amber-400 p-4 text-sm">
           <h3 className="font-bold">저장 당시 원본 · 현재 카탈로그 · 내 입력 대조</h3>
           <p>현재 카탈로그를 기준으로 내 변경 필드만 다시 적용할 수 있습니다. 다른 직원이 저장한 초안 버전과도 충돌하면 최신 초안을 먼저 불러오세요. 아래 버튼은 비공개 초안만 다시 저장합니다.</p>
           <dl className="space-y-3">{compareKeys.map(key => <div key={key} className="min-w-0 rounded border border-stone-600 p-3"><dt className="font-bold">{key}</dt><dd className="break-words">저장 당시: {display(editor.base?.[key as keyof ProductItem])}</dd><dd className="break-words">현재 상품: {display(comparison.product[key as keyof ProductItem])}</dd><dd className="break-words text-amber-200">재적용할 값: {display(Object.hasOwn(editor.data, key) ? editor.data[key] : comparison.product[key as keyof ProductItem])}</dd></div>)}</dl>
-          <button disabled={busy} className="min-h-11 rounded border border-amber-300 px-4 font-bold text-amber-200" onClick={() => void save(false, true)}>대조한 현재 원본 기준으로 초안 재저장</button>
+          <button disabled={busy || imageBusy} className="min-h-11 rounded border border-amber-300 px-4 font-bold text-amber-200" onClick={() => void save(false, true)}>대조한 현재 원본 기준으로 초안 재저장</button>
         </section>}
-        <fieldset disabled={busy} className="min-w-0 space-y-6">
+        <fieldset disabled={busy || imageBusy} className="min-w-0 space-y-6">
           <section><h3 className="mb-3 border-b border-stone-600 pb-2 font-semibold">1. 분류 · 식별</h3><div className="grid gap-3 md:grid-cols-2">
             <label className={labelClass} htmlFor="product-collection">대분류<select id="product-collection" className={inputClass} value={asText('collection')} onChange={event => { update('collection', event.target.value); update('category', ''); }}><option value="">아직 선택하지 않음</option>{PRODUCT_TAXONOMY.map(group => <option key={group.collection}>{group.collection}</option>)}</select></label>
             <label className={labelClass} htmlFor="product-category">제품 종류<select id="product-category" className={inputClass} value={asText('category')} onChange={event => update('category', event.target.value)}><option value="">아직 선택하지 않음</option>{categoriesForCollection(asText('collection')).map(category => <option key={category}>{category}</option>)}</select></label>
@@ -318,10 +328,18 @@ export default function ProductManagerV2() {
           <section><h3 className="mb-3 border-b border-stone-600 pb-2 font-semibold">2. 상품 · 표시 정보</h3><div className="grid gap-3 md:grid-cols-2">
             {textField('brand', '브랜드')}{textField('manufacturer', '제조사')}{textField('country_of_origin', '원산지')}{textField('net_weight', '내용량')}{textField('shelf_life', '소비기한/유통기한')}{textField('storage', '보관 방법')}{textField('ingredients', '원재료 및 함량', 6000)}{textField('allergens', '알레르기 유발물질', 3000)}
           </div><label className={labelClass + ' mt-3'} htmlFor="product-description">상품 설명<textarea id="product-description" className={inputClass} maxLength={6000} rows={3} value={asText('description')} onChange={event => update('description', event.target.value)} /></label></section>
-          <section><h3 className="mb-3 border-b border-stone-600 pb-2 font-semibold">3. 이미지 · 인증</h3><div className="grid gap-3 md:grid-cols-2">
-            {textField('image_url', '대표 이미지 URL (없으면 기본 대기 이미지)', 2000)}
+          <section className="space-y-4"><h3 className="border-b border-stone-600 pb-2 font-semibold">3. 상품 사진 · 인증</h3>
+            <p className="text-sm leading-6 text-stone-200">대표 사진과 추가 사진을 합해 최대 6개까지 선택합니다. 업로드한 파일은 미디어에 저장되며, 상품의 사진은 비공개 임시저장 또는 카탈로그 반영으로 확정합니다. 기존 상품은 반영하기 전까지 공개 사진을 유지합니다.</p>
+            <p className="text-xs leading-5 text-stone-300">사진을 제외해도 미디어 원본은 삭제하지 않습니다. 대표 사진을 제외하면 다음 사진이 대표가 됩니다.</p>
+            <ImageUploadField label="대표 사진" value={photos[0] || ''} onChange={url => setPhoto(0, url)} disabled={busy || imageBusy} onBusyChange={setImageBusy} />
+            {photos.length > 0 && <div className="grid gap-3 md:grid-cols-2">{[...photos.slice(1), ...(photos.length < 6 ? [''] : [])].map((url, index) => <div className="min-w-0 space-y-2" key={'additional-photo-' + index}>
+              <ImageUploadField label={'추가 사진 ' + (index + 1)} value={url} onChange={nextUrl => setPhoto(index + 1, nextUrl)} disabled={busy || imageBusy} onBusyChange={setImageBusy} />
+              {url && <button type="button" disabled={busy || imageBusy} className="min-h-11 rounded border border-stone-500 px-3 text-sm disabled:opacity-40" aria-label={'추가 사진 ' + (index + 1) + ' 대표로 지정'} onClick={() => setPhotos([url, ...photos.filter(photo => photo !== url)])}>대표 사진으로 지정</button>}
+            </div>)}</div>}
+            {!photos.length && <p className="text-xs text-stone-300">대표 사진을 선택하면 추가 사진을 등록할 수 있습니다.</p>}
+            {imageBusy && <p role="status" className="text-sm text-amber-200">사진 처리가 끝나면 임시저장·카탈로그 반영·닫기를 사용할 수 있습니다.</p>}
             <label className={labelClass} htmlFor="product-certifications">인증명 (증빙 확인 후 쉼표로 구분)<input id="product-certifications" className={inputClass} maxLength={1000} value={arrayText('certifications')} onChange={event => update('certifications', event.target.value.split(',').map(item => item.trim()).filter(Boolean))} /></label>
-          </div><img src={asText('image_url') || PLACEHOLDER} alt="제품 이미지 미리보기" className="mt-3 h-28 w-28 rounded object-cover" /></section>
+          </section>
           <section><h3 className="mb-3 border-b border-stone-600 pb-2 font-semibold">4. 포장 · 도매 · 수출 (확인한 값만)</h3><p className="mb-3 text-sm text-amber-200">실제 거래가격·VAT·입수·최소구매단위·수출 MOQ·FOB 비용은 가격 관리에서 별도로 검수·승인합니다. 아래 기존 참고 값은 거래 계산에 사용하지 않습니다.</p><div className="grid gap-3 md:grid-cols-3">
             {numberField('price', '기존 참고 판매가 (선택)', true)}{numberField('stock', '참고 재고 수량 (선택)')}{numberField('carton_qty', '기존 카톤 입수 (검수 참고)')}{numberField('moq_cartons', '기존 수출 MOQ (검수 참고)')}{textField('hs_code', 'HS Code')}{textField('loading_port', '선적항')}{textField('production_lead_time', '생산 소요기간')}{textField('export_packaging', '수출 포장')}{textField('carton_size', '카톤 치수')}{numberField('gross_weight', '총중량 (kg)', true)}{numberField('cbm', '부피 (CBM)', true)}
           </div><label className={labelClass + ' mt-3'} htmlFor="product-target_markets">등록 대상 국가·지역 (쉼표로 구분)<input id="product-target_markets" className={inputClass} maxLength={1000} value={arrayText('target_markets')} onChange={event => update('target_markets', event.target.value.split(',').map(item => item.trim()).filter(Boolean))} /></label></section>
@@ -333,7 +351,7 @@ export default function ProductManagerV2() {
         </fieldset>
         <section className="mt-6 space-y-3 border-t border-stone-600 pt-4">
           <p className="text-sm text-stone-200">{missingIdentity.length ? '카탈로그 반영 전 입력할 최소 항목: ' + missingIdentity.join(', ') + '. 임시저장은 가능합니다.' : '상품명이 입력되었습니다. SKU·분류·규격은 나중에 보완할 수 있으며, 표시·가격·판매 출시 검수는 별도로 필요합니다.'}</p>
-          <div className="flex flex-wrap justify-end gap-3"><button disabled={busy} className="min-h-11 rounded border border-stone-500 px-4 text-sm" onClick={close}>닫기</button><button disabled={busy || editor.conflict} className="min-h-11 rounded bg-amber-300 px-4 font-bold text-stone-950 disabled:opacity-40" onClick={() => void save(false)}>{busy ? '처리 중…' : '비공개 임시저장'}</button><button disabled={busy || editor.conflict || !!missingIdentity.length} className="min-h-11 rounded border border-emerald-400 px-4 font-bold text-emerald-200 disabled:opacity-40" onClick={() => void save(true)}>카탈로그에 반영</button></div>
+          <div className="flex flex-wrap justify-end gap-3"><button disabled={busy || imageBusy} className="min-h-11 rounded border border-stone-500 px-4 text-sm" onClick={close}>닫기</button><button disabled={busy || imageBusy || editor.conflict} className="min-h-11 rounded bg-amber-300 px-4 font-bold text-stone-950 disabled:opacity-40" onClick={() => void save(false)}>{busy ? '처리 중…' : '비공개 임시저장'}</button><button disabled={busy || imageBusy || editor.conflict || !!missingIdentity.length} className="min-h-11 rounded border border-emerald-400 px-4 font-bold text-emerald-200 disabled:opacity-40" onClick={() => void save(true)}>카탈로그에 반영</button></div>
           <p className="text-xs leading-6 text-stone-300">카탈로그에 반영하면 입력 내용을 먼저 비공개 초안으로 저장한 뒤 상품 기본자료를 고객에게 반영합니다. 이미 저장된 내용은 바로 반영합니다. 비공개 출처 메모는 제외됩니다. 이 작업은 가격 승인·판매 출시 승인이나 인증·수출 적합성 확인이 아닙니다.</p>
         </section>
       </div>
