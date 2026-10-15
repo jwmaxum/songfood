@@ -36,7 +36,7 @@ export default async function Home({searchParams}:{searchParams:Promise<Record<s
   <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
    <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold tracking-widest text-green-800">CATALOGUE</p><h2 className="mt-2 text-2xl font-bold">{ui('공급 상품 둘러보기')}</h2></div><Link href={catalogue} className="min-h-11 py-3 text-sm text-green-800 underline">{text('전체 '+products.length+'개 상품','All '+products.length+' products')}</Link></div>
    <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{featured.map(p=><article key={p.id} className="overflow-hidden rounded-xl border border-stone-200 bg-white">
-    <Link href={productHref(p.id,catalogue,language)}><img src={p.image_url} alt={productName(p,language)} loading="lazy" className="aspect-[4/3] w-full object-cover"/></Link>
+    <Link href={productHref(p.id,catalogue,language)}><img src={p.image_url||'/images/products/coming-soon.png'} alt={productName(p,language)} loading="lazy" className="aspect-[4/3] w-full object-cover"/></Link>
     <div className="space-y-3 p-5"><p className="text-xs text-stone-500">{categoryLabel(p.category||p.collection,language)} · {p.sku}</p><Link className="block font-bold leading-6" href={productHref(p.id,catalogue,language)}>{productName(p,language)}</Link>{exportMode?<Link href={productHref(p.id,catalogue,language)} className="block min-h-11 py-3 text-xs text-green-900 underline">{text('수출 포장·FOB 조건 확인','View export packaging & FOB terms')}</Link>:<ProductPrice product={p}/>}</div>
    </article>)}</div>
   </section>

@@ -17,10 +17,12 @@ export function parseRfqLines(value:unknown):RfqLine[] {
   }
   return result;
 }
-export function storageGroup(value='') {
-  if(/냉동|frozen|freez/i.test(value))return 'frozen';
-  if(/냉장|chill|refrigerat/i.test(value))return 'chilled';
-  if(/상온|실온|ambient|room temp/i.test(value))return 'ambient';
+export function storageGroup(value:string|null|undefined='') {
+  // After-opening instructions do not describe unopened shipping or storage.
+  const unopened=(value||'').split(/개봉\s*후|\bafter\s+opening\b|\bonce\s+opened\b/i,1)[0];
+  if(/냉동|frozen|freez/i.test(unopened))return 'frozen';
+  if(/냉장|chill|refrigerat/i.test(unopened))return 'chilled';
+  if(/상온|실온|ambient|room temp/i.test(unopened))return 'ambient';
   return 'unknown';
 }
 export type CatalogueFilters={q:string;collection:string;category:string;brand:string;storage:string;market:string;minimum:string;maxMinimum:string;legacy:string};

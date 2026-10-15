@@ -147,7 +147,7 @@ export default function CollectionShowcaseClient({initialProducts}:{initialProdu
       </Link>
       <div className="min-w-0"><p className="break-all text-xs text-stone-500">{p.sku||ui('SKU 확인 필요')} · {brandLabel(p.brand||'',language)||categoryLabel(p.category||'',language)}</p>
        <Link href={detailHref(p.id)} onClick={event=>{if(event.button===0&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey&&!event.altKey)remember(p.id);}} className="mt-1 block break-words text-base font-bold leading-6 hover:text-green-800">{productName(p,language)}</Link>
-       <p className="mt-2 text-sm text-stone-600">{p.net_weight||p.format} · {p.storage||ui('보관조건 확인 필요')}</p>
+       <p className="mt-2 text-sm text-stone-600">{p.net_weight||p.format||text('규격 확인 필요','Specification to confirm')} · {p.storage||ui('보관조건 확인 필요')}</p>
        <Link href={catalogueHref(search,{collection:p.collection,category:p.category||'',page:'1'})} className="mt-1 inline-flex min-h-11 items-center text-xs text-green-800 underline">{categoryLabel(p.category||p.collection,language)}</Link>
       </div>
       <div className={list?'col-span-2 min-w-0 border-t border-stone-100 pt-2 xl:col-span-1 xl:border-t-0 xl:pt-0':'min-w-0'}>{exportMode?<div className="space-y-1 text-xs leading-5"><p className="font-semibold">{text('해외 카톤 견적','Export carton quotation')}</p><p>{text('VAT 제외 FOB 조건은 RFQ에서 확인합니다.','Review VAT-excluded FOB terms in your RFQ.')}</p></div>:<ProductPrice product={p}/>}<QuickOrder key={String(exportMode)} product={p} exportMode={exportMode}/></div>

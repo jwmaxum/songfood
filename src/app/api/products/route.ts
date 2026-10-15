@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getProducts, saveProduct, deleteProduct } from '@/lib/products-db';
+import { getProducts, deleteProduct } from '@/lib/products-db';
 import { isSupabaseConfigured } from '@/lib/supabase-admin';
 import { publicMinimums } from '@/lib/pricing/repository';
 import { publicProduct } from '@/lib/public-product';
-import { readJson, failure } from '@/lib/request-security';
 import { requireStaff } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
@@ -37,16 +36,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  try {
-    const denied = await requireStaff(req, ['admin', 'product_staff']);
-    if (denied) return denied;
-    const body = await readJson(req, 131072);
-    const saved = await saveProduct(body);
-    return NextResponse.json({ success: true, data: saved });
-  } catch (error) {
-    // Provider details are deliberately omitted from logs.
-    return failure(error);
-  }
+  const denied = await requireStaff(req, ['admin', 'product_staff']);
+  if (denied) return denied;
+  return NextResponse.json({ success: false, error: '상품 변경은 비공개 초안에 저장한 뒤 별도로 공개 반영해 주세요.', draft_endpoint: '/api/admin/product-drafts' }, { status: 410, headers: { 'Cache-Control': 'no-store' } });
 }
 
 export async function DELETE(req: NextRequest) {

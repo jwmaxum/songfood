@@ -1,5 +1,6 @@
 // Test-only Supabase stand-in. Bound to loopback; never imports environment files.
 const http=require('node:http'),crypto=require('node:crypto');
+const productTaxonomy=require('../data/product-taxonomy.json');
 const baseProducts=Array.from({length:16},(_,i)=>({id:'qa-product-'+(i+1),name:'검증용 냉동 식품 '+(i+1),name_en:'QA frozen food '+(i+1),sku:'QA-'+String(i+1).padStart(3,'0'),brand:'QA ONLY',category:'냉동식품',collection:'QA',format:'1 kg',finish:'',color:'',look:'',net_weight:'1 kg',storage:'Frozen / 냉동',description:'QA fixture only. No commercial offer.',image_url:'/logo.png',is_featured:i<4,purchase_minimum:{unit:'CTN',quantity:2}}));
 const catalogueProducts=Array.from({length:30},(_,i)=>{
  const n=i+1,id='nav-product-'+String(n).padStart(2,'0');
@@ -23,8 +24,9 @@ const initialProfile={name:'송영민푸드',owner:'',registration:'',ecommerce_
 const future=()=>new Date(Date.now()+86400000*3).toISOString();
 const makePrices=products=>products.map((p,i)=>({id:'00000000-0000-4000-8000-'+String(1000+i).padStart(12,'0'),product_id:p.id,price_list_id:'00000000-0000-4000-8000-000000000811',version:1,status:'approved',price_unit:'EA',unit_price_krw:'1100',tax_code:'vat10',vat_included:true,ea_per_box:5,boxes_per_carton:2,ea_per_carton:10,minimum_order_unit:'CTN',minimum_order_quantity:2,export_moq_ctn:3,tiers:[],valid_from:'2020-01-01T00:00:00Z',valid_until:future(),fob_status:'included',loading_port:'Busan',review_source:'QA fixture',change_reason:'QA fixture only',cost_review:'QA only',created_by:ids.admin,approved_by:ids.admin,created_at:new Date().toISOString()}));
 let prices=makePrices(products);
+let productDrafts,productDraftEvents;
 let piSettings,settings,records,emails,unknown,requests,controls,controlEvents,releasePolicy,releaseReviews,releaseEvents,mailTransport,mailDelivery,documentEmails,staffRecords,staffEvents,invalidStaffSessions,sessions,customerAccounts,handoverReviews,handoverEvents;
-function reset(){products=baseProducts;prices=makePrices(products);piSettings=null;handoverReviews=[];handoverEvents=[];staffRecords=Object.entries(ids).filter(([r])=>r!=='customer').map(([role,id])=>({id,role:role==='sub_admin'?'admin':role,status:'active',name:'QA '+role,email:role==='admin'?'jwmaxum@gmail.com':role+'@example.invalid',revision:1,verified:true,auth_active:true,created_at:new Date().toISOString()}));staffEvents=[];sessions=[];customerAccounts=[{id:ids.customer,name:'QA Buyer',email:'buyer@example.invalid',status:'active'}];invalidStaffSessions=new Set();releasePolicy={enabled:false,revision:1};releaseReviews={};releaseEvents=[];mailTransport={verified_at:null,last_checked_at:null,last_code:'SMTP_VERIFY_FAILED'};mailDelivery={notification_id:'00000000-0000-4000-8000-000000000930',state:'queued',attempt:0,last_code:null,updated_at:new Date().toISOString()};documentEmails=[];controls={revision:1,inquiries_paused:false,orders_paused:false,pi_paused:false,owner_id:null,owner:"",response_minutes:null,updated_at:new Date().toISOString()};controlEvents=[];settings={profile:{...initialProfile},revision:1,updated_at:new Date().toISOString()};records=[];emails=[];unknown=[];requests=new Map();}
+function reset(){productDrafts=[];productDraftEvents=[];products=baseProducts;prices=makePrices(products);piSettings=null;handoverReviews=[];handoverEvents=[];staffRecords=Object.entries(ids).filter(([r])=>r!=='customer').map(([role,id])=>({id,role:role==='sub_admin'?'admin':role,status:'active',name:'QA '+role,email:role==='admin'?'jwmaxum@gmail.com':role+'@example.invalid',revision:1,verified:true,auth_active:true,created_at:new Date().toISOString()}));staffEvents=[];sessions=[];customerAccounts=[{id:ids.customer,name:'QA Buyer',email:'buyer@example.invalid',status:'active'}];invalidStaffSessions=new Set();releasePolicy={enabled:false,revision:1};releaseReviews={};releaseEvents=[];mailTransport={verified_at:null,last_checked_at:null,last_code:'SMTP_VERIFY_FAILED'};mailDelivery={notification_id:'00000000-0000-4000-8000-000000000930',state:'queued',attempt:0,last_code:null,updated_at:new Date().toISOString()};documentEmails=[];controls={revision:1,inquiries_paused:false,orders_paused:false,pi_paused:false,owner_id:null,owner:"",response_minutes:null,updated_at:new Date().toISOString()};controlEvents=[];settings={profile:{...initialProfile},revision:1,updated_at:new Date().toISOString()};records=[];emails=[];unknown=[];requests=new Map();}
 reset();
 function filtered(rows,u){return rows.filter(row=>[...u.searchParams].every(([k,v])=>!v.startsWith('eq.')||String(row[k])===v.slice(3)));}
 const server=http.createServer(async(req,res)=>{
@@ -33,7 +35,8 @@ const server=http.createServer(async(req,res)=>{
  const send=(data,status=200)=>{res.writeHead(status,{'Content-Type':'application/json'});res.end(JSON.stringify(data));};
  if(path==='/__reset'){reset();return send({ok:true});}
  if(path==='/__catalogue'&&req.method==='POST'){products=catalogueProducts;prices=makePrices(products);return send({ok:true,count:products.length});}
- if(path==='/__state')return send({emails,unknown,piSettings,settings,records,documentEmails,staffEvents,handoverReviews,handoverEvents,catalogueProductCount:products.length});
+ if(path==='/__state')return send({productDrafts,productDraftEvents,products,emails,unknown,piSettings,settings,records,documentEmails,staffEvents,handoverReviews,handoverEvents,catalogueProductCount:products.length});
+ if(path==='/__draft-product-change'&&req.method==='POST'){if(!products.some(p=>p.id===body.id))return send({ok:false},404);products=products.map(p=>p.id===body.id?{...p,...body.patch,updated_at:new Date().toISOString()}:p);return send({ok:true});}
  if(path==='/health')return send({ok:true});
  if(path==='/auth/v1/otp'){emails.push({redirect:u.searchParams.get('redirect_to'),email:body.email,createUser:body.create_user});return send({});}
  if(path==='/auth/v1/user')return send({id:ids.product_staff,email:'product_staff@example.invalid',email_confirmed_at:'2020-01-01T00:00:00Z',aud:'authenticated',role:'authenticated'});
@@ -51,6 +54,39 @@ const server=http.createServer(async(req,res)=>{
 
  if(path.startsWith('/rest/v1/rpc/')){
   const rpc=path.split('/').pop();
+  if(['b2b_product_draft_snapshot','b2b_save_product_draft','b2b_publish_product_draft'].includes(rpc)){
+   const actor=staffRecords.find(s=>s.id===body.p_actor&&s.status==='active'&&!s.removed&&['admin','product_staff'].includes(s.role));if(!actor)return send({code:'42501'},403);
+   const hash=p=>crypto.createHash('sha256').update(JSON.stringify(p)).digest('hex'),clone=p=>p==null?p:JSON.parse(JSON.stringify(p));
+   if(rpc==='b2b_product_draft_snapshot'){
+    if(body.p_id){const d=productDrafts.find(d=>d.id===body.p_id);return d?send({draft:d}):send({code:'P0002'},404);}
+    if(body.p_product_id){const product=products.find(p=>p.id===body.p_product_id);return product?send({product,base_hash:hash(product),draft:productDrafts.find(d=>d.product_id===product.id&&d.status==='draft')||null}):send({code:'P0002'},404);}
+    return send({drafts:productDrafts.filter(d=>d.status==='draft').slice().sort((a,b)=>b.updated_at.localeCompare(a.updated_at)).slice(0,200)});
+   }
+   if(rpc==='b2b_save_product_draft'){
+    let d=productDrafts.find(d=>d.id===body.p_id),before=clone(d),base=d?.base_product||null,baseHash=d?.base_hash||null;
+    if(d&&(d.status!=='draft'||d.revision!==body.p_revision||d.product_id!==body.p_product_id))return send({code:'40001'},409);
+    if(!d&&(body.p_revision!==0||body.p_rebase))return send({code:'40001'},409);
+    if((!d&&body.p_product_id)||body.p_rebase){
+     const current=products.find(p=>p.id===body.p_product_id);if(!current)return send({code:'P0002'},404);
+     baseHash=hash(current);if(body.p_base_hash!==baseHash)return send({code:'40001'},409);base=clone(current);
+    }else if(d&&body.p_base_hash!==d.base_hash)return send({code:'40001'},409);
+    if(!d&&body.p_product_id&&productDrafts.some(d=>d.product_id===body.p_product_id&&d.status==='draft'))return send({code:'23505'},409);
+    const now=new Date().toISOString();
+    d={id:d?.id||body.p_id||crypto.randomUUID(),product_id:body.p_product_id,revision:(d?.revision||0)+1,status:'draft',data:{...(d?.data||{}),...body.p_data},source_notes:{specification:'',label:'',sales_terms:'',...(d?.source_notes||{}),...body.p_source_notes},base_hash:baseHash,base_product:base,created_by:d?.created_by||body.p_actor,updated_by:body.p_actor,created_at:d?.created_at||now,updated_at:now};
+    productDrafts=productDrafts.filter(x=>x.id!==d.id);productDrafts.unshift(d);productDraftEvents.push({draft_id:d.id,event:before?body.p_rebase?'rebase':'save':'create',actor_id:body.p_actor,reason:body.p_reason,before_state:before,after_state:clone(d)});return send(d);
+   }
+   const d=productDrafts.find(d=>d.id===body.p_id);if(!d)return send({code:'P0002'},404);if(d.status!=='draft'||d.revision!==body.p_revision)return send({code:'40001'},409);
+   const current=d.product_id?products.find(p=>p.id===d.product_id):null;if(d.product_id&&!current)return send({code:'P0002'},404);
+   if(current&&hash(current)!==d.base_hash)return send({code:'40001'},409);
+   const candidate={...(current||{}),...d.data};
+   if(['name','sku','collection','category'].some(k=>typeof candidate[k]!=='string'||!candidate[k].trim())||!productTaxonomy.some(g=>g.collection===candidate.collection&&g.categories.includes(candidate.category)))return send({code:'22023'},400);
+   const skuKey=s=>String(s||'').normalize('NFC').toLowerCase().replace(/\s+/gu,'');
+   if(products.some(p=>p.id!==d.product_id&&skuKey(p.sku)===skuKey(candidate.sku)))return send({code:'23505'},409);
+   const now=new Date().toISOString(),id=d.product_id||'prod-'+crypto.randomUUID(),product={...(current||{price:null,stock:null,format:null,carton_qty:null,manufacturer:null,image_url:null,storage:null,net_weight:null,certifications:null,target_markets:null}),...d.data,id,created_at:current?.created_at||now,updated_at:now};
+   products=current?products.map(p=>p.id===id?product:p):[...products,product];
+   const before=clone(d);d.product_id=id;d.status='published';d.revision++;d.updated_by=body.p_actor;d.updated_at=now;productDraftEvents.push({draft_id:d.id,event:'publish',actor_id:body.p_actor,reason:body.p_reason,before_state:before,after_state:{draft:clone(d),product_before:current,product_after:product}});return send({draft:d,product});
+  }
+
   if(rpc==='b2b_pi_save_settings'){if(!staffRecords.some(s=>s.id===body.p_actor&&s.role==='admin'&&s.status==='active'&&!s.removed))return send({code:'42501'},403);if(body.p_expected!==(piSettings?.revision||0))return send({code:'40001'},409);piSettings={revision:(piSettings?.revision||0)+1,data:body.p_data};return send(piSettings);}
   if(rpc==='b2b_handover_snapshot'||rpc==='b2b_save_handover'){
    const actor=staffRecords.find(s=>s.id===body.p_actor&&s.status==='active'&&!s.removed);

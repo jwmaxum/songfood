@@ -127,7 +127,7 @@ export default function ProductDetailClient({
           <img src={item.image_url || '/images/products/coming-soon.png'} alt="" loading="lazy" className="mb-3 aspect-[4/3] w-full rounded-lg border border-stone-100 object-cover" />
           <span className="block break-words font-bold">{productName(item, language)}</span>
         </Link>
-        <p className="my-2 text-xs text-stone-500">{item.sku ? item.sku + ' · ' : ''}{item.net_weight || item.format}</p>{navigation.mode === 'export' ? exportSummary(item.id) : <ProductPrice product={item} />}
+        <p className="my-2 text-xs text-stone-500">{item.sku ? item.sku + ' · ' : ''}{item.net_weight || item.format || text('규격 확인 필요', 'Specification to confirm')}</p>{navigation.mode === 'export' ? exportSummary(item.id) : <ProductPrice product={item} />}
       </article>)}</div>
     </section>}
   </main>;

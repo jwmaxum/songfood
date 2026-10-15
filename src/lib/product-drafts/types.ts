@@ -1,0 +1,10 @@
+import type {ProductItem} from '../types';
+export const PRODUCT_DRAFT_TEXT_FIELDS=['name','name_en','sku','collection','category','format','finish','color','look','image_url','description','thickness','origin','brand','manufacturer','country_of_origin','net_weight','package_size','shelf_life','storage','ingredients','allergens','carton_size','hs_code','production_lead_time','export_packaging','loading_port'] as const;
+export const PRODUCT_DRAFT_NUMBER_FIELDS=['price','original_price','stock','deal_discount_percent','carton_qty','gross_weight','cbm','moq_cartons'] as const;
+export const PRODUCT_DRAFT_BOOLEAN_FIELDS=['is_featured','is_todays_deal','is_best_seller'] as const;
+export const PRODUCT_DRAFT_ARRAY_FIELDS=['certifications','target_markets'] as const;
+export const PRODUCT_DRAFT_FIELDS=[...PRODUCT_DRAFT_TEXT_FIELDS,...PRODUCT_DRAFT_NUMBER_FIELDS,...PRODUCT_DRAFT_BOOLEAN_FIELDS,...PRODUCT_DRAFT_ARRAY_FIELDS] as const;
+export type ProductDraftField=typeof PRODUCT_DRAFT_FIELDS[number];
+export type ProductDraftData=Partial<{[K in ProductDraftField]:K extends keyof ProductItem?ProductItem[K]|null:never}>;
+export type ProductSourceNotes={specification:string;label:string;sales_terms:string};
+export type ProductDraft={id:string;product_id:string|null;revision:number;data:ProductDraftData;source_notes:ProductSourceNotes;base_hash:string|null;base_product:ProductItem|null;status:'draft'|'published';created_by:string;updated_by:string;created_at:string;updated_at:string};
