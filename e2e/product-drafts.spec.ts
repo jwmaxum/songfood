@@ -59,17 +59,17 @@ test('identity-only catalogue publish needs no fabricated price or storage and p
   await dialog.getByRole('button', { name: '비공개 임시저장', exact: true }).click();
   await expect(dialog).toContainText('비공개 초안을 DB에 임시저장했습니다.');
   await dialog.getByRole('button', { name: '카탈로그에 반영', exact: true }).click();
-  await expect(dialog).toHaveCount(0); await expect(page.locator('main')).toContainText('카탈로그에 반영했습니다.');
+  await expect(dialog).toHaveCount(0); await expect(page.getByRole('main')).toContainText('카탈로그에 반영했습니다.');
   const body = await (await request.get('/api/products')).json(), item = body.data.find((p: { sku: string }) => p.sku === 'QA-DRAFT-IDENTITY');
   expect(item).toBeTruthy(); expect(item.storage == null || item.storage === '').toBe(true);
   expect(item).not.toHaveProperty('price'); expect(item).not.toHaveProperty('source_notes'); expect(item).not.toHaveProperty('base_product');
   expect(JSON.stringify(body)).not.toContain('QA PRIVATE LABEL SOURCE');
   await page.goto('/products/' + encodeURIComponent(item.id) + '?lang=ko');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('QA 신규 식별 상품');
-  await expect(page.locator('main')).toContainText('확인 필요');
+  await expect(page.getByRole('main').getByRole('heading', { level: 1 })).toHaveText('QA 신규 식별 상품');
+  await expect(page.getByRole('main')).toContainText('확인 필요');
   await page.goto('/shop?q=' + encodeURIComponent('QA 신규 식별 상품') + '&storage=unknown&lang=ko');
-  await expect(page.locator('article')).toHaveCount(1);
-  await expect(page.locator('article')).toContainText('규격 확인 필요');
+  await expect(page.getByRole('main').getByRole('article')).toHaveCount(1);
+  await expect(page.getByRole('main').getByRole('article')).toContainText('규격 확인 필요');
   expect(errors).toEqual([]);
 });
 
