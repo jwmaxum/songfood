@@ -1,6 +1,6 @@
 # 관리자 이미지 업로드·상품 갤러리 구현 기록
 
-2026-10-15 · 기반 커밋 2524339 · 실제 개발 폴더 C:/Users/Microsoft/Projects/songfood
+2026-10-15 · 기반 커밋 2524339 · 배포 소스 `1c9a9b9841f6c81b6215b1d5d072acff6c4e8ce0` · 실제 개발 폴더 C:/Users/Microsoft/Projects/songfood
 
 ## 결과와 범위
 
@@ -37,20 +37,20 @@
 
 | 항목 | 결과 |
 | --- | --- |
-| 전체 단위·커버리지 | **PASS: 97개 묶음 899/899**. Statements 74.53%·branches 66.50%·functions 75.44%·lines 76.61%. 전체 80% 목표는 미달. 이후 상품 상세 갤러리 2개 회귀를 추가한 집중 4/4를 통과했으며 최종 CI에서 전체 901개를 확인할 예정 |
+| 전체 단위·커버리지 | **PASS: 최종 CI 97개 묶음 901/901**. 원본 CI 로그 ZIP에서 수치를 대조했다. 별도 로컬 커버리지 실행은 97개 묶음 899/899이며 Statements 74.53%·branches 66.50%·functions 75.44%·lines 76.61%다. 이후 추가한 상품 상세 갤러리 2개 회귀까지 최종 CI에 포함됐다. 전체 80% 커버리지 목표는 미달 |
 | 업로드·미디어·갤러리 집중 회귀 | **PASS: 111/111**. 실제 라우트·Native Request multipart·권한/Origin·rate·스트림 취소·시그니처/한도·새 객체 정리·공개 필드·공유 객체 보존·부분 저장·NFC 중복 포함 |
 | 타입·lint | 전담 테스트 수정 후 전체 `tsc --noEmit` 통과. 전체 lint 오류 0·경고 77개. 최종 Worker 빌드에서도 TypeScript 통과 |
 | DB | **PASS**: 사전 검증·운영 COMMIT·적용 후 3개 SQL 회귀. 기존 5개 테이블 값과 판매 검수 지문 보존 |
 | Cloudflare Worker 빌드 | **PASS**: `npm run build:worker` 최종 실행. 일반 콘텐츠 편집 경로까지 포함해 Next 컴파일·TypeScript·OpenNext Worker 번들 생성 완료 |
-| production 모드 브라우저·접근성 | 최초 전체 실행 49/50 통과. 공통 로고 버튼의 테스트 선택자 불일치를 수정하고 같은 production 번들에서 1/1 재검증 통과. 상품 업로드→Storage bytes/미디어 DB→초안/재개→명시 반영→상세 갤러리/재교체, 모바일 SVG·503 재시도·접근성 포함. 이후 콘텐츠 블록 관리 경로를 연결하고 새 production 빌드의 CMS 5/5를 통과했다. 합계 51개 시나리오 검증. 최종 CI는 51개 전체를 새로 실행한다 |
-| GitHub CI·Cloudflare 자동 배포 | 이 변경을 main에 push한 뒤 정확 커밋의 [Worker CI](https://github.com/jwmaxum/songfood/actions/workflows/deploy.yml)와 Workers Builds: song-food의 성공을 확인한다. 완료 응답과 비공개 검증 기록에 결과를 남긴다 |
-| 운영 사이트 실제 파일 업로드·DB 참조 | 배포 후 기존 브랜드 로고 파일로 실제 업로드·미디어/공통 로고 DB 참조·공개 PNG·로고 경로·권한을 확인하는 검수 절차를 준비했다. 상품 사진은 가짜 자료로 교체하지 않으며, 상품 사진 저장/반영은 실제 DB의 롤백 회귀와 격리 브라우저 테스트로 검증했다 |
-| 로고·인증메일 표시 | 공통 경로 연결과 production 브라우저의 기본 로고 복귀 통과. 운영 로고 응답은 배포 후 확인하며 새 인증메일은 발송하지 않는다. 실제 메일 앱의 새 로고 수신·캐시는 별도 수신 검수 범위다 |
+| production 모드 브라우저·접근성 | **PASS: 최종 CI 전체 51/51**, 원본 로그 기준 3.0분. 상품 업로드→Storage bytes/미디어 DB→비공개 초안/재개→명시 반영→상세 갤러리/재교체, 모바일 SVG 차단·503 재시도·접근성·콘텐츠 블록 관리 경로를 포함했다. 격리된 로컬 fixture를 사용하는 production 모드 검증이며 실제 고객 거래를 생성하지 않았다 |
+| GitHub CI·Cloudflare 자동 배포 | **PASS**: 정확 소스 `1c9a9b9841f6c81b6215b1d5d072acff6c4e8ce0`의 [Worker CI 38685318619](https://github.com/jwmaxum/songfood/actions/runs/38685318619) 2개 job과 [Cloudflare 6018aa97-6461-4d90-b62d-2752475bd826](https://dash.cloudflare.com/7c88b2d2b3fe9baf32dc744ac0a631b3/workers/services/view/song-food/production/builds/6018aa97-6461-4d90-b62d-2752475bd826)이 모두 성공했다. 2026-10-15 14:15 KST, 원본 CI ZIP 79,767 bytes와 97/901/51 통과 수치를 확인했다 |
+| 운영 사이트 실제 파일 업로드·DB 참조 | **PASS**: 2026-10-15 14:16 KST, 기존 브랜드 로고를 실제 업로드한 공개 PNG **2,090,057 bytes·1,254×1,254px**를 읽고 시그니처·변환 한도를 확인했다. 미디어 라이브러리와 branding_logo DB 참조가 일치하고 직원 API는 공개 허용 필드 6개만 반환했다. 익명 미디어 조회·익명 업로드·타 Origin 업로드는 모두 403이었다. 기존 53개 상품의 사진·식별정보를 보존했고 실제 상품 사진 변경은 **0건**이다. 상품 사진 저장/반영은 운영 DB 롤백 회귀와 격리 브라우저 테스트로 검증했다 |
+| 로고·인증메일 표시 | **PASS**: 운영 `/logo.png`가 저장된 공개 이미지로 **302·Cache-Control: no-store** 응답하는 것을 확인했다. 공통 경로 연결과 production 브라우저의 기본 로고 복귀도 통과했다. 이번 이미지 검증에서 새 인증메일·고객메일은 **발송하지 않았다**. 실제 메일 앱의 새 로고 수신·캐시 표시는 이번 검증 범위에 포함하지 않았다 |
 
-로컬 비공개 증거는 `.npm-cache/image-upload-2026-10-15/jest-coverage.log`, `migration-preflight-private.json`, `migration-apply-private.json`, `migration-regression-private.json`에 보관한다. 작업용 캐시는 Git에 포함하지 않으며 비밀값·사용자 세션을 문서에 복사하지 않는다. Worker·브라우저·배포 대기 항목을 단위 테스트 통과로 대신 완료 처리하지 않는다.
+로컬 비공개 증거는 `.npm-cache/image-upload-2026-10-15/`의 `jest-coverage.log`, `lint.log`, `worker-build-final.log`, `migration-preflight-private.json`, `migration-apply-private.json`, `migration-regression-private.json`, `ci-verification-1c9a9b9841f6c81b6215b1d5d072acff6c4e8ce0.json`·동일 SHA의 원본 CI 로그 ZIP, `production-verification.json`에 보관한다. 운영 확인 도구 `verify-live.cjs`는 로고 302뿐 아니라 저장된 URL과 no-store까지 검사하고, 모든 조건을 통과한 뒤 운영 결과 JSON을 기록했다. 작업용 캐시는 Git에 포함하지 않으며 비밀값·사용자 세션을 문서에 복사하지 않는다. 완료한 자동 검증과 운영 이미지 확인을 실제 거래·메일 수신 인수 완료로 확대 해석하지 않는다.
 
 ## 다음 단계
 
-1. 정확 커밋의 GitHub CI·Cloudflare 자동 배포와 운영 업로드를 확인한다. 배포 결과는 해당 커밋의 검사와 작업 완료 응답을 기준으로 판단한다.
+1. 이미지 업로드 기능의 CI·Cloudflare 자동 배포·운영 브랜드 이미지 확인을 완료했다. 이후 실제 자료 변경 시 해당 변경의 저장·카탈로그 반영 결과를 확인한다.
 2. 관리자가 실제 상품 사진과 기준자료를 입력하고 고객 상세·새 PDF를 대조한다. 사용 중인 파일 정리는 참조를 확인한 후 별도 작업으로 다룬다.
-3. 실제 승인 가격·계좌·PI/환율·회사 정책·대응 목표와 거래 증빙을 갖춘 채널/SKU부터 **15단계 실제 거래 인수**, 이후 **16단계 제한 공개·초기 운영 점검**을 진행한다. 이번 이미지 기능으로 그 상태를 변경하지 않는다.
+3. 실제 승인 가격·계좌·PI/환율·회사 정책·대응 목표와 거래 증빙을 갖춘 채널/SKU부터 **15단계 실제 거래 인수**, 이후 **16단계 제한 공개·초기 운영 점검**을 진행한다. **15단계 실제 거래 인수는 미완료**이며 이번 이미지 기능으로 그 상태를 변경하지 않는다.
