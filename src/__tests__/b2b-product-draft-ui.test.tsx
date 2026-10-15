@@ -7,10 +7,10 @@ import type { ProductItem } from '@/lib/types';
 import type { ProductDraft } from '@/lib/product-drafts/types';
 jest.mock('next/link', () => ({ __esModule: true, default: ({ href, children, ...props }: { href: string; children: React.ReactNode }) => <a href={href} {...props}>{children}</a> }));
 const initialProduct = { id: 'product-existing', name: '기존 상품', name_en: '', sku: 'EXIST-001', collection: 'K-만두/냉동식품', category: '만두 & 교자', format: '1 kg', storage: '냉동', image_url: '/logo.png', description: '', price: 1200, stock: 0 } as ProductItem;
-let catalogue: ProductItem[], saved: ProductDraft[], conflict: boolean, fetcher: jest.Mock;
+let catalogue: ProductItem[], saved: ProductDraft[], conflict: boolean, publishFailure: number, fetcher: jest.Mock;
 const response = (body: unknown, status = 200) => ({ ok: status < 400, status, json: async () => body });
 beforeEach(() => {
- catalogue = [{ ...initialProduct }]; saved = []; conflict = false;
+ catalogue = [{ ...initialProduct }]; saved = []; conflict = false; publishFailure = 0;
  fetcher = jest.fn(async (input: string, options?: RequestInit) => {
   const url = new URL(input, 'https://songfood.invalid');
   if (url.pathname === '/api/products') return response({ success: true, data: catalogue });
@@ -28,7 +28,10 @@ beforeEach(() => {
    saved = [item]; return response({ success: true, draft: item });
   }
   if (options.method === 'PUT' && previous) {
+   if (publishFailure) return response({ error: publishFailure === 409 ? '초안 버전이 변경되었습니다.' : '카탈로그 연결에 실패했습니다.' }, publishFailure);
    const product = { ...(previous.base_product || {}), ...previous.data, id: previous.product_id || 'new-published-product' } as ProductItem;
+   for (const key of ['name', 'name_en', 'collection', 'category']) if (!String(product[key as keyof ProductItem] || '').trim()) Object.assign(product, { [key]: null });
+   if (!product.sku) product.sku = 'AUTO-10000000-0000-4000-8000-000000000001';
    const item = { ...previous, status: 'published', revision: previous.revision + 1 } as ProductDraft;
    saved = [item]; catalogue = [product, ...catalogue.filter(p => p.id !== product.id)];
    return response({ success: true, draft: item, product });
@@ -59,7 +62,7 @@ test('a name-only sparse private draft saves and resumes without invented catego
  expect(JSON.parse(call[1].body)).toMatchObject({ product_id: null, revision: 0, data: { name: '실제 자료 작성 중' }, source_notes: { specification: '비공개 규격서 문서명 확인 중', label: '', sales_terms: '' } });
  expect(Object.keys(JSON.parse(call[1].body).data)).toEqual(['name']);
  expect(catalogue).toHaveLength(1);
- expect(within(dialog).getByRole('button', { name: '카탈로그에 반영' })).toBeDisabled();
+ expect(within(dialog).getByRole('button', { name: '카탈로그에 반영' })).toBeEnabled();
  fireEvent.click(within(dialog).getAllByRole('button', { name: '닫기' })[0]);
  fireEvent.click(screen.getByRole('button', { name: '계속 작성' }));
  expect(await screen.findByLabelText('규격서 출처·확인 메모')).toHaveValue('비공개 규격서 문서명 확인 중');
@@ -145,4 +148,49 @@ test('explicit reload of a draft already published by another staff returns to t
  fireEvent.click(within(dialog).getByRole('button', { name: '최신 저장 자료 다시 불러오기' }));
  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
  expect(await screen.findByText(/다른 직원이 이미 카탈로그에 반영한 초안입니다/)).toBeInTheDocument();
+});
+
+
+test('an English-only name is directly published after saving without a client-invented SKU or category', async () => {
+ const dialog = await startNew();
+ write('상품명 (영어)', 'Actual English name');
+ expect(within(dialog).getByRole('button', { name: '카탈로그에 반영' })).toBeEnabled();
+ fireEvent.click(within(dialog).getByRole('button', { name: '카탈로그에 반영' }));
+ await screen.findByText(/카탈로그에 반영했습니다/);
+ const post = fetcher.mock.calls.find(([, options]) => options?.method === 'POST')!;
+ expect(JSON.parse(post[1].body).data).toEqual({ name_en: 'Actual English name' });
+ const put = fetcher.mock.calls.find(([, options]) => options?.method === 'PUT')!;
+ expect(JSON.parse(put[1].body)).toMatchObject({ id: '00000000-0000-4000-8000-000000000001', revision: 1 });
+ const published = catalogue.find(product => product.name_en === 'Actual English name')!;
+ expect(published).toMatchObject({ name: null, name_en: 'Actual English name', sku: 'AUTO-10000000-0000-4000-8000-000000000001', collection: null, category: null });
+ expect(published).not.toHaveProperty('price');
+ expect(screen.getByRole('checkbox', { name: 'Actual English name PDF 선택' })).toBeInTheDocument();
+}, 15000);
+
+
+test('direct publish preserves the saved private draft after a failed apply and retries its saved revision', async () => {
+ const dialog = await startNew(); write('상품명 (한국어)', '상품명만 바로 반영'); publishFailure = 503;
+ expect(within(dialog).getByRole('button', { name: '카탈로그에 반영' })).toBeEnabled();
+ fireEvent.click(within(dialog).getByRole('button', { name: '카탈로그에 반영' }));
+ await screen.findByText(/초안은 임시저장되었지만 카탈로그에 반영하지 못했습니다/);
+ expect(saved[0]).toMatchObject({ status: 'draft', revision: 1, data: { name: '상품명만 바로 반영' } });
+ expect(screen.getByLabelText('상품명 (한국어)')).toHaveValue('상품명만 바로 반영');
+ expect(catalogue).toHaveLength(1); publishFailure = 0;
+ fireEvent.click(within(dialog).getByRole('button', { name: '카탈로그에 반영' }));
+ await screen.findByText(/카탈로그에 반영했습니다/);
+ expect(fetcher.mock.calls.filter(([, options]) => options?.method === 'POST')).toHaveLength(1);
+ const publications = fetcher.mock.calls.filter(([, options]) => options?.method === 'PUT');
+ expect(publications).toHaveLength(2); expect(JSON.parse(publications[1][1].body)).toMatchObject({ revision: 1 });
+ expect(catalogue.find(product => product.name === '상품명만 바로 반영')).toBeTruthy();
+});
+
+test('a conflict in direct publish keeps the newly saved draft and operator input without retrying blindly', async () => {
+ const dialog = await startNew(); write('상품명 (한국어)', '충돌 후 보존할 상품'); publishFailure = 409;
+ fireEvent.click(within(dialog).getByRole('button', { name: '카탈로그에 반영' }));
+ await screen.findByText(/초안은 임시저장되었지만 카탈로그에 반영하지 못했습니다/);
+ expect(within(dialog).getByRole('alert')).toHaveTextContent('내 입력은 보존되어 있습니다.');
+ expect(screen.getByLabelText('상품명 (한국어)')).toHaveValue('충돌 후 보존할 상품');
+ expect(within(dialog).getByRole('button', { name: '카탈로그에 반영' })).toBeDisabled();
+ expect(saved[0]).toMatchObject({ status: 'draft', revision: 1, data: { name: '충돌 후 보존할 상품' } });
+ expect(catalogue).toHaveLength(1);
 });

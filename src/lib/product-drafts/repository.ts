@@ -8,7 +8,7 @@ export function draftDatabaseError(error:{code?:string}|null){
  if(error.code==='23505')throw new ApiError(409,'같은 SKU 또는 작성 중인 상품 초안이 있습니다. 기존 내용을 확인해 주세요.');
  if(error.code==='42501')throw new ApiError(403,'상품 담당 직원 권한이 필요합니다.');
  if(error.code==='P0002')throw new ApiError(404,'초안 또는 상품을 찾을 수 없습니다.');
- if(['22023','23514','23502','22003'].includes(error.code||''))throw new ApiError(400,'상품명·SKU·분류 또는 입력한 항목을 확인해 주세요. 빈 항목은 초안으로 저장할 수 있습니다.');
+ if(['22023','23514','23502','22003'].includes(error.code||''))throw new ApiError(400,'한국어 또는 영어 상품명 하나가 필요합니다. 입력한 분류와 다른 항목의 형식도 확인해 주세요. SKU와 분류는 비워 둘 수 있습니다.');
  throw new ApiError(503,'상품 초안 저장소에 연결하지 못했습니다.');
 }
 export async function draftSnapshot(actor:string,id:string|null,product_id:string|null){

@@ -1,5 +1,6 @@
 'use client';
 import Feedback from '@/components/storefront/Feedback';
+import {productName} from '@/lib/catalogue-taxonomy';
 
 import {useLanguage} from '@/lib/i18n/LanguageContext';
 
@@ -13,7 +14,7 @@ import {useCart,cartKey,cartUnit} from '@/context/CartContext';
 import {formatMoney} from '@/lib/pricing/types';
 const input='mt-2 w-full rounded-lg border border-stone-300 bg-white p-3';
 export default function WholesalePage() {
- const {t:ui}=useLanguage();
+ const {t:ui,language}=useLanguage();
 
   const {user}=useAuth(),{cartItems,preview,error:priceError}=useCart();
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[reference,setReference]=useState('');
@@ -23,7 +24,7 @@ export default function WholesalePage() {
   const [form,setForm]=useState({company:'',contact_name:'',email:'',phone:'',business_registration_no:'',business_type:ui("개인 구매"),estimated_monthly_volume:'',notes:''});
   async function submit(e:FormEvent<HTMLFormElement>) {
     e.preventDefault();setError('');setFieldErrors({});
-    const selections=cartItems.map(i=>[i.product.sku||i.product.id,i.product.name,i.quantity+' '+cartUnit(i)].join(' · ')).join('\n');
+    const selections=cartItems.map(i=>[i.product.sku||i.product.id,productName(i.product,language),i.quantity+' '+cartUnit(i)].join(' · ')).join('\n');
     const notes=[selections?ui("선택 상품 (공급 조건 확인 요청):\n")+selections:'',form.notes].filter(Boolean).join('\n\n');
     if(notes.length>10000){setError(ui("선택 상품과 문의 내용이 너무 깁니다. 품목을 나누어 문의해 주세요."));return;}
     setBusy(true);
@@ -41,7 +42,7 @@ export default function WholesalePage() {
       <label className="text-sm sm:col-span-2">{ui("구매 유형")}<select value={form.business_type} onChange={e=>setForm({...form,business_type:e.target.value})} className={input}>{[ui("개인 구매"),ui("식당 / 외식업체"),ui("마트 / 유통업체"),ui("급식업체"),ui("식자재 도매상"),ui("기타")].map(v=><option key={v}>{v}</option>)}</select></label>
       <label className="text-sm sm:col-span-2">{ui("추가 품목·희망 공급일·배송지역")}<textarea value={form.notes} rows={5} maxLength={5000} onChange={e=>setForm({...form,notes:e.target.value})} className={input}/><FieldError name="notes" errors={fieldErrors}/></label>
     </div>{error&&<Feedback error className="text-sm text-red-800">{error}</Feedback>}<button disabled={busy} className="w-full rounded-lg bg-green-900 p-4 font-bold text-white disabled:opacity-50">{busy?ui("접수 중…"):ui("구매 문의 제출")}</button>{!user&&<p className="text-xs text-stone-600"><Link href="/account/login" className="underline">{ui("로그인 후 제출")}</Link>{ui("하면 내 계정에서 접수 내역을 확인할 수 있습니다.")}</p>}</form>
-    <aside className="space-y-4 rounded-2xl border border-green-200 bg-green-50 p-5"><div className="flex justify-between gap-3"><h2 className="text-xl font-bold">{ui("선택 상품 ")}{cartItems.length}{ui("개")}</h2><Link href="/cart" className="text-sm underline">{ui("수량 수정")}</Link></div>{!cartItems.length?<p className="text-sm">{ui("선택한 상품이 없어도 원하는 품목을 적어 문의할 수 있습니다. ")}<Link href="/shop" className="underline">{ui("상품 찾기")}</Link></p>:<ul className="divide-y divide-green-200">{cartItems.map(i=><li key={cartKey(i)} className="py-3 text-sm"><p className="font-semibold">{i.product.name}</p><p>{i.product.sku} · {i.quantity} {cartUnit(i)}</p></li>)}</ul>}
+    <aside className="space-y-4 rounded-2xl border border-green-200 bg-green-50 p-5"><div className="flex justify-between gap-3"><h2 className="text-xl font-bold">{ui("선택 상품 ")}{cartItems.length}{ui("개")}</h2><Link href="/cart" className="text-sm underline">{ui("수량 수정")}</Link></div>{!cartItems.length?<p className="text-sm">{ui("선택한 상품이 없어도 원하는 품목을 적어 문의할 수 있습니다. ")}<Link href="/shop" className="underline">{ui("상품 찾기")}</Link></p>:<ul className="divide-y divide-green-200">{cartItems.map(i=><li key={cartKey(i)} className="py-3 text-sm"><p className="font-semibold">{productName(i.product,language)}</p><p>{i.product.sku} · {i.quantity} {cartUnit(i)}</p></li>)}</ul>}
       {preview&&<div className="border-t border-green-200 pt-4 text-sm"><p>{ui("공급가액 ")}{formatMoney(preview.net_minor,'KRW')}</p><p>VAT {formatMoney(preview.tax_minor,'KRW')}</p><p className="mt-2 font-bold">{ui("상품 미리보기 ")}{formatMoney(preview.total_minor,'KRW')}</p></div>}
       {cartItems.length>0&&priceError&&<p className="text-sm text-amber-900">{priceError}</p>}<p className="text-xs leading-6">{ui("선택 상품·수량은 문의 내용에 전달됩니다. 표시 금액은 확정 견적이 아니며 배송비·출하일은 담당자와 확인합니다.")}</p>
     </aside></div>}

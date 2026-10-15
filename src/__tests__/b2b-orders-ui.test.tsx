@@ -44,3 +44,14 @@ test('anonymous checkout links to email signup and cannot submit',()=>{
  jest.mocked(useAuth).mockReturnValue({loading:false,user:null} as never);jest.mocked(useCart).mockReturnValue({cartItems:[]} as never);
  render(<Checkout/>);expect(screen.getByRole('link',{name:'로그인 / 회원가입'})).toBeInTheDocument();expect(screen.queryByRole('button',{name:'주문 접수하기'})).not.toBeInTheDocument();
 });
+
+test('checkout confirms an English-only product name while preserving its missing Korean source and price guard',()=>{
+ const product={id:'qa-english-only',name:null,name_en:'English-only food'};
+ jest.mocked(useAuth).mockReturnValue({loading:false,user:{name:'개인회원',email:'test@example.invalid'}} as never);
+ jest.mocked(useCart).mockReturnValue({cartItems:[{product,quantity:3}],preview:null,loading:false,error:'검수된 가격 없음',clearCart:clearMock} as never);
+ render(<Checkout/>);
+ expect(screen.getByText('English-only food · 3 EA')).toBeInTheDocument();
+ expect(screen.getByRole('button',{name:'주문 접수하기'})).toBeDisabled();
+ expect(product).toEqual({id:'qa-english-only',name:null,name_en:'English-only food'});
+ expect(orderPost).not.toHaveBeenCalled();
+});

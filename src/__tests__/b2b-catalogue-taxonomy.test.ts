@@ -40,3 +40,17 @@ describe('customer catalogue taxonomy display',()=>{
   expect(categoryLabel('추가 제품종류','en')).toBe('추가 제품종류');
  });
 });
+
+test('display fallbacks use the entered language name without copying it into missing original fields',()=>{
+ const product={name:null,name_en:'English-only food'};
+ expect(productName(product,'ko')).toBe('English-only food');
+ expect(productName(product,'en')).toBe('English-only food');
+ expect(product).toEqual({name:null,name_en:'English-only food'});
+ expect(productName({name:'  ',name_en:'English-only food'},'ko')).toBe('English-only food');
+ expect(productName({name:null,name_en:null},'ko')).toBe('상품명 미입력');
+ expect(productName({name:null,name_en:null},'en')).toBe('Unnamed product');
+});
+test.each([null,undefined,'','  '])('missing taxonomy %j is explicitly unclassified in both UI languages',value=>{
+ expect(collectionLabel(value,'ko')).toBe('미분류');expect(categoryLabel(value,'ko')).toBe('미분류');
+ expect(collectionLabel(value,'en')).toBe('Unclassified');expect(categoryLabel(value,'en')).toBe('Unclassified');
+});

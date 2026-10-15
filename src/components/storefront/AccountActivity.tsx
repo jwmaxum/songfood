@@ -1,5 +1,6 @@
 'use client';
 import Feedback from '@/components/storefront/Feedback';
+import {productName} from '@/lib/catalogue-taxonomy';
 
 import {displayDate} from '@/lib/i18n/locale';
 import {useLanguage} from '@/lib/i18n/LanguageContext';
@@ -32,6 +33,6 @@ export default function AccountActivity() {
       {!!data.length&&<p className="mt-3 text-xs text-stone-500">{ui("최근 접수 최대 100건을 표시합니다. 접수 상태는 주문·입금·출고 상태와 다릅니다.")}</p>}
     </section>
     <CustomerPi/><div className="grid gap-4 sm:grid-cols-2"><section className="rounded-xl border p-5"><h2 className="font-bold">{ui("국내 주문·배송")}</h2><p className="mt-3 text-sm text-stone-600">{ui("주문·입금·출고 내역에서 실제 처리 상태를 확인할 수 있습니다. 공급·배송 조건 확인 후 최종 금액을 수락해 주세요.")}</p><Link href="/account/orders" className="mt-4 inline-block text-sm text-green-800 underline">{ui("내 주문·입금·배송 조회")}</Link></section><section className="rounded-xl border p-5"><h2 className="font-bold">{ui("Proforma Invoice·거래서류")}</h2><p className="mt-3 text-sm text-stone-600">{ui("발행된 PI는 위 견적송장 영역에서 열람·다운로드·수정 요청·수락할 수 있습니다. RFQ 접수번호는 PI가 아니며 최종 Commercial Invoice와 구분됩니다.")}</p><Link href="/rfq" className="mt-4 inline-block text-sm text-green-800 underline">{ui("서류 요구사항을 RFQ에 남기기")}</Link></section></div>
-    <section id="wishlist" className="rounded-xl border p-5"><h2 className="font-bold">{ui("관심상품 (")}{wishlist.length})</h2>{!wishlist.length?<p className="mt-3 text-sm text-stone-500">{ui("상품 상세에서 관심상품을 저장할 수 있습니다.")}</p>:<ul className="mt-3 space-y-3">{wishlist.map(p=><li key={p.id} className="flex items-start justify-between gap-3 text-sm"><Link href={'/products/'+encodeURIComponent(p.id)} className="text-green-800 underline">{p.name}</Link><button onClick={()=>removeFromWishlist(p.id)} className="shrink-0 underline">{ui("삭제")}</button></li>)}</ul>}</section>
+    <section id="wishlist" className="rounded-xl border p-5"><h2 className="font-bold">{ui("관심상품 (")}{wishlist.length})</h2>{!wishlist.length?<p className="mt-3 text-sm text-stone-500">{ui("상품 상세에서 관심상품을 저장할 수 있습니다.")}</p>:<ul className="mt-3 space-y-3">{wishlist.map(p=><li key={p.id} className="flex items-start justify-between gap-3 text-sm"><Link href={'/products/'+encodeURIComponent(p.id)} className="text-green-800 underline">{productName(p,language)}</Link><button onClick={()=>removeFromWishlist(p.id)} className="shrink-0 underline">{ui("삭제")}</button></li>)}</ul>}</section>
   </div>;
 }

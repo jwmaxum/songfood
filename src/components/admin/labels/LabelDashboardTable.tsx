@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { ProductItem } from '@/lib/types';
+import { categoryLabel, productName } from '@/lib/catalogue-taxonomy';
 import { ExportCountry, LabelStatus } from '@/types/label';
 
 interface LabelDashboardTableProps {
@@ -49,7 +50,7 @@ export default function LabelDashboardTable({ products }: LabelDashboardTablePro
     return products.filter((p) => {
       const matchKeyword =
         !searchKeyword ||
-        p.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+        productName(p,'ko').toLowerCase().includes(searchKeyword.toLowerCase()) ||
         (p.name_en && p.name_en.toLowerCase().includes(searchKeyword.toLowerCase())) ||
         (p.sku && p.sku.toLowerCase().includes(searchKeyword.toLowerCase())) ||
         (p.hs_code && p.hs_code.toLowerCase().includes(searchKeyword.toLowerCase()));
@@ -261,16 +262,16 @@ export default function LabelDashboardTable({ products }: LabelDashboardTablePro
                     <td className="p-3">
                       <img
                         src={product.image_url || '/placeholder.png'}
-                        alt={product.name}
+                        alt={productName(product,'ko')}
                         className="w-10 h-10 object-cover rounded-lg border border-stone-800"
                       />
                     </td>
                     <td className="p-3 max-w-xs">
-                      <p className="font-bold text-white truncate">{product.name}</p>
+                      <p className="font-bold text-white truncate">{productName(product,'ko')}</p>
                       <p className="text-stone-400 text-[11px] truncate">{product.name_en}</p>
                     </td>
                     <td className="p-3 font-mono text-stone-400">
-                      <p className="text-stone-300">{product.category}</p>
+                      <p className="text-stone-300">{categoryLabel(product.category,'ko')}</p>
                       <p className="text-[10px]">{product.sku}</p>
                     </td>
                     <td className="p-3 font-mono text-stone-300">

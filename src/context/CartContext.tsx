@@ -15,7 +15,7 @@ function useCartState() {
       try {
         const saved=JSON.parse(localStorage.getItem('anatolia_cart')||'[]');
         if(live && Array.isArray(saved))setCartItems(saved.filter(i=>i?.product?.id && Number.isInteger(i.quantity) && i.quantity>0 && i.quantity<=100000).slice(0,100).map(i=>({
-          product:{id:String(i.product.id),name:String(i.product.name||''),sku:i.product.sku,image_url:i.product.image_url,format:i.product.format,purchase_minimum:i.product.purchase_minimum} as ProductItem,
+          product:{id:String(i.product.id),name:typeof i.product.name==='string'?i.product.name:null,name_en:typeof i.product.name_en==='string'?i.product.name_en:null,sku:i.product.sku,image_url:i.product.image_url,format:i.product.format,purchase_minimum:i.product.purchase_minimum} as ProductItem,
           quantity:i.quantity,purchaseType:i.purchaseType==='box'?'box':cartUnit(i)==='CTN'?'carton':'ea',
         })));
         localStorage.removeItem('anatolia_coupon');

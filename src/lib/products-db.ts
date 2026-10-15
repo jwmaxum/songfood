@@ -32,7 +32,7 @@ export async function getProducts(filters?: ProductFilters): Promise<ProductItem
   }
   if (!filters) return products;
   return products.filter((product) => {
-    if (filters.collection && product.collection.toLowerCase() !== filters.collection.toLowerCase()) return false;
+    if (filters.collection && product.collection?.toLowerCase() !== filters.collection.toLowerCase()) return false;
     if (filters.category && !product.category?.toLowerCase().includes(filters.category.toLowerCase())) return false;
     if (filters.format?.length && !filters.format.includes(product.format)) return false;
     if (filters.finish?.length && !filters.finish.includes(product.finish)) return false;

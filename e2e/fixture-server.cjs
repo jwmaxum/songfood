@@ -79,10 +79,18 @@ const server=http.createServer(async(req,res)=>{
    const current=d.product_id?products.find(p=>p.id===d.product_id):null;if(d.product_id&&!current)return send({code:'P0002'},404);
    if(current&&hash(current)!==d.base_hash)return send({code:'40001'},409);
    const candidate={...(current||{}),...d.data};
-   if(['name','sku','collection','category'].some(k=>typeof candidate[k]!=='string'||!candidate[k].trim())||!productTaxonomy.some(g=>g.collection===candidate.collection&&g.categories.includes(candidate.category)))return send({code:'22023'},400);
+   for(const key of ['name','name_en','sku','collection','category']){
+    if(candidate[key]==null||(typeof candidate[key]==='string'&&candidate[key].replace(/[\s\u00a0\u202f]+/gu,'')===''))candidate[key]=null;
+    else if(typeof candidate[key]!=='string')return send({code:'22023'},400);
+   }
+   if(candidate.name===null&&candidate.name_en===null)return send({code:'22023'},400);
+   if(candidate.sku===null)candidate.sku='AUTO-'+crypto.randomUUID();
+   if(candidate.collection!==null&&!productTaxonomy.some(group=>group.collection===candidate.collection))return send({code:'22023'},400);
+   if(candidate.category!==null&&!productTaxonomy.some(group=>group.categories.includes(candidate.category)))return send({code:'22023'},400);
+   if(candidate.collection!==null&&candidate.category!==null&&!productTaxonomy.some(group=>group.collection===candidate.collection&&group.categories.includes(candidate.category)))return send({code:'22023'},400);
    const skuKey=s=>String(s||'').normalize('NFC').toLowerCase().replace(/\s+/gu,'');
    if(products.some(p=>p.id!==d.product_id&&skuKey(p.sku)===skuKey(candidate.sku)))return send({code:'23505'},409);
-   const now=new Date().toISOString(),id=d.product_id||'prod-'+crypto.randomUUID(),product={...(current||{price:null,stock:null,format:null,carton_qty:null,manufacturer:null,image_url:null,storage:null,net_weight:null,certifications:null,target_markets:null}),...d.data,id,created_at:current?.created_at||now,updated_at:now};
+   const now=new Date().toISOString(),id=d.product_id||'prod-'+crypto.randomUUID(),product={...(current||{price:null,stock:null,format:null,carton_qty:null,manufacturer:null,image_url:null,storage:null,net_weight:null,certifications:null,target_markets:null}),...candidate,id,created_at:current?.created_at||now,updated_at:now};
    products=current?products.map(p=>p.id===id?product:p):[...products,product];
    const before=clone(d);d.product_id=id;d.status='published';d.revision++;d.updated_by=body.p_actor;d.updated_at=now;productDraftEvents.push({draft_id:d.id,event:'publish',actor_id:body.p_actor,reason:body.p_reason,before_state:before,after_state:{draft:clone(d),product_before:current,product_after:product}});return send({draft:d,product});
   }
@@ -184,7 +192,16 @@ const server=http.createServer(async(req,res)=>{
   else if(table==='commercial_inquiries')rows=records;
   else if(table==='b2b_inquiry_requests')rows=[...requests.values()];
   else if(['menus','menu_items','company_members','hero_slides','content_blocks','b2b_pi_documents','b2b_inquiry_activities','b2b_orders','b2b_order_settings'].includes(table))rows=[];
-  if(rows){if(table!=='b2b_business_settings')rows=filtered(rows,u);return send(one?rows[0]||null:rows);}
+  if(rows){
+   if(table!=='b2b_business_settings')rows=filtered(rows,u);
+   if(table==='products'){
+    const selectedIds=u.searchParams.get('id');
+    if(selectedIds?.startsWith('in.(')&&selectedIds.endsWith(')')){const ids=selectedIds.slice(4,-1).split(',').map(id=>id.replace(/^"|"$/g,''));rows=rows.filter(row=>ids.includes(row.id));}
+    const selection=u.searchParams.get('select');
+    if(selection&&selection!=='*'){const keys=selection.split(',');rows=rows.map(row=>Object.fromEntries(keys.map(key=>[key,row[key]??null])));}
+   }
+   return send(one?rows[0]||null:rows);
+  }
  }
  unknown.push({path,method:req.method});return send({message:'Unhandled QA fixture endpoint'},501);
 });

@@ -57,3 +57,6 @@ next-env.d.ts
 .next-qa/
 playwright-report/
 test-results/
+
+# Generated catalogue samples
+/output/pdf/

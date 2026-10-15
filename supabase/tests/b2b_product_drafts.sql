@@ -8,12 +8,12 @@ BEGIN
  BEGIN PERFORM public.b2b_save_product_draft(bad,NULL,NULL,0,NULL,'{}','{}','QA forbidden');RAISE EXCEPTION 'inquiry role wrote draft';EXCEPTION WHEN insufficient_privilege THEN NULL;END;
  BEGIN PERFORM public.b2b_product_draft_validate('{"id":"spoofed"}','{}');RAISE EXCEPTION 'unknown field accepted';EXCEPTION WHEN invalid_parameter_value THEN NULL;END;
  BEGIN PERFORM public.b2b_product_draft_validate('{}','{"source_secret":"private"}');RAISE EXCEPTION 'unknown source accepted';EXCEPTION WHEN invalid_parameter_value THEN NULL;END;
- d:=public.b2b_save_product_draft(staff,NULL,NULL,0,NULL,'{"name":"QA incomplete only"}','{"specification":"QA private supplier specification"}','QA partial save');
- IF d.revision<>1 OR d.data<>'{"name":"QA incomplete only"}'::jsonb OR d.base_product IS NOT NULL OR d.base_hash IS NOT NULL THEN RAISE EXCEPTION 'private draft defaults fabricated';END IF;
+ d:=public.b2b_save_product_draft(staff,NULL,NULL,0,NULL,'{}','{"specification":"QA private supplier specification"}','QA partial save');
+ IF d.revision<>1 OR d.data<>'{}'::jsonb OR d.base_product IS NOT NULL OR d.base_hash IS NOT NULL THEN RAISE EXCEPTION 'private draft defaults fabricated';END IF;
  IF (SELECT count(*) FROM public.products)<>before_products THEN RAISE EXCEPTION 'private draft leaked to public products';END IF;
  BEGIN PERFORM public.b2b_publish_product_draft(staff,d.id,d.revision,'QA incomplete publish');RAISE EXCEPTION 'incomplete identity published';EXCEPTION WHEN invalid_parameter_value THEN NULL;END;
  BEGIN PERFORM public.b2b_save_product_draft(staff,d.id,NULL,0,NULL,'{"storage":"stale"}','{}','QA stale save');RAISE EXCEPTION 'stale revision wrote draft';EXCEPTION WHEN serialization_failure THEN NULL;END;
- d:=public.b2b_save_product_draft(staff,d.id,NULL,d.revision,NULL,jsonb_build_object('sku',sku,'collection','K-만두/냉동식품','category','만두 & 교자'),'{"label":"QA label not supplied yet"}','QA identity completed');
+ d:=public.b2b_save_product_draft(staff,d.id,NULL,d.revision,NULL,jsonb_build_object('name','QA incomplete only','sku',sku,'collection','K-만두/냉동식품','category','만두 & 교자'),'{"label":"QA label not supplied yet"}','QA identity completed');
  IF d.data->>'name'<>'QA incomplete only' OR d.source_notes->>'specification'<>'QA private supplier specification' THEN RAISE EXCEPTION 'sparse save lost earlier text';END IF;
  result:=public.b2b_publish_product_draft(staff,d.id,d.revision,'QA explicit catalogue publish');pid:=result->'product'->>'id';
  IF result->'draft'->>'status'<>'published' OR pid IS NULL THEN RAISE EXCEPTION 'publication missing';END IF;

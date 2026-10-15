@@ -38,3 +38,13 @@ test('comparison ignores ordering but keeps price version, quantity and unit',()
 test.each([['23505',409],['40001',409],['42501',403],['P0002',404],['22023',422],['unknown',503]])('DB %s mapped safely', (code,status)=>{
  try{orderError({code});throw Error('Expected failure');}catch(e){expect(e).toMatchObject({status});}
 });
+
+test('English-only catalogue identity produces a non-null server order snapshot without changing price approval',async()=>{
+ jest.mocked(supabaseAdmin.rpc).mockResolvedValueOnce({data:null,error:null} as never).mockResolvedValueOnce({data:oid,error:null} as never);
+ jest.mocked(quote).mockResolvedValue({lines:[orderDetail().items[0].snapshot]} as never);
+ jest.mocked(getProducts).mockResolvedValue([{id:'food',name:null,name_en:'English-only food',sku:'AUTO-QA',storage:null}] as never);
+ await submitOrder(session,orderInput);
+ expect(supabaseAdmin.rpc).toHaveBeenLastCalledWith('b2b_order_submit',expect.objectContaining({p_actor:uid,p_lines:[expect.objectContaining({name:'English-only food',sku:'AUTO-QA',storage:'',price_version_id:orderInput.expected_prices[0].price_version_id,total_minor:11000})]}));
+ expect(quote).toHaveBeenCalledWith(session,orderInput.items,'domestic');
+ expect(jest.mocked(supabaseAdmin.rpc).mock.calls.map(([name])=>name)).toEqual(['b2b_order_replay','b2b_order_submit']);
+});

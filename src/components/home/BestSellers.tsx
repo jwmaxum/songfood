@@ -7,6 +7,7 @@ import { ProductItem } from '@/lib/types';
 import { useCart } from '@/context/CartContext';
 import { ShoppingBag, Star, Award, ChevronRight } from 'lucide-react';
 import { PRODUCT_COLLECTIONS } from '@/lib/product-taxonomy';
+import { productName } from '@/lib/catalogue-taxonomy';
 
 interface BestSellersProps {
   products: ProductItem[];
@@ -27,7 +28,7 @@ export default function BestSellers({ products }: BestSellersProps) {
 
   const filteredProducts = activeCategory === '전체'
     ? bestSellerPool
-    : bestSellerPool.filter((p) => p.collection.toLowerCase() === activeCategory.toLowerCase());
+    : bestSellerPool.filter((p) => p.collection?.toLowerCase() === activeCategory.toLowerCase());
 
   return (
     <section className="py-20 bg-[#FAFAF8] border-b border-stone-200">
@@ -79,7 +80,7 @@ export default function BestSellers({ products }: BestSellersProps) {
               <div className="relative overflow-hidden aspect-square bg-stone-50">
                 <img
                   src={product.image_url}
-                  alt={product.name}
+                  alt={productName(product,'ko')}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -92,7 +93,7 @@ export default function BestSellers({ products }: BestSellersProps) {
                   </span>
                   <Link href={`/products/${product.id}`}>
                     <h3 className="font-jakarta text-sm font-bold text-stone-900 group-hover:text-[#14532D] transition-colors mt-1 line-clamp-2">
-                      {product.name}
+                      {productName(product,'ko')}
                     </h3>
                   </Link>
                 </div>

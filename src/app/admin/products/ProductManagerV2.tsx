@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { ProductItem } from '@/lib/types';
+import { MAX_CATALOGUE_PRODUCTS } from '@/lib/catalogue/types';
 import { PRODUCT_DRAFT_FIELDS, type ProductSourceNotes as SourceNotes, type ProductDraft as DraftRecord } from '@/lib/product-drafts/types';
-import { PRODUCT_TAXONOMY, categoriesForCollection, isValidProductCategory } from '@/lib/product-taxonomy';
+import { PRODUCT_TAXONOMY, categoriesForCollection } from '@/lib/product-taxonomy';
 
 type Editor = {
   saved: DraftRecord | null; productId: string | null; base: ProductItem | null;
@@ -13,6 +14,7 @@ type Editor = {
 };
 const notesBlank = (): SourceNotes => ({ specification: '', label: '', sales_terms: '' });
 const PLACEHOLDER = '/images/products/coming-soon.png';
+const productTitle = (product: ProductItem) => product.name || product.name_en || '이름 확인 필요';
 const inputClass = 'min-h-11 w-full min-w-0 rounded border border-stone-600 bg-stone-950 px-3 py-2 text-white outline-none focus:border-amber-300';
 const labelClass = 'block min-w-0 space-y-1 text-sm text-stone-200';
 const sourceLabels = { specification: '규격서 출처·확인 메모', label: '원본 라벨 출처·확인 메모', sales_terms: '판매조건 출처·확인 메모' } as const;
@@ -24,6 +26,11 @@ const fromRecord = (saved: DraftRecord): Editor => ({
 export default function ProductManagerV2() {
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [drafts, setDrafts] = useState<DraftRecord[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [pdfLanguage, setPdfLanguage] = useState<'ko' | 'en'>('ko');
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfFeedback, setPdfFeedback] = useState<{ text: string; error: boolean } | null>(null);
+  const pdfRequest = useRef<AbortController | null>(null);
   const [editor, setEditor] = useState<Editor | null>(null);
   const [search, setSearch] = useState(''), [message, setMessage] = useState(''), [editorMessage, setEditorMessage] = useState('');
   const [busy, setBusy] = useState(false), [loading, setLoading] = useState(true);
@@ -41,11 +48,15 @@ export default function ProductManagerV2() {
       const [productBody, draftBody] = await Promise.all([productResponse.json(), draftResponse.json()]);
       if (!productResponse.ok || !Array.isArray(productBody.data)) throw new Error('서버 상품 목록을 조회하지 못했습니다.');
       if (!draftResponse.ok || !Array.isArray(draftBody.drafts)) throw new Error(draftBody.error || '비공개 초안 목록을 조회하지 못했습니다.');
-      if (!signal?.aborted) { setProducts(productBody.data); setDrafts(draftBody.drafts); }
+      if (!signal?.aborted) {
+        setProducts(productBody.data); setDrafts(draftBody.drafts);
+        const currentIds = new Set(productBody.data.map((product: ProductItem) => product.id));
+        setSelectedIds(old => new Set([...old].filter(id => currentIds.has(id))));
+      }
     } catch (error) { if (!signal?.aborted) setMessage(error instanceof Error ? error.message : '목록 연결에 실패했습니다.'); }
     finally { if (!signal?.aborted) setLoading(false); }
   }
-  useEffect(() => { const controller = new AbortController(); void Promise.resolve().then(() => { if (!controller.signal.aborted) void load(controller.signal); }); return () => controller.abort(); }, []);
+  useEffect(() => { const controller = new AbortController(); void Promise.resolve().then(() => { if (!controller.signal.aborted) void load(controller.signal); }); return () => { controller.abort(); pdfRequest.current?.abort(); }; }, []);
   useEffect(() => {
     if (!editorOpen) return;
     const before = document.body.style.overflow; document.body.style.overflow = 'hidden';
@@ -63,13 +74,53 @@ export default function ProductManagerV2() {
     [p.name, p.name_en, p.sku, p.collection, p.category].filter(Boolean).join(' ').toLocaleLowerCase().includes(search.toLocaleLowerCase())
   ), [products, search]);
   const pendingDrafts = drafts.filter(item => item.status === 'draft');
+  const selectedProducts = products.filter(product => selectedIds.has(product.id));
+  const hiddenSelectionCount = selectedProducts.filter(product => !visible.some(item => item.id === product.id)).length;
+  const allSelected = products.length > 0 && selectedProducts.length === products.length;
   const value = (key: string): unknown => editor && Object.hasOwn(editor.data, key) ? editor.data[key] : editor?.base?.[key as keyof ProductItem];
   const asText = (key: string) => String(value(key) ?? '');
-  const missingIdentity = editor ? [
-    !asText('name').trim() ? '상품명' : '',
-    !asText('sku').trim() ? 'SKU' : '',
-    !isValidProductCategory(asText('collection'), asText('category')) ? '대분류·제품 종류' : '',
-  ].filter(Boolean) : [];
+  const missingIdentity = editor && !asText('name').trim() && !asText('name_en').trim() ? ['한국어 또는 영어 상품명'] : [];
+
+  function toggleSelected(id: string) {
+    setSelectedIds(old => { const next = new Set(old); if (next.has(id)) next.delete(id); else next.add(id); return next; });
+    setPdfFeedback(null);
+  }
+  async function downloadCatalogue() {
+    if (pdfBusy || busy || loading || !selectedProducts.length || selectedProducts.length > MAX_CATALOGUE_PRODUCTS) return;
+    const controller = new AbortController(); pdfRequest.current = controller;
+    const count = selectedProducts.length, language = pdfLanguage;
+    setPdfBusy(true); setPdfFeedback(null);
+    try {
+      const response = await fetch('/api/admin/catalogue/pdf', {
+        method: 'POST', credentials: 'same-origin', cache: 'no-store', signal: controller.signal,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_ids: selectedProducts.map(product => product.id), language }),
+      });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(response.status === 401 || response.status === 403
+          ? '관리자 인증이 만료되었거나 PDF 생성 권한이 없습니다. 다시 로그인해 주세요.'
+          : typeof body?.error === 'string' ? body.error : '카탈로그 PDF를 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      }
+      if (!body?.success || !body.catalogue) throw new Error('카탈로그 자료 응답 형식이 올바르지 않습니다. 다시 시도해 주세요.');
+      if (controller.signal.aborted) return;
+      const { createCataloguePdf } = await import('@/lib/catalogue/pdf-client');
+      const bytes = await createCataloguePdf(body.catalogue);
+      const blob = new Blob([new Uint8Array(bytes)], { type: 'application/pdf' });
+      if (!blob.size) throw new Error('생성된 PDF가 비어 있습니다. 다시 시도해 주세요.');
+      if (controller.signal.aborted) return;
+      const filename = typeof body.catalogue.filename === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]{0,150}\.pdf$/i.test(body.catalogue.filename) ? body.catalogue.filename : 'songfood-catalogue-' + language + '.pdf';
+      const url = URL.createObjectURL(blob), link = document.createElement('a');
+      link.href = url; link.download = filename; document.body.appendChild(link);
+      try { link.click(); } finally { link.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 1000); }
+      setPdfFeedback({ text: '선택한 ' + count + '개 상품의 PDF 다운로드를 시작했습니다.', error: false });
+    } catch (error) {
+      if (!controller.signal.aborted) setPdfFeedback({ text: error instanceof Error ? error.message : 'PDF 생성 중 연결 오류가 발생했습니다. 선택은 유지됩니다.', error: true });
+    } finally {
+      if (pdfRequest.current === controller) pdfRequest.current = null;
+      if (!controller.signal.aborted) setPdfBusy(false);
+    }
+  }
 
   function update(key: string, next: unknown) {
     setEditor(old => old ? { ...old, data: { ...old.data, [key]: next }, dirty: true } : old);
@@ -111,36 +162,50 @@ export default function ProductManagerV2() {
   async function save(publish = false, rebase = false) {
     if (!editor || busy || (editor.conflict && !rebase) || (rebase && (!comparison || !editor.saved || !editor.productId))) return;
     if (reason.trim().length < 3) { setEditorMessage('작성·변경 사유를 3글자 이상 적어 주세요.'); return; }
-    if (publish && (!editor.saved || editor.dirty || missingIdentity.length)) {
-      setEditorMessage('입력 내용을 먼저 임시저장하고 카탈로그 최소 항목을 확인해 주세요.'); return;
-    }
+    if (publish && missingIdentity.length) { setEditorMessage('한국어 또는 영어 상품명을 입력해 주세요.'); return; }
     setBusy(true); setEditorMessage('');
-    try {
-      const payload = publish ? { id: editor.saved!.id, revision: editor.saved!.revision, reason } : {
-        ...(editor.saved ? { id: editor.saved.id } : {}),
-        product_id: editor.productId, revision: editor.saved?.revision || 0, data: editor.data,
-        source_notes: editor.notes, reason, ...(rebase ? { rebase: true, base_hash: comparison!.base_hash } : editor.baseHash ? { base_hash: editor.baseHash } : {}),
-      };
-      const response = await fetch('/api/admin/product-drafts', {
-        method: publish ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-      });
+    let currentDraft = editor.saved, savedBeforePublish = false;
+    async function checked(response: Response) {
       const body = await response.json();
       if (response.status === 409) {
         setEditor(old => old ? { ...old, conflict: true } : old);
         throw new Error(body.error || '다른 직원의 변경 또는 원본 변경이 있습니다. 내 입력은 그대로 유지됩니다. 최신 자료를 다시 불러와 대조해 주세요.');
       }
       if (!response.ok || !body.success || !body.draft) throw new Error(body.error || '저장하지 못했습니다.');
-      if (publish && !body.product) throw new Error('반영 결과를 확인하지 못했습니다. 최신 저장 자료와 카탈로그를 다시 확인해 주세요.');
-      setDrafts(old => [body.draft, ...old.filter(item => item.id !== body.draft.id)]);
-      if (publish && body.product) {
-        setProducts(old => [body.product, ...old.filter(item => item.id !== body.product.id)]);
-        setEditor(null); setMessage('카탈로그에 반영했습니다. 가격 승인·표시 검수·국내/해외 출시 승인은 별도로 진행하세요.');
-        focusOpener();
-      } else {
-        setEditor(fromRecord(body.draft)); setComparison(null); setEditorMessage(rebase ? '최신 원본을 대조한 기준으로 비공개 초안을 다시 저장했습니다. 카탈로그는 변경하지 않았습니다.' : '비공개 초안을 DB에 임시저장했습니다. 나중에 계속 작성할 수 있습니다. 카탈로그는 변경하지 않았습니다.');
+      return body;
+    }
+    try {
+      if (!publish || !currentDraft || editor.dirty) {
+        const response = await fetch('/api/admin/product-drafts', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+            ...(editor.saved ? { id: editor.saved.id } : {}),
+            product_id: editor.productId, revision: editor.saved?.revision || 0, data: editor.data,
+            source_notes: editor.notes, reason, ...(rebase ? { rebase: true, base_hash: comparison!.base_hash } : editor.baseHash ? { base_hash: editor.baseHash } : {}),
+          }),
+        });
+        const body = await checked(response);
+        currentDraft = body.draft;
+        setDrafts(old => [body.draft, ...old.filter(item => item.id !== body.draft.id)]);
+        setEditor(fromRecord(body.draft)); setComparison(null);
+        if (!publish) {
+          setEditorMessage(rebase ? '최신 원본을 대조한 기준으로 비공개 초안을 다시 저장했습니다. 카탈로그는 변경하지 않았습니다.' : '비공개 초안을 DB에 임시저장했습니다. 나중에 계속 작성할 수 있습니다. 카탈로그는 변경하지 않았습니다.');
+          return;
+        }
+        savedBeforePublish = true;
       }
-    } catch (error) { setEditorMessage(error instanceof Error ? error.message : '서버 연결 오류로 저장하지 못했습니다. 입력은 유지됩니다.'); }
-    finally { setBusy(false); }
+      const response = await fetch('/api/admin/product-drafts', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: currentDraft!.id, revision: currentDraft!.revision, reason }),
+      });
+      const body = await checked(response);
+      if (!body.product) throw new Error('반영 결과를 확인하지 못했습니다. 최신 저장 자료와 카탈로그를 다시 확인해 주세요.');
+      setDrafts(old => [body.draft, ...old.filter(item => item.id !== body.draft.id)]);
+      setProducts(old => [body.product, ...old.filter(item => item.id !== body.product.id)]);
+      setEditor(null); setMessage('카탈로그에 반영했습니다. 가격 승인·표시 검수·국내/해외 출시 승인은 별도로 진행하세요.');
+      focusOpener();
+    } catch (error) {
+      setEditorMessage((savedBeforePublish ? '초안은 임시저장되었지만 카탈로그에 반영하지 못했습니다. ' : '') + (error instanceof Error ? error.message : '서버 연결 오류로 저장하지 못했습니다. 입력은 유지됩니다.'));
+    } finally { setBusy(false); }
   }
   async function compareOriginal() {
     if (!editor?.productId || busy) return;
@@ -169,12 +234,14 @@ export default function ProductManagerV2() {
     } else if (editor.base) { await edit(editor.base); }
   }
   async function remove(product: ProductItem) {
-    if (!window.confirm(product.name + ' 상품을 삭제하시겠습니까? 기존 거래 및 참조가 있으면 서버에서 제한될 수 있습니다.')) return;
+    if (!window.confirm(productTitle(product) + ' 상품을 삭제하시겠습니까? 기존 거래 및 참조가 있으면 서버에서 제한될 수 있습니다.')) return;
     setBusy(true); setMessage('');
     try {
       const response = await fetch('/api/products?id=' + encodeURIComponent(product.id), { method: 'DELETE' }), body = await response.json();
       if (!response.ok || !body.success) throw new Error(body.error || '상품을 삭제하지 못했습니다.');
-      setProducts(old => old.filter(item => item.id !== product.id)); setMessage('상품을 삭제했습니다.');
+      setProducts(old => old.filter(item => item.id !== product.id));
+      setSelectedIds(old => { const next = new Set(old); next.delete(product.id); return next; });
+      setMessage('상품을 삭제했습니다.');
     } catch (error) { setMessage(error instanceof Error ? error.message : '삭제 실패'); }
     finally { setBusy(false); }
   }
@@ -187,22 +254,37 @@ export default function ProductManagerV2() {
     <div className="mx-auto min-w-0 max-w-7xl space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div><Link href="/admin" className="inline-flex min-h-11 items-center text-sm text-amber-300">← 관리자 홈</Link><h1 className="text-2xl font-bold sm:text-3xl">제품 등록 · 수정</h1><p className="mt-2 text-sm text-stone-300">카탈로그 {products.length}개 · 비공개 작업 초안 {pendingDrafts.length}개</p></div>
-        <button ref={createButton} disabled={busy || loading} className="min-h-11 rounded bg-amber-300 px-5 py-2 font-bold text-stone-950 disabled:opacity-40" onClick={() => show({ saved: null, productId: null, base: null, baseHash: null, data: {}, notes: notesBlank(), dirty: false, conflict: false })}>+ 상품 초안 만들기</button>
+        <button ref={createButton} disabled={busy || loading || pdfBusy} className="min-h-11 rounded bg-amber-300 px-5 py-2 font-bold text-stone-950 disabled:opacity-40" onClick={() => show({ saved: null, productId: null, base: null, baseHash: null, data: {}, notes: notesBlank(), dirty: false, conflict: false })}>+ 상품 초안 만들기</button>
       </div>
       <p className="rounded border border-amber-900/50 bg-amber-950/30 p-4 text-sm leading-6 text-amber-100">확인한 항목부터 입력해 비공개 초안으로 저장하세요. 빈칸·미확정 값은 그대로 둘 수 있습니다. 카탈로그 반영과 판매 출시는 별도이며 실제 거래가격·입수·MOQ는 가격 관리에서 검수·승인합니다.</p>
       {message && <p role="status" className="rounded border border-stone-600 p-3 text-sm">{message}</p>}
-      <button disabled={busy || loading} onClick={() => { setMessage(''); setLoading(true); void load(); }} className="min-h-11 rounded border border-stone-600 px-4 text-sm">{loading ? '목록 불러오는 중…' : '목록 새로고침'}</button>
+      <button disabled={busy || loading || pdfBusy} onClick={() => { setMessage(''); setLoading(true); void load(); }} className="min-h-11 rounded border border-stone-600 px-4 text-sm">{loading ? '목록 불러오는 중…' : '목록 새로고침'}</button>
       <section aria-labelledby="product-drafts-title" className="space-y-3 rounded-xl border border-stone-700 p-4">
         <h2 id="product-drafts-title" className="text-lg font-bold">비공개 작업 초안</h2><p className="text-sm text-stone-300">규격서·라벨·판매조건의 출처 메모는 담당 직원만 볼 수 있습니다. 미반영 초안은 고객 검색·상품 API에 노출되지 않습니다.</p>
         {!pendingDrafts.length && <p className="text-sm text-stone-400">저장된 작업 초안이 없습니다.</p>}
         <ul className="grid gap-3 md:grid-cols-2">{pendingDrafts.map(item => <li key={item.id} className="min-w-0 space-y-2 rounded border border-stone-600 p-3">
-          <p className="break-words font-semibold">{String(item.data.name || item.base_product?.name || '이름 미입력 초안')}</p>
+          <p className="break-words font-semibold">{String(item.data.name || item.data.name_en || item.base_product?.name || item.base_product?.name_en || '이름 미입력 초안')}</p>
           <p className="text-xs text-amber-200">검수 전 · 비공개 · {item.product_id ? '기존 상품 수정' : '신규 상품'} · 저장 버전 {item.revision}</p>
-          <button disabled={busy} onClick={() => void resume(item.id)} className="min-h-11 rounded border border-amber-400 px-4 text-sm text-amber-200">계속 작성</button>
+          <button disabled={busy || pdfBusy} onClick={() => void resume(item.id)} className="min-h-11 rounded border border-amber-400 px-4 text-sm text-amber-200">계속 작성</button>
         </li>)}</ul>
       </section>
       <label className={labelClass} htmlFor="product-list-search">카탈로그 상품 검색<input id="product-list-search" className={inputClass} placeholder="상품명, SKU, 대분류, 제품 종류" value={search} onChange={event => setSearch(event.target.value)} /></label>
-      <div className="max-w-full overflow-x-auto rounded border border-stone-700"><table className="w-full min-w-[750px] text-left text-sm"><caption className="sr-only">현재 카탈로그 상품과 수정 메뉴</caption><thead className="bg-stone-900 text-stone-200"><tr><th scope="col" className="p-3">제품</th><th scope="col" className="p-3">대분류</th><th scope="col" className="p-3">제품 종류</th><th scope="col" className="p-3">SKU</th><th scope="col" className="p-3">관리</th></tr></thead><tbody>{visible.map(product => <tr key={product.id} className="border-t border-stone-700"><td className="p-3">{product.name}</td><td className="p-3">{product.collection}</td><td className="p-3">{product.category}</td><td className="p-3 font-mono text-xs">{product.sku}</td><td className="whitespace-nowrap p-3"><button disabled={busy} onClick={() => void edit(product)} className="mr-3 min-h-11 text-amber-300" aria-label={product.name + ' 수정'}>수정 초안</button><Link className="mr-3 inline-flex min-h-11 items-center text-emerald-300" href={'/admin/pricing?sku=' + encodeURIComponent(product.sku || '')}>가격·최소구매</Link><button className="min-h-11 text-red-300" disabled={busy} onClick={() => void remove(product)} aria-label={product.name + ' 삭제'}>삭제</button></td></tr>)}</tbody></table></div>
+      <section aria-labelledby="catalogue-pdf-title" aria-busy={pdfBusy} className="space-y-3 rounded-xl border border-stone-600 p-4">
+        <h2 id="catalogue-pdf-title" className="text-lg font-bold">카탈로그 PDF</h2>
+        <p className="text-sm leading-6 text-stone-300">등록된 상품을 선택해 파일로 저장합니다. 전체 선택은 검색과 관계없이 등록 상품 전체 {products.length}개에 적용됩니다. 비공개 작업 초안은 제외됩니다.</p>
+        <p className="text-sm text-stone-200">선택 {selectedProducts.length}개 / 등록 {products.length}개 · 검색 결과 {visible.length}개{hiddenSelectionCount > 0 ? ' · 검색 밖 선택 ' + hiddenSelectionCount + '개' : ''}</p>
+        <div className="flex flex-wrap items-end gap-3">
+          <button disabled={busy || loading || pdfBusy || !products.length || allSelected} className="min-h-11 rounded border border-stone-500 px-4 text-sm disabled:opacity-40" onClick={() => { setSelectedIds(new Set(products.map(product => product.id))); setPdfFeedback(null); }}>등록 상품 전체 {products.length}개 선택</button>
+          <button disabled={pdfBusy || !selectedProducts.length} className="min-h-11 rounded border border-stone-500 px-4 text-sm disabled:opacity-40" onClick={() => { setSelectedIds(new Set()); setPdfFeedback(null); }}>선택 해제</button>
+          <label className={labelClass} htmlFor="catalogue-pdf-language">PDF 언어 / Language<select id="catalogue-pdf-language" disabled={pdfBusy} value={pdfLanguage} onChange={event => { setPdfLanguage(event.target.value as 'ko' | 'en'); setPdfFeedback(null); }} className={inputClass}><option value="ko">한국어</option><option value="en">English</option></select></label>
+          <button disabled={busy || loading || pdfBusy || !selectedProducts.length || selectedProducts.length > MAX_CATALOGUE_PRODUCTS} onClick={() => void downloadCatalogue()} className="min-h-11 rounded bg-amber-300 px-4 py-2 font-bold text-stone-950 disabled:opacity-40">{pdfBusy ? 'PDF 생성 중…' : '선택 상품 PDF 다운로드'}</button>
+        </div>
+        <p className="text-xs leading-6 text-stone-300">한 번에 최대 500개 상품의 기본정보를 포함합니다. 가격·내부 출처 메모는 제외되며 견적서·Proforma Invoice가 아닙니다. 등록 정보가 미확정인 항목은 확인이 필요합니다.</p>
+        {selectedProducts.length > MAX_CATALOGUE_PRODUCTS && <p role="status" className="text-sm text-amber-200">한 번에 최대 500개까지 생성할 수 있습니다. 일부 선택을 해제한 뒤 나누어 다운로드하세요.</p>}
+        {pdfBusy && <p role="status" className="text-sm text-amber-200">PDF를 생성하고 있습니다. 잠시 기다려 주세요.</p>}
+        {pdfFeedback && <p role={pdfFeedback.error ? 'alert' : 'status'} className="break-words rounded border border-stone-600 p-3 text-sm">{pdfFeedback.text}</p>}
+      </section>
+      <div className="max-w-full overflow-x-auto rounded border border-stone-700"><table className="w-full min-w-[750px] text-left text-sm"><caption className="sr-only">현재 카탈로그 상품과 PDF 선택·수정 메뉴</caption><thead className="bg-stone-900 text-stone-200"><tr><th scope="col" className="p-3">PDF 선택</th><th scope="col" className="p-3">제품</th><th scope="col" className="p-3">대분류</th><th scope="col" className="p-3">제품 종류</th><th scope="col" className="p-3">SKU</th><th scope="col" className="p-3">관리</th></tr></thead><tbody>{visible.map(product => <tr key={product.id} className="border-t border-stone-700"><td className="p-3"><label className="inline-flex min-h-11 min-w-11 items-center justify-center"><input type="checkbox" className="h-5 w-5 accent-amber-300" checked={selectedIds.has(product.id)} disabled={busy || loading || pdfBusy} onChange={() => toggleSelected(product.id)} /><span className="sr-only">{productTitle(product)} PDF 선택</span></label></td><td className="p-3">{productTitle(product)}</td><td className="p-3">{product.collection}</td><td className="p-3">{product.category}</td><td className="p-3 font-mono text-xs">{product.sku}</td><td className="whitespace-nowrap p-3"><button disabled={busy || pdfBusy} onClick={() => void edit(product)} className="mr-3 min-h-11 text-amber-300" aria-label={productTitle(product) + ' 수정'}>수정 초안</button><Link className="mr-3 inline-flex min-h-11 items-center text-emerald-300" href={'/admin/pricing?sku=' + encodeURIComponent(product.sku || '')}>가격·최소구매</Link><button className="min-h-11 text-red-300" disabled={busy || pdfBusy} onClick={() => void remove(product)} aria-label={productTitle(product) + ' 삭제'}>삭제</button></td></tr>)}</tbody></table></div>
       <Link href="/admin/releases" className="inline-flex min-h-11 items-center text-sm text-emerald-300 underline">국내·해외 상품 출시 검수</Link>
     </div>
     {editor && <div className="fixed inset-0 z-50 overflow-y-auto bg-black/85 p-3 sm:p-4" onKeyDown={event => {
@@ -231,6 +313,7 @@ export default function ProductManagerV2() {
             <label className={labelClass} htmlFor="product-collection">대분류<select id="product-collection" className={inputClass} value={asText('collection')} onChange={event => { update('collection', event.target.value); update('category', ''); }}><option value="">아직 선택하지 않음</option>{PRODUCT_TAXONOMY.map(group => <option key={group.collection}>{group.collection}</option>)}</select></label>
             <label className={labelClass} htmlFor="product-category">제품 종류<select id="product-category" className={inputClass} value={asText('category')} onChange={event => update('category', event.target.value)}><option value="">아직 선택하지 않음</option>{categoriesForCollection(asText('collection')).map(category => <option key={category}>{category}</option>)}</select></label>
             {textField('sku', 'SKU', 100)}{textField('name', '상품명 (한국어)', 200)}{textField('name_en', '상품명 (영어)', 200)}{textField('format', '판매 규격')}
+            <p className="text-xs leading-6 text-stone-300 md:col-span-2">카탈로그에는 한국어 또는 영어 상품명 하나만으로 반영할 수 있습니다. SKU가 비어 있으면 서버가 내부 코드를 부여하며, 미확정 분류·규격은 빈칸으로 둘 수 있습니다. 입력하지 않은 번역이나 상품정보를 만들지 않습니다.</p>
           </div></section>
           <section><h3 className="mb-3 border-b border-stone-600 pb-2 font-semibold">2. 상품 · 표시 정보</h3><div className="grid gap-3 md:grid-cols-2">
             {textField('brand', '브랜드')}{textField('manufacturer', '제조사')}{textField('country_of_origin', '원산지')}{textField('net_weight', '내용량')}{textField('shelf_life', '소비기한/유통기한')}{textField('storage', '보관 방법')}{textField('ingredients', '원재료 및 함량', 6000)}{textField('allergens', '알레르기 유발물질', 3000)}
@@ -249,9 +332,9 @@ export default function ProductManagerV2() {
           <label className={labelClass} htmlFor="product-reason">작성·변경 사유<input id="product-reason" className={inputClass} maxLength={1000} value={reason} onChange={event => setReason(event.target.value)} /><span className="block text-xs text-stone-300">저장·반영 이력에 남기는 사유입니다. 상품 필수정보를 대신하지 않습니다.</span></label>
         </fieldset>
         <section className="mt-6 space-y-3 border-t border-stone-600 pt-4">
-          <p className="text-sm text-stone-200">{missingIdentity.length ? '카탈로그 반영 전 입력할 최소 항목: ' + missingIdentity.join(', ') + '. 임시저장은 가능합니다.' : '카탈로그 최소 식별정보가 입력되었습니다. 표시·가격·판매 출시 검수는 별도로 필요합니다.'}</p>
-          <div className="flex flex-wrap justify-end gap-3"><button disabled={busy} className="min-h-11 rounded border border-stone-500 px-4 text-sm" onClick={close}>닫기</button><button disabled={busy || editor.conflict} className="min-h-11 rounded bg-amber-300 px-4 font-bold text-stone-950 disabled:opacity-40" onClick={() => void save(false)}>{busy ? '처리 중…' : '비공개 임시저장'}</button><button disabled={busy || editor.conflict || !editor.saved || editor.dirty || !!missingIdentity.length} className="min-h-11 rounded border border-emerald-400 px-4 font-bold text-emerald-200 disabled:opacity-40" onClick={() => void save(true)}>카탈로그에 반영</button></div>
-          <p className="text-xs leading-6 text-stone-300">카탈로그에 반영하면 상품 기본자료가 고객에게 보일 수 있습니다. 비공개 출처 메모는 제외됩니다. 이 작업은 가격 승인·판매 출시 승인이나 인증·수출 적합성 확인이 아닙니다.</p>
+          <p className="text-sm text-stone-200">{missingIdentity.length ? '카탈로그 반영 전 입력할 최소 항목: ' + missingIdentity.join(', ') + '. 임시저장은 가능합니다.' : '상품명이 입력되었습니다. SKU·분류·규격은 나중에 보완할 수 있으며, 표시·가격·판매 출시 검수는 별도로 필요합니다.'}</p>
+          <div className="flex flex-wrap justify-end gap-3"><button disabled={busy} className="min-h-11 rounded border border-stone-500 px-4 text-sm" onClick={close}>닫기</button><button disabled={busy || editor.conflict} className="min-h-11 rounded bg-amber-300 px-4 font-bold text-stone-950 disabled:opacity-40" onClick={() => void save(false)}>{busy ? '처리 중…' : '비공개 임시저장'}</button><button disabled={busy || editor.conflict || !!missingIdentity.length} className="min-h-11 rounded border border-emerald-400 px-4 font-bold text-emerald-200 disabled:opacity-40" onClick={() => void save(true)}>카탈로그에 반영</button></div>
+          <p className="text-xs leading-6 text-stone-300">카탈로그에 반영하면 입력 내용을 먼저 비공개 초안으로 저장한 뒤 상품 기본자료를 고객에게 반영합니다. 이미 저장된 내용은 바로 반영합니다. 비공개 출처 메모는 제외됩니다. 이 작업은 가격 승인·판매 출시 승인이나 인증·수출 적합성 확인이 아닙니다.</p>
         </section>
       </div>
     </div>}

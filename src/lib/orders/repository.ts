@@ -37,7 +37,7 @@ export async function submitOrder(session:CustomerSession,input:OrderInput){
  if(priceSignature(preview.lines)!==priceSignature(input.expected_prices))throw new ApiError(409,'상품 가격이 변경되었습니다. 구매함에서 최신 가격을 확인한 뒤 다시 주문해 주세요.');
  const lines:OrderLine[]=preview.lines.map(l=>{const product=products.find(p=>p.id===l.product_id);
  if(!product)throw new ApiError(422,'판매 중인 상품을 다시 확인해 주세요.');
- return {...l,name:product.name,sku:product.sku||'',storage:product.storage||''};});
+ return {...l,name:product.name||product.name_en||'상품명 확인 필요',sku:product.sku||'',storage:product.storage||''};});
  const company=session.company?.status==='approved'&&session.membership?.status==='active'?session.company:null;
  const result=await supabaseAdmin.rpc('b2b_order_submit',{p_actor:session.user.id,p_company:company?.id||null,p_key:input.request_key,p_hash:hash,
  p_delivery:input.delivery,p_evidence:input.evidence_request,p_lines:lines});

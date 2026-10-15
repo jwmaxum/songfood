@@ -7,7 +7,7 @@ let previous:string|null=null,snapshot:ProductItem[]=empty;
 function read(){
  try{const raw=localStorage.getItem(key);if(raw===previous)return snapshot;previous=raw;
  const parsed=raw&&raw.length<1_000_000?JSON.parse(raw):[];
- snapshot=Array.isArray(parsed)?parsed.filter(p=>p&&typeof p.id==='string'&&typeof p.name==='string').slice(0,200).map(publicProduct):empty;
+ snapshot=Array.isArray(parsed)?parsed.filter(p=>p&&typeof p.id==='string'&&(p.name==null||typeof p.name==='string')&&(p.name_en==null||typeof p.name_en==='string')&&((typeof p.name==='string'&&p.name.trim())||(typeof p.name_en==='string'&&p.name_en.trim()))).slice(0,200).map(publicProduct):empty;
  }catch{snapshot=empty;}return snapshot;
 }
 function subscribe(notify:()=>void){window.addEventListener('storage',notify);window.addEventListener('songfood-wishlist',notify);return()=>{window.removeEventListener('storage',notify);window.removeEventListener('songfood-wishlist',notify);};}

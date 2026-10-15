@@ -1,4 +1,3 @@
-import type {ProductItem} from './types';
 import {PRODUCT_TAXONOMY} from './product-taxonomy';
 
 type Locale='ko'|'en';
@@ -27,14 +26,17 @@ const categoryLabels:Record<string,string>={
  '전통 음료':'Traditional Drinks','전통차':'Traditional Teas',
 };
 export const CATALOGUE_TAXONOMY=PRODUCT_TAXONOMY;
-export function collectionLabel(value:string,locale:Locale):string {
+export function collectionLabel(value:string|null|undefined,locale:Locale):string {
+ if(!value?.trim())return locale==='en'?'Unclassified':'미분류';
  return collectionLabels[value]?.[locale==='en'?1:0]??value;
 }
-export function categoryLabel(value:string,locale:Locale):string {
+export function categoryLabel(value:string|null|undefined,locale:Locale):string {
+ if(!value?.trim())return locale==='en'?'Unclassified':'미분류';
  return locale==='en'?(categoryLabels[value]??value):value;
 }
-export function productName(product:Pick<ProductItem,'name'|'name_en'>,locale:Locale):string {
- return locale==='en'?(product.name_en?.trim()||product.name):product.name;
+export function productName(product:{name?:string|null;name_en?:string|null},locale:Locale):string {
+ const ko=product.name?.trim(),en=product.name_en?.trim();
+ return (locale==='en'?(en||ko):(ko||en))||(locale==='en'?'Unnamed product':'상품명 미입력');
 }
 export function brandKey(value:string):string {
  const key=value.normalize('NFC').trim().toLocaleLowerCase().replace(/\s+/g,' ');

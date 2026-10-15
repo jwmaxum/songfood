@@ -1,5 +1,6 @@
 'use client';
 import Feedback from '@/components/storefront/Feedback';
+import {productName} from '@/lib/catalogue-taxonomy';
 
 import Link from 'next/link';
 import {useState} from 'react';
@@ -29,7 +30,7 @@ export default function Checkout(){
  }
  return <><p className="text-sm text-green-800">DOMESTIC ORDER</p><h1 className="mt-2 text-3xl font-bold">국내 주문 접수</h1>
  <p className="mt-4 leading-7 text-stone-600">접수 → 공급·배송비 확인 → 최종 금액 확인 → 계좌입금 → 출고 순서로 진행합니다. 지금은 입금하지 마세요. 개인회원도 같은 방식으로 주문할 수 있습니다.</p>
- <section className="my-8 rounded-xl bg-stone-100 p-5"><h2 className="text-xl font-bold">주문 상품</h2>{cart.cartItems.map(i=><p key={i.product.id+cartUnit(i)} className="mt-3">{i.product.name} · {i.quantity} {cartUnit(i)}</p>)}
+ <section className="my-8 rounded-xl bg-stone-100 p-5"><h2 className="text-xl font-bold">주문 상품</h2>{cart.cartItems.map(i=><p key={i.product.id+cartUnit(i)} className="mt-3">{productName(i.product,'ko')} · {i.quantity} {cartUnit(i)}</p>)}
  {cart.preview&&<div className="mt-5 border-t pt-4"><p>공급가액 {formatMoney(cart.preview.net_minor,'KRW')} + VAT {formatMoney(cart.preview.tax_minor,'KRW')}</p><p className="mt-2 font-bold">상품 합계 {formatMoney(cart.preview.total_minor,'KRW')}</p></div>}<p className="mt-3 text-sm">배송비 미확정 · 과세/면세와 포장 입수는 상품별 검수 가격을 적용합니다.</p>
  {(cart.loading||cart.error)&&<Feedback  className="mt-3 text-amber-800">{cart.error||'현재 가격을 확인하고 있습니다…'}</Feedback>}<Link href="/cart" className="mt-4 inline-block underline">수량·가격 다시 확인</Link></section>
  <form onSubmit={submit} className="space-y-6"><fieldset disabled={busy} className="grid gap-5 sm:grid-cols-2"><legend className="mb-4 text-xl font-bold">배송 정보</legend>

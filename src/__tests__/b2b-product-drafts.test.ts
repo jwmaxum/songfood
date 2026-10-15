@@ -72,3 +72,23 @@ test('legacy direct save cannot bypass draft publication and auditing',async()=>
  expect(response.status).toBe(410);expect(await response.json()).toMatchObject({draft_endpoint:'/api/admin/product-drafts'});expect(requireStaff).toHaveBeenCalledWith(expect.anything(),['admin','product_staff']);expect(supabaseAdmin.rpc).not.toHaveBeenCalled();
 });
 test('non-finite typed values cannot become numeric product data',()=>{for(const value of [NaN,Infinity,-Infinity])expect(()=>parseDraftData({price:value})).toThrow();});
+
+test('English-only and unclassified draft input reaches the guarded save without invented values',async()=>{
+ const data={name:null,name_en:'English-only product',sku:'',collection:null,category:null};
+ const response=await POST(request({...body,data}));expect(response.status).toBe(200);
+ expect(supabaseAdmin.rpc).toHaveBeenCalledWith('b2b_save_product_draft',expect.objectContaining({p_data:data}));
+ expect(jest.mocked(supabaseAdmin.rpc).mock.calls.some(([name])=>name==='b2b_publish_product_draft')).toBe(false);
+});
+test('publication returns only server-assigned identity while preserving missing facts and approvals',async()=>{
+ const product={id:'prod-qa-generated',name:null,name_en:'English-only product',sku:'AUTO-'+id,collection:null,category:null};
+ jest.mocked(supabaseAdmin.rpc).mockImplementation((name:string)=>Promise.resolve({data:name==='b2b_consume_rate_limit'?true:{draft:{...draft,status:'published'},product},error:null}) as never);
+ const response=await PUT(request({id,revision:1,reason:'실제 입력한 이름으로 카탈로그 반영'},'PUT'));
+ expect(response.status).toBe(200);expect((await response.json()).product).toEqual(product);
+ expect(supabaseAdmin.rpc).toHaveBeenCalledWith('b2b_publish_product_draft',{p_actor:actor.id,p_id:id,p_revision:1,p_reason:'실제 입력한 이름으로 카탈로그 반영'});
+ expect(jest.mocked(supabaseAdmin.rpc).mock.calls.map(([name])=>name)).toEqual(['b2b_consume_rate_limit','b2b_publish_product_draft']);
+});
+test('server validation failures explain one-name minimum without exposing database detail',async()=>{
+ jest.mocked(supabaseAdmin.rpc).mockImplementation((name:string)=>Promise.resolve(name==='b2b_consume_rate_limit'?{data:true,error:null}:{data:null,error:{code:'22023',message:'PRIVATE SQL DETAIL'}}) as never);
+ const response=await PUT(request({id,revision:1,reason:'카탈로그 반영 확인'},'PUT'));expect(response.status).toBe(400);
+ const json=JSON.stringify(await response.json());expect(json).toContain('한국어 또는 영어 상품명');expect(json).toContain('SKU와 분류는 비워 둘 수 있습니다');expect(json).not.toContain('PRIVATE SQL DETAIL');
+});

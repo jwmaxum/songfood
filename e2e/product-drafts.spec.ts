@@ -30,7 +30,7 @@ test('private name-only product template persists, resumes and stays outside the
   await dialog.getByRole('button', { name: '비공개 임시저장', exact: true }).click();
   await expect(dialog).toContainText('비공개 초안을 DB에 임시저장했습니다.');
   await expect(dialog.getByRole('status')).toBeFocused();
-  await expect(dialog.getByRole('button', { name: '카탈로그에 반영', exact: true })).toBeDisabled();
+  await expect(dialog.getByRole('button', { name: '카탈로그에 반영', exact: true })).toBeEnabled();
   const publicBody = await (await request.get('/api/products')).json();
   expect(publicBody.data).toHaveLength(30);
   expect(JSON.stringify(publicBody)).not.toContain('QA PRIVATE SPECIFICATION SOURCE');
@@ -46,28 +46,25 @@ test('private name-only product template persists, resumes and stays outside the
   expect((await request.get('/api/admin/product-drafts')).status()).toBe(403);
 });
 
-test('identity-only catalogue publish needs no fabricated price or storage and preserves sale approval gates', async ({ page, context, request }) => {
+test('English name-only catalogue publish saves first and uses a server SKU without fabricated metadata', async ({ page, context, request }) => {
   await signIn(context);
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
   await page.goto('/admin/products'); await page.getByRole('button', { name: '+ 상품 초안 만들기', exact: true }).click();
   const dialog = page.getByRole('dialog');
-  await dialog.getByRole('textbox', { name: '상품명 (한국어)', exact: true }).fill('QA 신규 식별 상품');
-  await dialog.getByRole('textbox', { name: 'SKU', exact: true }).fill('QA-DRAFT-IDENTITY');
-  await dialog.getByRole('combobox', { name: '대분류', exact: true }).selectOption('K-만두/냉동식품');
-  await dialog.getByRole('combobox', { name: '제품 종류', exact: true }).selectOption('만두 & 교자');
+  await dialog.getByRole('textbox', { name: '상품명 (영어)', exact: true }).fill('QA actual named product');
   await dialog.getByRole('textbox', { name: '원본 라벨 출처·확인 메모', exact: true }).fill('QA PRIVATE LABEL SOURCE');
-  await dialog.getByRole('button', { name: '비공개 임시저장', exact: true }).click();
-  await expect(dialog).toContainText('비공개 초안을 DB에 임시저장했습니다.');
+  await expect(dialog.getByRole('button', { name: '카탈로그에 반영', exact: true })).toBeEnabled();
   await dialog.getByRole('button', { name: '카탈로그에 반영', exact: true }).click();
   await expect(dialog).toHaveCount(0); await expect(page.getByRole('main')).toContainText('카탈로그에 반영했습니다.');
-  const body = await (await request.get('/api/products')).json(), item = body.data.find((p: { sku: string }) => p.sku === 'QA-DRAFT-IDENTITY');
-  expect(item).toBeTruthy(); expect(item.storage == null || item.storage === '').toBe(true);
+  const body = await (await request.get('/api/products')).json(), item = body.data.find((p: { name_en: string }) => p.name_en === 'QA actual named product');
+  expect(item).toBeTruthy(); expect(item.sku).toMatch(/^AUTO-/); expect(item.storage == null || item.storage === '').toBe(true);
+  expect(item.collection == null || item.collection === '').toBe(true); expect(item.category == null || item.category === '').toBe(true);
   expect(item).not.toHaveProperty('price'); expect(item).not.toHaveProperty('source_notes'); expect(item).not.toHaveProperty('base_product');
   expect(JSON.stringify(body)).not.toContain('QA PRIVATE LABEL SOURCE');
   await page.goto('/products/' + encodeURIComponent(item.id) + '?lang=ko');
-  await expect(page.getByRole('main').getByRole('heading', { level: 1 })).toHaveText('QA 신규 식별 상품');
+  await expect(page.getByRole('main').getByRole('heading', { level: 1 })).toHaveText('QA actual named product');
   await expect(page.getByRole('main')).toContainText('확인 필요');
-  await page.goto('/shop?q=' + encodeURIComponent('QA 신규 식별 상품') + '&storage=unknown&lang=ko');
+  await page.goto('/shop?q=' + encodeURIComponent('QA actual named product') + '&storage=unknown&lang=ko');
   await expect(page.getByRole('main').getByRole('article')).toHaveCount(1);
   await expect(page.getByRole('main').getByRole('article')).toContainText('규격 확인 필요');
   expect(errors).toEqual([]);
