@@ -133,7 +133,7 @@ export default function CollectionShowcaseClient({initialProducts}:{initialProdu
       <select id="catalogue-sort" value={search.get('sort')||'relevance'} onChange={e=>navigate({sort:e.target.value,page:'1'})} className="min-h-11 max-w-40 rounded-lg border border-stone-400 bg-white px-2 text-sm">
        <option value="relevance">{text('기본·관련도','Relevance')}</option><option value="name">{text('상품명 오름차순','Name A–Z')}</option><option value="name-desc">{text('상품명 내림차순','Name Z–A')}</option><option value="sku">SKU</option><option value="featured">{text('관리자 추천','Featured')}</option>
       </select>
-      <button aria-pressed={!list} onClick={()=>navigate({view:'grid'})} className="min-h-11 rounded-lg border px-3 text-sm">{ui('그리드')}</button><button aria-pressed={list} onClick={()=>navigate({view:'list'})} className="min-h-11 rounded-lg border px-3 text-sm">{ui('목록')}</button>
+      <button aria-pressed={list} onClick={()=>navigate({view:'list'})} className="min-h-11 rounded-lg border px-3 text-sm">{ui('목록')}</button><button aria-pressed={!list} onClick={()=>navigate({view:'grid'})} className="min-h-11 rounded-lg border px-3 text-sm">{ui('카드')}</button>
      </div>
     </div>
     {!paged.total?<section className="rounded-xl border border-dashed p-6 text-center">
@@ -141,7 +141,7 @@ export default function CollectionShowcaseClient({initialProducts}:{initialProdu
      <div className="mt-3 flex flex-wrap justify-center gap-3"><button onClick={()=>navigate(clear)} className="min-h-11 text-sm text-green-800 underline">{ui('필터 초기화')}</button>
      {filters.collection&&<Link href={catalogueHref(search,{q:'',category:'',brand:'',storage:'',market:'',minimum:'',maxMinimum:'',cat:'',page:'1'})} className="min-h-11 py-3 text-sm text-green-800 underline">{text('현재 대분류 보기','Browse this category')}</Link>}
      <Link href={exportMode?'/rfq':'/wholesale'} className="min-h-11 py-3 text-sm text-green-800 underline">{exportMode?text('해외 상품 문의 · RFQ','Ask about export products · RFQ'):ui('상품 문의')}</Link></div>
-    </section>:<div aria-busy={pending} className={list?'space-y-3':'grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6'}>
+    </section>:<div aria-busy={pending} className={list?'space-y-3':'space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 sm:gap-4'}>
      {paged.items.map(p=>{
       const discountPct = p.deal_discount_percent || (p.original_price && p.price && p.original_price > p.price ? Math.round((1 - p.price / p.original_price) * 100) : 0);
       const couponPrice = p.price ? Math.round((p.price * 0.9) / 10) * 10 : null;
@@ -152,111 +152,122 @@ export default function CollectionShowcaseClient({initialProducts}:{initialProdu
         </Link>
         <div className="min-w-0">
          <div className="mb-1">
-          {exportMode ? <span className="inline-block rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">{text('수출용', 'Export')}</span> : <span className="inline-block rounded bg-[#e8f7ee] px-1.5 py-0.5 text-[10px] font-semibold text-[#16a34a]">{text('직배송', 'Direct Delivery')}</span>}
+          {exportMode ? <span className="inline-block rounded border border-amber-300 bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900">{text('수출용', 'Export')}</span> : <span className="inline-block rounded border border-emerald-300 bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-900">{text('직배송', 'Direct Delivery')}</span>}
          </div>
-         <p className="break-all text-xs text-stone-500">{p.sku||ui('SKU 확인 필요')} · {brandLabel(p.brand||'',language)||categoryLabel(p.category||'',language)}</p>
+         <p className="break-all text-xs text-stone-700">{p.sku||ui('SKU 확인 필요')} · {brandLabel(p.brand||'',language)||categoryLabel(p.category||'',language)}</p>
          <Link href={detailHref(p.id)} onClick={event=>{if(event.button===0&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey&&!event.altKey)remember(p.id);}} className="mt-1 block break-words text-base font-bold leading-6 hover:text-green-800">{productName(p,language)}</Link>
-         <p className="mt-2 text-sm text-stone-600">{p.net_weight||p.format||text('규격 확인 필요','Specification to confirm')} · {p.storage||ui('보관조건 확인 필요')}</p>
-         <Link href={catalogueHref(search,{collection:p.collection,category:p.category||'',page:'1'})} className="mt-1 inline-flex min-h-11 items-center text-xs text-green-800 underline">{categoryLabel(p.category||p.collection,language)}</Link>
+         <p className="mt-2 text-sm text-stone-700">{p.net_weight||p.format||text('규격 확인 필요','Specification to confirm')} · {p.storage||ui('보관조건 확인 필요')}</p>
+         <Link href={catalogueHref(search,{collection:p.collection,category:p.category||'',page:'1'})} className="mt-1 inline-flex min-h-11 items-center text-xs text-green-900 underline">{categoryLabel(p.category||p.collection,language)}</Link>
         </div>
         <div className="col-span-2 min-w-0 border-t border-stone-100 pt-2 xl:col-span-1 xl:border-t-0 xl:pt-0">
-         {exportMode?<div className="space-y-1 text-xs leading-5"><p className="font-semibold">{text('해외 카톤 견적','Export carton quotation')}</p><p>{text('VAT 제외 FOB 조건은 RFQ에서 확인합니다.','Review VAT-excluded FOB terms in your RFQ.')}</p></div>:<ProductPrice product={p}/>}
+         {exportMode?<div className="space-y-1 text-xs leading-5 text-stone-700"><p className="font-semibold text-stone-900">{text('해외 카톤 견적','Export carton quotation')}</p><p>{text('VAT 제외 FOB 조건은 RFQ에서 확인합니다.','Review VAT-excluded FOB terms in your RFQ.')}</p></div>:<ProductPrice product={p}/>}
          <QuickOrder key={String(exportMode)} product={p} exportMode={exportMode}/>
         </div>
        </article>;
       }
-      return <article key={p.id} id={productAnchor(p.id)} tabIndex={-1} className="group relative flex flex-col justify-between rounded-xl border border-stone-200 bg-white p-2.5 sm:p-3 shadow-sm hover:border-stone-300 hover:shadow-md transition-all outline-green-700">
-       <div className="min-w-0">
-        <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-[#f8f9fa] flex items-center justify-center border border-stone-100">
-         <Link href={detailHref(p.id)} onClick={event=>{if(event.button===0&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey&&!event.altKey)remember(p.id);}} className="block h-full w-full">
-          <img
-           src={p.image_url||'/images/products/coming-soon.png'}
-           alt={productName(p,language)}
-           loading="lazy"
-           className="h-full w-full object-contain p-1.5 transition-transform duration-300 group-hover:scale-105"
-          />
-         </Link>
-         <button
-          type="button"
-          aria-label={productName(p,language)+' '+(exportMode?ui('RFQ 담기'):ui('구매함 담기'))}
-          onClick={(e)=>{
-           e.preventDefault();
-           e.stopPropagation();
-           if(exportMode){rfq.add(p.id,1);}
-           else{addToCart(p,1,undefined,undefined,'ea',undefined,undefined,false);}
-          }}
-          className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-lg border border-stone-300 bg-white/95 text-stone-700 shadow-sm transition hover:bg-stone-50 hover:text-green-800"
-         >
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-           <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
-          </svg>
-         </button>
+      return <article key={p.id} id={productAnchor(p.id)} tabIndex={-1} className="min-w-0 scroll-mt-4 rounded-xl border border-stone-200 bg-white p-3 outline-green-700 grid grid-cols-[64px_minmax(0,1fr)] gap-3 sm:flex sm:flex-col sm:justify-between sm:p-3 sm:shadow-sm sm:hover:shadow-md sm:hover:border-stone-300 transition-all">
+       <div className="relative aspect-square w-16 sm:w-full overflow-hidden rounded-lg bg-stone-50 flex items-center justify-center border border-stone-100">
+        <Link href={detailHref(p.id)} onClick={event=>{if(event.button===0&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey&&!event.altKey)remember(p.id);}} className="block h-full w-full">
+         <img
+          src={p.image_url||'/images/products/coming-soon.png'}
+          alt={productName(p,language)}
+          loading="lazy"
+          className="h-full w-full object-contain p-1 sm:p-2 transition-transform duration-300 group-hover:scale-105"
+         />
+        </Link>
+        <button
+         type="button"
+         aria-label={productName(p,language)+' '+(exportMode?ui('RFQ 담기'):ui('구매함 담기'))}
+         onClick={(e)=>{
+          e.preventDefault();
+          e.stopPropagation();
+          if(exportMode){rfq.add(p.id,1);}
+          else{addToCart(p,1,undefined,undefined,'ea',undefined,undefined,false);}
+         }}
+         className="hidden sm:flex absolute bottom-2 right-2 h-8 w-8 items-center justify-center rounded-lg border border-stone-300 bg-white/95 text-stone-700 shadow-sm transition hover:bg-stone-50 hover:text-green-800"
+        >
+         <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+         </svg>
+        </button>
+       </div>
+       <div className="min-w-0 sm:mt-2.5 sm:flex-1">
+        <div>
+         {exportMode ? (
+          <span className="inline-block rounded border border-amber-300 bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900">
+           {text('수출용', 'Export')}
+          </span>
+         ) : (
+          <span className="inline-block rounded border border-emerald-300 bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-900">
+           {text('직배송', 'Direct Delivery')}
+          </span>
+         )}
         </div>
-        <div className="mt-2.5">
-         <div>
-          {exportMode ? (
-           <span className="inline-block rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">
-            {text('수출용', 'Export')}
-           </span>
-          ) : (
-           <span className="inline-block rounded bg-[#e8f7ee] px-1.5 py-0.5 text-[10px] font-semibold text-[#16a34a]">
-            {text('직배송', 'Direct Delivery')}
-           </span>
-          )}
-         </div>
-         <p className="mt-1 truncate text-xs font-medium text-stone-500">
-          {brandLabel(p.brand||'',language)||(language==='ko'?'온국민 신선몰':'Songfood Direct')}
-         </p>
-         <Link
-          href={detailHref(p.id)}
-          onClick={event=>{if(event.button===0&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey&&!event.altKey)remember(p.id);}}
-          className="mt-1 block text-xs sm:text-sm font-normal text-stone-900 leading-snug line-clamp-2 min-h-[2.5rem] hover:text-green-800"
-         >
-          {productName(p,language)}
-         </Link>
-         <div className="mt-2 space-y-0.5">
-          {p.price ? (
-           <>
-            {discountPct > 0 && p.original_price ? (
-             <div className="flex flex-wrap items-baseline gap-1">
-              <span className="text-xs sm:text-sm font-extrabold text-[#f97316]">
-               {discountPct}%
-              </span>
-              <span className="text-xs sm:text-sm font-bold text-stone-900">
-               {p.price.toLocaleString()}원
-              </span>
-              <span className="text-[10px] sm:text-xs text-stone-400 line-through">
-               {p.original_price.toLocaleString()}원
-              </span>
-             </div>
-            ) : (
-             <div className="flex items-baseline gap-1">
-              <span className="text-xs sm:text-sm font-bold text-stone-900">
-               {p.price.toLocaleString()}원
-              </span>
-             </div>
-            )}
-            {couponPrice && (
-             <div className="text-xs font-bold text-[#f97316]">
-              <span className="mr-1 text-[11px] font-semibold">쿠폰가</span>
-              {couponPrice.toLocaleString()}원
-             </div>
-            )}
-            <div className="pt-0.5">
-             <span className="inline-flex items-center gap-1 rounded border border-rose-200 bg-rose-50/70 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-medium text-rose-600">
-              <svg className="h-2.5 w-2.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-               <path d="M2.5 4A1.5 1.5 0 001 5.5v1.6a2 2 0 010 3.8v1.6A1.5 1.5 0 002.5 14h15a1.5 1.5 0 001.5-1.5v-1.6a2 2 0 010-3.8V5.5A1.5 1.5 0 0017.5 4h-15zM7 7.5a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm0 3.5a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1z" />
-              </svg>
-              <span>{text('쿠폰 받으면 20% 더', 'Extra 20% off with coupon')}</span>
+        <p className="mt-1 truncate text-xs font-medium text-stone-700">
+         {p.sku ? p.sku + ' · ' : ''}{brandLabel(p.brand||'',language)||(language==='ko'?'온국민 신선몰':'Songfood Direct')}
+        </p>
+        <Link
+         href={detailHref(p.id)}
+         onClick={event=>{if(event.button===0&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey&&!event.altKey)remember(p.id);}}
+         className="mt-1 block text-xs sm:text-sm font-semibold text-stone-900 leading-snug line-clamp-2 min-h-[2.5rem] hover:text-green-800"
+        >
+         {productName(p,language)}
+        </Link>
+        <div className="mt-1.5 space-y-0.5">
+         {p.price ? (
+          <>
+           {discountPct > 0 && p.original_price ? (
+            <div className="flex flex-wrap items-baseline gap-1">
+             <span className="text-xs sm:text-sm font-extrabold text-amber-900">
+              {discountPct}%
+             </span>
+             <span className="text-xs sm:text-sm font-bold text-stone-900">
+              {p.price.toLocaleString()}원
+             </span>
+             <span className="text-[10px] sm:text-xs text-stone-600 line-through">
+              {p.original_price.toLocaleString()}원
              </span>
             </div>
-           </>
-          ) : null}
-         </div>
+           ) : (
+            <div className="flex items-baseline gap-1">
+             <span className="text-xs sm:text-sm font-bold text-stone-900">
+              {p.price.toLocaleString()}원
+             </span>
+            </div>
+           )}
+           {couponPrice && (
+            <div className="text-xs font-bold text-amber-900">
+             <span className="mr-1 text-[11px] font-semibold text-stone-700">쿠폰가</span>
+             {couponPrice.toLocaleString()}원
+            </div>
+           )}
+           <div className="pt-0.5">
+            <span className="inline-flex items-center gap-1 rounded border border-rose-300 bg-rose-100 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-semibold text-rose-900">
+             <svg aria-hidden="true" className="h-2.5 w-2.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2.5 4A1.5 1.5 0 001 5.5v1.6a2 2 0 010 3.8v1.6A1.5 1.5 0 002.5 14h15a1.5 1.5 0 001.5-1.5v-1.6a2 2 0 010-3.8V5.5A1.5 1.5 0 0017.5 4h-15zM7 7.5a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm0 3.5a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1z" />
+             </svg>
+             <span>{text('쿠폰 받으면 20% 더', 'Extra 20% off with coupon')}</span>
+            </span>
+           </div>
+          </>
+         ) : null}
         </div>
+        <p className="mt-1 text-xs text-stone-700">
+         {p.net_weight||p.format||text('규격 확인 필요','Specification to confirm')} · {p.storage||ui('보관조건 확인 필요')}
+        </p>
+        <Link href={catalogueHref(search,{collection:p.collection,category:p.category||'',page:'1'})} className="mt-0.5 inline-flex min-h-8 items-center text-xs text-green-900 underline">
+         {categoryLabel(p.category||p.collection,language)}
+        </Link>
        </div>
-       <div className="mt-2.5 border-t border-stone-100 pt-2 min-w-0">
-        {exportMode?<div className="space-y-0.5 text-[11px] leading-4 text-stone-600"><p className="font-semibold text-stone-900">{text('해외 카톤 견적','Export carton quotation')}</p><p className="text-[10px]">{text('FOB 조건은 RFQ에서 확인','Review FOB terms in RFQ')}</p></div>:<ProductPrice product={p}/>}
+       <div className="col-span-2 min-w-0 border-t border-stone-100 pt-2 sm:col-span-1 sm:mt-2.5">
+        {exportMode?(
+         <div className="space-y-0.5 text-[11px] leading-4 text-stone-700">
+          <p className="font-semibold text-stone-900">{text('해외 카톤 견적','Export carton quotation')}</p>
+          <p className="text-[10px]">{text('VAT 제외 FOB 조건은 RFQ에서 확인합니다.','Review VAT-excluded FOB terms in your RFQ.')}</p>
+         </div>
+        ):(
+         <ProductPrice product={p}/>
+        )}
         <QuickOrder key={String(exportMode)} product={p} exportMode={exportMode}/>
        </div>
       </article>;
