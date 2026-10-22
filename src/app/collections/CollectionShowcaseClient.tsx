@@ -148,7 +148,7 @@ export default function CollectionShowcaseClient({initialProducts}:{initialProdu
       if (list) {
        return <article key={p.id} id={productAnchor(p.id)} tabIndex={-1} className="min-w-0 scroll-mt-4 rounded-xl border border-stone-200 bg-white p-3 outline-green-700 grid grid-cols-[64px_minmax(0,1fr)] gap-3 sm:grid-cols-[80px_minmax(0,1fr)] xl:grid-cols-[80px_minmax(0,1fr)_minmax(220px,260px)]">
         <Link href={detailHref(p.id)} onClick={event=>{if(event.button===0&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey&&!event.altKey)remember(p.id);}} className="block">
-         <img src={p.image_url||'/images/products/coming-soon.png'} alt={productName(p,language)} loading="lazy" className="aspect-square w-16 rounded-lg object-cover sm:w-20"/>
+         <img src={p.image_url||'/images/products/coming-soon.png'} alt={productName(p,language)} loading="lazy" className="aspect-square w-[64px] max-w-[64px] rounded-lg object-cover sm:w-20 sm:max-w-none"/>
         </Link>
         <div className="min-w-0">
          <div className="mb-1">
@@ -180,7 +180,7 @@ export default function CollectionShowcaseClient({initialProducts}:{initialProdu
        </article>;
       }
       return <article key={p.id} id={productAnchor(p.id)} tabIndex={-1} className="min-w-0 scroll-mt-4 rounded-xl border border-stone-200 bg-white p-3 outline-green-700 grid grid-cols-[64px_minmax(0,1fr)] gap-3 sm:flex sm:flex-col sm:justify-between sm:p-3 sm:shadow-sm sm:hover:shadow-md sm:hover:border-stone-300 transition-all">
-       <div className="relative aspect-square w-16 sm:w-full overflow-hidden rounded-lg bg-stone-50 flex items-center justify-center border border-stone-100">
+       <div className="relative aspect-square w-[64px] max-w-[64px] h-[64px] max-h-[64px] sm:w-full sm:h-auto sm:max-w-none sm:max-h-none overflow-hidden rounded-lg bg-stone-50 flex items-center justify-center border border-stone-100 shrink-0">
         <Link href={detailHref(p.id)} onClick={event=>{if(event.button===0&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey&&!event.altKey)remember(p.id);}} className="block h-full w-full">
          <img
           src={p.image_url||'/images/products/coming-soon.png'}
