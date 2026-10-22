@@ -24,6 +24,7 @@ export default async function FoodLabelingPage({
   return (
     <main>
       <LabelingShowcaseClient
+        key={`${params.product || ''}-${params.country || ''}`}
         initialLabels={initialLabels}
         products={products}
         initialProductId={params.product}

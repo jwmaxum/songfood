@@ -1,48 +1,27 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   ShieldCheck,
-  Globe2,
-  FileCheck2,
   Sparkles,
   AlertTriangle,
-  Barcode,
-  Calendar,
-  Layers,
-  Award,
   CheckCircle2,
-  ExternalLink,
-  ChevronRight,
   Info,
   ArrowRight,
-  Check,
-  Building2,
-  Clock,
   Printer,
   Search,
   Filter,
-  Package,
-  Tag,
-  CheckCheck
+  Package
 } from 'lucide-react';
 import { FoodLabel, ExportCountry } from '@/types/label';
 import { ProductItem } from '@/lib/types';
 import { validateLabel, ValidationResult, ValidationInput } from '@/lib/label-compliance';
 import {
   calculateGlobalNutrition,
-  BaseNutritionInput,
   GlobalNutritionResult
 } from '@/lib/nutrition-calculator';
-import {
-  USNutritionFactsPanel,
-  ChinaNutritionTable,
-  JapanNutritionList,
-  EUNutritionTable,
-  UAETrafficLightPanel,
-  DualNutritionBox
-} from '@/components/labels/nutrition';
+import { DualNutritionBox } from '@/components/labels/nutrition';
 
 interface Props {
   initialLabels: FoodLabel[];
@@ -301,17 +280,21 @@ export default function LabelingShowcaseClient({ initialLabels, products = [], i
     return productList[0]?.id || initialLabels[0]?.productId || 'prod-kmc-poggi-5k';
   });
 
-  useEffect(() => {
+  const [prevInitialProductId, setPrevInitialProductId] = useState(initialProductId);
+  if (initialProductId !== prevInitialProductId) {
+    setPrevInitialProductId(initialProductId);
     if (initialProductId && productList.some((p) => p.id === initialProductId)) {
       setSelectedProductId(initialProductId);
     }
-  }, [initialProductId, productList]);
+  }
 
-  useEffect(() => {
+  const [prevInitialCountry, setPrevInitialCountry] = useState(initialCountry);
+  if (initialCountry !== prevInitialCountry) {
+    setPrevInitialCountry(initialCountry);
     if (initialCountry) {
       setSelectedCountry(initialCountry);
     }
-  }, [initialCountry]);
+  }
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('전체');
 
@@ -388,8 +371,6 @@ export default function LabelingShowcaseClient({ initialLabels, products = [], i
     ironMg: 1.6,
     potassiumMg: 160,
   });
-
-  const reg = REGULATION_SUMMARIES[selectedCountry];
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-stone-900 selection:bg-emerald-100 selection:text-emerald-900 pb-24">

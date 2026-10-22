@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { getJournalBySlug } from '@/lib/journal-db';
-import { Calendar, ArrowLeft, Tag, Share2 } from 'lucide-react';
+import { Calendar, ArrowLeft } from 'lucide-react';
 
 export default async function NewsEventsDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
