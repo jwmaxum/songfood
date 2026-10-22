@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   ShieldCheck,
@@ -47,6 +47,8 @@ import {
 interface Props {
   initialLabels: FoodLabel[];
   products?: ProductItem[];
+  initialProductId?: string;
+  initialCountry?: ExportCountry;
 }
 
 const COUNTRIES: { code: ExportCountry; name: string; flag: string; authority: string; primaryLang: string }[] = [
@@ -263,8 +265,8 @@ const SIMULATION_PRESETS: { id: string; name: string; country: ExportCountry; fl
   }
 ];
 
-export default function LabelingShowcaseClient({ initialLabels, products = [] }: Props) {
-  const [selectedCountry, setSelectedCountry] = useState<ExportCountry>('US');
+export default function LabelingShowcaseClient({ initialLabels, products = [], initialProductId, initialCountry }: Props) {
+  const [selectedCountry, setSelectedCountry] = useState<ExportCountry>(initialCountry || 'US');
   const [activeTab, setActiveTab] = useState<'matrix' | 'live_preview' | 'compliance' | 'nutrition_calc'>('live_preview');
 
   // 상품 선택 및 검색 상태
@@ -293,8 +295,23 @@ export default function LabelingShowcaseClient({ initialLabels, products = [] }:
   }));
 
   const [selectedProductId, setSelectedProductId] = useState<string>(() => {
+    if (initialProductId && productList.some((p) => p.id === initialProductId)) {
+      return initialProductId;
+    }
     return productList[0]?.id || initialLabels[0]?.productId || 'prod-kmc-poggi-5k';
   });
+
+  useEffect(() => {
+    if (initialProductId && productList.some((p) => p.id === initialProductId)) {
+      setSelectedProductId(initialProductId);
+    }
+  }, [initialProductId, productList]);
+
+  useEffect(() => {
+    if (initialCountry) {
+      setSelectedCountry(initialCountry);
+    }
+  }, [initialCountry]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('전체');
 
@@ -318,9 +335,25 @@ export default function LabelingShowcaseClient({ initialLabels, products = [] }:
   const activeProduct = productList.find((p) => p.id === selectedProductId) || productList[0];
 
   // 현재 선택된 상품 및 국가의 라벨 데이터
-  const activeLabel = initialLabels.find((l) => l.productId === selectedProductId && l.country === selectedCountry)
+  const rawLabel = initialLabels.find((l) => l.productId === selectedProductId && l.country === selectedCountry)
     || initialLabels.find((l) => l.country === selectedCountry)
     || initialLabels[0];
+
+  const activeLabel = activeProduct && rawLabel ? {
+    ...rawLabel,
+    productId: activeProduct.id,
+    productNameLocal: activeProduct.name || rawLabel.productNameLocal,
+    productNameEn: activeProduct.name_en || rawLabel.productNameEn,
+    productCategoryLocal: activeProduct.category || rawLabel.productCategoryLocal,
+    hsCode: activeProduct.hs_code || rawLabel.hsCode,
+    header: {
+      ...rawLabel.header,
+      hsCode: activeProduct.hs_code || rawLabel.header?.hsCode || '',
+      productNameKo: activeProduct.name || rawLabel.header?.productNameKo || '',
+      productNameEn: activeProduct.name_en || rawLabel.header?.productNameEn || '',
+      legalProductType: activeProduct.category || rawLabel.header?.legalProductType || '',
+    }
+  } : rawLabel;
 
   // 인터랙티브 컴플라이언스 시뮬레이터 상태
   const [activePresetId, setActivePresetId] = useState<string>('us_fail');

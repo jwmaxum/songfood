@@ -79,6 +79,29 @@ export default function ProductDetailClient({
           <Link href={switchHref('export')} aria-current={navigation.mode === 'export' ? 'page' : undefined} className={'inline-flex min-h-11 items-center rounded-lg border px-4 py-2 ' + (navigation.mode === 'export' ? 'border-amber-700 bg-amber-700 text-white' : 'border-stone-300 bg-white text-stone-800')}>{text('해외 RFQ', 'Export RFQ')}</Link>
         </nav>
         {navigation.mode === 'export' ? <ExportSelection productId={product.id} reviewHref={'/rfq?mode=export&lang=' + language} /> : <PurchasePanel product={product} />}
+        {navigation.mode === 'export' && (
+          <div className="rounded-xl border border-amber-300 bg-amber-50/80 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold text-amber-950">
+                  {text('수출국별 라벨 및 스펙시트', 'Export Label & Master Spec Sheet')}
+                </p>
+                <p className="mt-1 text-xs leading-5 text-stone-700">
+                  {text('미국 FDA, 중국 GACC, 일본 CAA, EU EFSA, 중동 MoIAT 5대 권역 규정 스펙시트 및 라벨 규격을 즉시 확인하세요.', 'Review country-specific master labels, nutrition facts, and compliance spec sheets.')}
+                </p>
+              </div>
+              <span className="shrink-0 text-xl" aria-hidden="true">🏷️</span>
+            </div>
+            <Link
+              href={`/labeling?product=${product.id}&mode=export&lang=${language}`}
+              target="_blank"
+              className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-amber-800 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-amber-900"
+            >
+              <span>{text('수출국별 라벨 및 스펙시트 확인', 'View Export Labels & Spec Sheets')}</span>
+              <span aria-hidden="true">&rarr;</span>
+            </Link>
+          </div>
+        )}
         <button aria-pressed={isInWishlist(product.id)} onClick={() => toggleWishlist(product)} className="min-h-11 text-sm text-green-800 underline">{isInWishlist(product.id) ? ui('관심상품에서 해제') : ui('관심상품 저장')}</button>
         <Link href={categoryHref} className="flex min-h-11 items-center text-sm text-green-800 underline">{product.category ? text(categoryLabel(product.category, language) + ' 전체 보기', 'Browse all ' + categoryLabel(product.category, language)) : text('같은 대분류 상품 보기', 'Browse this collection')}</Link>
       </div>
@@ -116,8 +139,20 @@ export default function ProductDetailClient({
         <section className="rounded-xl bg-stone-100 p-5">
           <h2 className="text-xl font-bold">{ui('수출·상품 자료')}</h2>
           <dl className="mt-4 space-y-3 text-sm">{[[ui('선적항 / Loading port'), entry?.loading_port], [ui('수출 MOQ'), entry?.export_moq_ctn ? entry.export_moq_ctn + ' CTN' : null], ['HS Code', product.hs_code], [ui('카톤 치수'), product.carton_size], [ui('총중량'), product.gross_weight ? product.gross_weight + ' kg' : null], [ui('등록 대상 국가·지역'), product.target_markets?.join(', ')], [ui('등록 인증 정보'), product.certifications?.join(', ')]].map(([label, value]) => <div key={label}><dt className="text-stone-500">{label}</dt><dd className="break-words">{value || ui('확인 필요 / To be confirmed')}</dd></div>)}</dl>
-          <p className="mt-4 text-xs text-stone-600">{ui('대상국·인증 표기는 등록 자료이며 최종 수출 적합성이나 증명서 발급을 보장하지 않습니다. 필요한 라벨·성분·인증 서류를 RFQ에 적어 주세요.')}</p>
-          <Link href={'/catalogues?lang=' + language + (navigation.mode === 'export' ? '&mode=export' : '')} className="mt-4 inline-flex min-h-11 items-center text-sm text-green-800 underline">{ui('상품 자료실')}</Link>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            {navigation.mode === 'export' && (
+              <Link
+                href={`/labeling?product=${product.id}&mode=export&lang=${language}`}
+                target="_blank"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-amber-800 bg-white px-3.5 py-2 text-xs font-bold text-amber-900 shadow-sm transition hover:bg-amber-50"
+              >
+                <span aria-hidden="true">🏷️</span>
+                <span>{text('수출국별 라벨 및 스펙시트', 'Export Label & Spec Sheet')}</span>
+                <span aria-hidden="true">&nearr;</span>
+              </Link>
+            )}
+            <Link href={'/catalogues?lang=' + language + (navigation.mode === 'export' ? '&mode=export' : '')} className="inline-flex min-h-11 items-center text-sm text-green-800 underline">{ui('상품 자료실')}</Link>
+          </div>
         </section>
       </div>
     </section>

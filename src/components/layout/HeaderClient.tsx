@@ -46,7 +46,7 @@ export default function HeaderClient({menus}:{menus:MenuItem[]}) {
     <details ref={company} onKeyDown={e=>{if(e.key==='Escape'&&company.current){company.current.open=false;company.current.querySelector('summary')?.focus();}}} className="relative hidden lg:block">
      <summary className="min-h-11 cursor-pointer px-3 py-3 text-sm">{text('회사·자료','Company')}</summary>
      <nav aria-label={text('회사 및 자료 메뉴','Company links')} className="absolute right-0 top-full z-50 w-60 rounded-xl border bg-white p-3 shadow-lg">
-      <Link href="/about" className="block p-3 text-sm">{text('회사 소개','About us')}</Link><Link href="/catalogues" className="block p-3 text-sm">{text('상품 자료실','Product resources')}</Link><CmsLinks menus={menus} section="company"/>
+      <Link href="/about" className="block p-3 text-sm">{text('회사 소개','About us')}</Link><Link href="/catalogues" className="block p-3 text-sm">{text('상품 자료실','Product resources')}</Link><Link href="/labeling" className="block p-3 text-sm">{text('수출 라벨링 시스템','Export labeling')}</Link><CmsLinks menus={menus} section="company"/>
      </nav>
     </details>
    </div>
@@ -54,7 +54,7 @@ export default function HeaderClient({menus}:{menus:MenuItem[]}) {
   <div className="mx-auto flex max-w-7xl items-start gap-2 px-4 pb-2 sm:px-6"><CatalogueSearch compact id="header-product-search" params={contextParams}/><CategoryNavigation compact params={contextParams} menus={menus}/></div>
   <nav id="mobile-menu" hidden={!open} aria-label={text('모바일 메뉴','Mobile navigation')} onKeyDown={e=>{if(e.key==='Escape'){close();button.current?.focus();}}} className="border-t border-stone-200 px-4 py-3 lg:hidden">
    {links.map(({href,title,current})=><Link key={title} href={href} onClick={close} aria-current={current?'page':undefined} className="block rounded px-3 py-3 text-sm font-semibold hover:bg-green-50 aria-[current=page]:bg-green-100">{title}</Link>)}
-   <Link href="/about" onClick={close} className="block px-3 py-3 text-sm">{text('회사 소개','About us')}</Link><Link href="/catalogues" onClick={close} className="block px-3 py-3 text-sm">{text('상품 자료실','Product resources')}</Link><CmsLinks menus={menus} section="company" onNavigate={close}/>
+   <Link href="/about" onClick={close} className="block px-3 py-3 text-sm">{text('회사 소개','About us')}</Link><Link href="/catalogues" onClick={close} className="block px-3 py-3 text-sm">{text('상품 자료실','Product resources')}</Link><Link href="/labeling" onClick={close} className="block px-3 py-3 text-sm">{text('수출 라벨링 시스템','Export labeling')}</Link><CmsLinks menus={menus} section="company" onNavigate={close}/>
   </nav>
  </header>;
 }

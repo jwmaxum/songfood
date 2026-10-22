@@ -160,7 +160,21 @@ export default function CollectionShowcaseClient({initialProducts}:{initialProdu
          <Link href={catalogueHref(search,{collection:p.collection,category:p.category||'',page:'1'})} className="mt-1 inline-flex min-h-11 items-center text-xs text-green-900 underline">{categoryLabel(p.category||p.collection,language)}</Link>
         </div>
         <div className="col-span-2 min-w-0 border-t border-stone-100 pt-2 xl:col-span-1 xl:border-t-0 xl:pt-0">
-         {exportMode?<div className="space-y-1 text-xs leading-5 text-stone-700"><p className="font-semibold text-stone-900">{text('해외 카톤 견적','Export carton quotation')}</p><p>{text('VAT 제외 FOB 조건은 RFQ에서 확인합니다.','Review VAT-excluded FOB terms in your RFQ.')}</p></div>:<ProductPrice product={p}/>}
+         {exportMode?(
+          <div className="space-y-1 text-xs leading-5 text-stone-700">
+           <p className="font-semibold text-stone-900">{text('해외 카톤 견적','Export carton quotation')}</p>
+           <p>{text('VAT 제외 FOB 조건은 RFQ에서 확인합니다.','Review VAT-excluded FOB terms in your RFQ.')}</p>
+           <Link
+            href={`/labeling?product=${p.id}&mode=export&lang=${language}`}
+            target="_blank"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-amber-900 hover:text-amber-950 underline"
+           >
+            <span aria-hidden="true">🏷️</span>
+            <span>{text('수출국별 라벨·스펙시트', 'Export Label & Spec')}</span>
+            <span aria-hidden="true">&nearr;</span>
+           </Link>
+          </div>
+         ):<ProductPrice product={p}/>}
          <QuickOrder key={String(exportMode)} product={p} exportMode={exportMode}/>
         </div>
        </article>;
@@ -264,6 +278,17 @@ export default function CollectionShowcaseClient({initialProducts}:{initialProdu
          <div className="space-y-0.5 text-[11px] leading-4 text-stone-700">
           <p className="font-semibold text-stone-900">{text('해외 카톤 견적','Export carton quotation')}</p>
           <p className="text-[10px]">{text('VAT 제외 FOB 조건은 RFQ에서 확인합니다.','Review VAT-excluded FOB terms in your RFQ.')}</p>
+          <div className="pt-1">
+           <Link
+            href={`/labeling?product=${p.id}&mode=export&lang=${language}`}
+            target="_blank"
+            className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-900 hover:text-amber-950 underline"
+           >
+            <span aria-hidden="true">🏷️</span>
+            <span>{text('수출국별 라벨·스펙시트', 'Export Label & Spec')}</span>
+            <span aria-hidden="true">&nearr;</span>
+           </Link>
+          </div>
          </div>
         ):(
          <ProductPrice product={p}/>
